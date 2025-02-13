@@ -1,6 +1,7 @@
 module terminal;
 import window;
 import input;
+import renderer;
 import glfw;
 
 fn int main(String[] args)
@@ -18,10 +19,14 @@ fn int main(String[] args)
 
     input::InputButton* quitInput = inputHandler.getInput("quit")!!;
 
+    renderer::Renderer* renderer = renderer::create();
+    defer renderer.free();
+
     while (!window.shouldClose)
     {
-        inputHandler.processInput(window);
+        renderer.render();
 
+        inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
 
         window.clearColor(0.2f, 0.3f, 0.3f);
