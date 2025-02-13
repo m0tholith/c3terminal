@@ -63,10 +63,10 @@ fn void Window.clearColor(Window* window, float red, float green, float blue)
  *>
 fn void Window.refresh(Window* window)
 {
-    gl::clear(gl::GL_COLOR_BUFFER_BIT);
-
     glfw::swapBuffers(window.glfwWin);
     glfw::pollEvents();
+
+    gl::clear(gl::GL_COLOR_BUFFER_BIT);
 
     glfw::setWindowShouldClose(window, (int)window.shouldClose);
 }

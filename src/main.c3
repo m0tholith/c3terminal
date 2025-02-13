@@ -29,8 +29,8 @@ fn int main(String[] args)
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
 
-        window.clearColor(0.2f, 0.3f, 0.3f);
         window.refresh();
+        window.clearColor(0.2f, 0.3f, 0.3f);
     }
 
 	return 0;
