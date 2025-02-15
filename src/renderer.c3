@@ -1,6 +1,9 @@
 module renderer;
 import std::io;
 import std::core::mem;
+import std::math;
+import std::math::matrix;
+
 import opengl;
 
 struct Vector2
@@ -27,6 +30,8 @@ struct Renderer
     uint vbo;
     uint ebo;
     uint shader;
+    matrix::Matrix3x3(<float>) transform;
+    uint transformUniformLocation;
 }
 
 ZString vertexShaderSource    = `
@@ -36,9 +41,10 @@ layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 vertUV;
 
 out vec2 vUV;
+uniform mat3 transform;
 
 void main() {
-    gl_Position = vec4(vertPos.x, vertPos.y, vertPos.z, 1.0);
+    gl_Position = vec4(vec2(transform * vertPos), 0.0, 1.0);
     vUV = vertUV;
 }
 `;
@@ -61,10 +67,10 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { { 1.0, 1.0, 0.0 }, { 1.0, 1.0 } }, // top right
-                          { { 1.0,-1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
-                          { {-1.0, 1.0, 0.0 }, { 0.0, 1.0 } }, // top left
+                          { { 1.0, 1.0, 1.0 }, { 1.0, 1.0 } }, // top right
+                          { { 1.0,-1.0, 1.0 }, { 1.0, 0.0 } }, // bottom right
+                          { {-1.0,-1.0, 1.0 }, { 0.0, 0.0 } }, // bottom left
+                          { {-1.0, 1.0, 1.0 }, { 0.0, 1.0 } }, // top left
                         }; 
     renderer.indices = {
                          0, 1, 3,
@@ -130,6 +136,9 @@ fn Renderer* create()
         io::eprintfn("Failed to compile shader program: %s", infoLog);
     }
 
+    renderer.transform = matrix::IDENTITY3(<float>);
+    renderer.transformUniformLocation = gl::getUniformLocation(renderer.shader, "transform");
+
     return renderer;
 }
 
@@ -137,6 +146,7 @@ fn void Renderer.render(Renderer* renderer)
 {
     gl::useProgram(renderer.shader);
     gl::bindVertexArray(renderer.vao);
+    gl::uniformMatrix3fv(renderer.transformUniformLocation, 1, true, (void*)&renderer.transform);
     gl::drawElements(gl::GL_TRIANGLES, renderer.indices.len, gl::GL_UNSIGNED_INT, (void*)0);
 }
 

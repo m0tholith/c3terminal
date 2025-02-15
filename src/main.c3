@@ -16,7 +16,7 @@ fn int main(String[] args)
     window::initSystem();
     defer window::terminateSystem();
 
-    window::Window* window = window::create(256, 512, "m0th")!!;
+    window::Window* window = window::create(800, 600, "m0th")!!;
 
     input::InputHandler* inputHandler = input::createHandler(input::InputButton[] {
         { "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 }
@@ -28,12 +28,12 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glyph::Glyph* glyph = glyph::create('i');
+    glyph::Glyph* glyph = glyph::create('i', 25);
     defer glyph.free();
 
     while (!window.shouldClose)
     {
-        glyph.render();
+        glyph.render(window, 200, 100, 12, 20);
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;

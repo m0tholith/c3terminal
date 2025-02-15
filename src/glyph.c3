@@ -2,10 +2,12 @@ module glyph;
 
 import std::io;
 import std::math;
+import std::math::matrix;
 import std::core::mem;
 
-import schrift;
 import opengl;
+import schrift;
+import window;
 import renderer;
 
 struct Glyph
@@ -16,14 +18,14 @@ struct Glyph
     Renderer* renderer;
 }
 
-fn Glyph* create(schrift::UChar codepoint, int scaling = 25)
+fn Glyph* create(schrift::UChar codepoint, int scaling = 16)
 {
     Glyph* out = mem::new(Glyph);
     
     int s = scaling;
     schrift::Sft sft = {
-        .xScale = 16.0 * s,
-        .yScale = 16.0 * s,
+        .xScale = s,
+        .yScale = s,
     };
 
     sft.font = schrift::loadfile("test.ttf");
@@ -82,8 +84,16 @@ fn Glyph* create(schrift::UChar codepoint, int scaling = 25)
 
     return out;
 }
-fn void Glyph.render(Glyph* self)
+fn void Glyph.render(Glyph* self, window::Window* window, float x, float y, int width, int height)
 {
+    x = x / window.width  * 2 - 1;
+    y = y / window.height * 2 - 1;
+    self.renderer.transform = Matrix3x3(<float>) {
+        (float)width / window.width, 0,                             x,
+        0,                           (float)height / window.height, -y,
+        0,                           0,                             1,
+    };
+
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);
     self.renderer.render();
 }
