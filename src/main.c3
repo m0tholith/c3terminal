@@ -29,7 +29,7 @@ fn int main(String[] args)
     defer schrift::freefont(sft.font);
 
     schrift::Glyph gid;  //  unsigned long gid;
-	if (schrift::lookup(&sft, 'A', &gid) < 0)
+	if (schrift::lookup(&sft, 'z', &gid) < 0)
     {
 		io::eprintn("missing glyph");
         return -1;
@@ -73,6 +73,8 @@ fn int main(String[] args)
     renderer::Renderer* renderer = renderer::create();
     defer renderer.free();
 
+    gl::enable(gl::GL_BLEND);
+    gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
     
     uint texture;
     gl::genTextures(1, &texture);
@@ -84,7 +86,7 @@ fn int main(String[] args)
     gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
     // load and generate the texture
     char* data = pixels;
-    gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RED, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, data);
+    gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, data);
     gl::generateMipmap(gl::GL_TEXTURE_2D);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
 
