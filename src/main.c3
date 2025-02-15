@@ -40,7 +40,7 @@ fn int main(String[] args)
         if (quitInput.activated()) window.shouldClose = true;
 
         window.refresh();
-        window.clearColor(0.2f, 0.3f, 0.3f);
+        window.clearColor(0, 0, 0);
     }
 
 	return 0;

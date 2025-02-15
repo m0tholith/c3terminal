@@ -52,10 +52,6 @@ fn Glyph* create(schrift::UChar codepoint, int scaling = 25)
 		.width  = (mtx.minWidth + 3) & ~3,
 		.height = mtx.minHeight,
 	};
-    io::printfn("(%d, %d)", img.width, img.height);
-    img.width = math::next_power_of_2(img.width);
-    img.height = math::next_power_of_2(img.height);
-    io::printfn("(%d, %d)", img.width, img.height);
 	char* pixels = mem::new_array(char, (usz)img.width * (usz)img.height);
     defer mem::free(pixels);
 	img.pixels = pixels;
