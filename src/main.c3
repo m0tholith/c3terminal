@@ -17,7 +17,6 @@ fn int main(String[] args)
     defer window::terminateSystem();
 
     window::Window* window = window::create(256, 512, "m0th")!!;
-    defer window.free();
 
     input::InputHandler* inputHandler = input::createHandler(input::InputButton[] {
         { "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 }

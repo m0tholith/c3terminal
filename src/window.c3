@@ -1,9 +1,10 @@
 module window;
 import std::io;
 import std::core::mem;
+import std::collections::list;
+
 import glfw;
 import opengl;
-// const GL_VERSION = 42;
 
 fault WindowError
 {
@@ -14,16 +15,25 @@ struct Window
 {
     glfw::Window* glfwWin;
     bool shouldClose;
+    uint width;
+    uint height;
 }
+List(<Window*>) windows @local;
 
 fn void initSystem()
 {
     glfw::initHint(0x00050003, 0x00060004);
     glfw::init();
+    windows.new_init();
 }
 fn void terminateSystem()
 {
     glfw::terminate();
+    foreach (window : windows)
+    {
+        window.free();
+    }
+    windows.free();
 }
 
 fn Window*! create(int width, int height, ZString name)
@@ -40,11 +50,16 @@ fn Window*! create(int width, int height, ZString name)
         glfw::terminate();
         return WindowError.WINDOW_FAILED_INIT?;
     }
+    glfw::setWindowSizeCallback(glfwWin, &windowSizeCallback);
     glfw::makeContextCurrent(glfwWin);
     gl::viewport(0, 0, width, height);
 
     Window* window = mem::new(Window);
     window.glfwWin = glfwWin;
+    window.width = width;
+    window.height = height;
+
+    windows.push(window);
 
     return window;
 }
@@ -69,10 +84,28 @@ fn void Window.clearColor(Window* window, float red, float green, float blue)
  *>
 fn void Window.refresh(Window* window)
 {
+    glfw::makeContextCurrent(window.glfwWin);
+
     glfw::swapBuffers(window.glfwWin);
     glfw::pollEvents();
 
     gl::clear(gl::GL_COLOR_BUFFER_BIT);
 
-    glfw::setWindowShouldClose(window, (int)window.shouldClose);
+    if (glfw::windowShouldClose(window.glfwWin) != (int)window.shouldClose)
+    {
+        glfw::setWindowShouldClose(window.glfwWin, (int)window.shouldClose);
+    }
+    gl::viewport(0, 0, window.width, window.height);
+}
+
+fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height)
+{
+    foreach (window : windows)
+    {
+        if (window.glfwWin == glfwWin)
+        {
+            window.width = width;
+            window.height = height;
+        }
+    }
 }
