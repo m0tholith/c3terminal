@@ -3,7 +3,7 @@ import std::io;
 import std::core::mem;
 import glfw;
 import opengl;
-const GL_VERSION = 33;
+// const GL_VERSION = 42;
 
 fault WindowError
 {
@@ -27,9 +27,10 @@ fn void terminateSystem()
 
 fn Window*! create(int width, int height, ZString name)
 {
-    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 3);
-    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 3);
-    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_COMPAT_PROFILE);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 4);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
+    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
+    glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
     glfw::windowHint(glfw::RESIZABLE, 0);
     glfw::Window* glfwWin = glfw::createWindow(width, height, name, null, null);
     if (glfwWin == null)

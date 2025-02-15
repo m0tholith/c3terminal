@@ -21,9 +21,11 @@ struct Vertex
 }
 struct Renderer
 {
-    Vertex[6] vertices;
+    Vertex[4] vertices;
+    uint[6]   indices;
     uint vao;
     uint vbo;
+    uint ebo;
     uint shader;
 }
 
@@ -49,33 +51,44 @@ uniform sampler2D tex;
 out vec4 FragColor;
 
 void main() {
-    FragColor = vec4(texture(tex, vUV).r);
+    FragColor = vec4(texture(tex, vUV));
 }
 `;
 
 fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
-    renderer.vertices = { { {-0.5,-0.5, 0.0 }, { 0.0, 0.0 } },
-                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } },
-                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } },
-
-                          { { 0.5, 0.5, 0.0 }, { 1.0, 1.0 } },
-                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } },
-                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } } }; 
+    renderer.vertices = { 
+                          { { 0.5, 0.5, 0.0 }, { 1.0, 1.0 } }, // top right
+                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } }, // bottom right
+                          { {-0.5,-0.5, 0.0 }, { 0.0, 0.0 } }, // bottom left
+                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } }, // top left
+                        }; 
+    renderer.indices = {
+                         0, 1, 3,
+                         1, 2, 3
+                       };
 
     gl::genVertexArrays(1, &renderer.vao);
+    gl::genBuffers(1, &renderer.vbo);
+    gl::genBuffers(1, &renderer.ebo);
+
     gl::bindVertexArray(renderer.vao);
 
-    gl::genBuffers(1, &renderer.vbo);
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, renderer.vertices.len * Vertex.sizeof, (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
+
+    gl::bindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
+    gl::bufferData(gl::GL_ELEMENT_ARRAY_BUFFER, $sizeof(renderer.indices), (void*)&renderer.indices, gl::GL_STATIC_DRAW);
 
     int attr = 0;
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.position.sizeof, (void*)Vertex.position.offsetof);
+    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
     gl::enableVertexAttribArray(attr++);
-    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.uv.sizeof, (void*)Vertex.uv.offsetof);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.uv.offsetof);
     gl::enableVertexAttribArray(attr++);
+
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
+    gl::bindVertexArray(0);
 
     bool success;
     char[512] infoLog;
@@ -122,13 +135,14 @@ fn void Renderer.render(Renderer* renderer)
 {
     gl::useProgram(renderer.shader);
     gl::bindVertexArray(renderer.vao);
-    gl::drawArrays(gl::GL_TRIANGLES, 0, 6);
+    gl::drawElements(gl::GL_TRIANGLES, renderer.indices.len, gl::GL_UNSIGNED_INT, (void*)0);
 }
 
 fn void Renderer.free(Renderer* renderer)
 {
     gl::deleteVertexArrays(1, &renderer.vao);
     gl::deleteBuffers(1, &renderer.vbo);
+    gl::deleteBuffers(1, &renderer.ebo);
     gl::deleteProgram(renderer.shader);
     mem::free(renderer);
 }
