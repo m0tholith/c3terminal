@@ -27,6 +27,9 @@ fn void terminateSystem()
 
 fn Window*! create(int width, int height, ZString name)
 {
+    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 3);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 3);
+    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_COMPAT_PROFILE);
     glfw::windowHint(glfw::RESIZABLE, 0);
     glfw::Window* glfwWin = glfw::createWindow(width, height, name, null, null);
     if (glfwWin == null)
