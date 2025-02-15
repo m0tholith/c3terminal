@@ -1,0 +1,118 @@
+{
+  "provides" : "schrift",
+  // "sources" : [ "src/**" ],
+  "targets" : {
+    "freebsd-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "linux-aarch64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "linux-riscv32" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "linux-riscv64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "linux-x86" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "linux-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "macos-aarch64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "macos-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "netbsd-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "openbsd-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "wasm32" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "wasm64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "windows-aarch64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+    "windows-x64" : {
+      // Extra flags to the linker for this target:
+      "link-args" : [],
+      // C3 libraries this target depends on:
+      "dependencies" : [],
+      // The external libraries to link for this target:
+      "linked-libraries" : ["schrift"]
+    },
+  }
+}

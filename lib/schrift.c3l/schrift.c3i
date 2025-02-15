@@ -1,0 +1,61 @@
+module schrift;
+
+
+const SFT_DOWNWARD_Y @builtin = 0x01;
+
+distinct Font @export("SFT_Font") = void;
+
+def UChar = uint;
+def Glyph = uint;
+
+struct Sft @export("SFT")
+{
+    Font* font;
+    double    xScale;
+    double    yScale;
+    double    xOffset;
+    double    yOffset;
+    int       flags;
+}
+
+struct LMetrics
+{
+    double ascender;
+    double descender;
+    double lineGap;
+}
+
+struct GMetrics
+{
+    double advanceWidth;
+    double leftSideBearing;
+    int    yOffset;
+    int    minWidth;
+    int    minHeight;
+}
+
+struct Kerning
+{
+    double xShift;
+    double yShift;
+}
+
+struct Image
+{
+    void* pixels;
+    int   width;
+    int   height;
+}
+
+fn ZString version() @extern("sft_version");
+
+fn Font* loadmem (void* mem, usz size) @extern("sft_loadmem");
+fn Font* loadfile(ZString filename) @extern("sft_loadfile");
+fn void  freefont(Font* font) @extern("sft_freefont");
+
+fn int lmetrics(Sft* sft, LMetrics* metrics) @extern("sft_lmetrics");
+fn int lookup  (Sft* sft, UChar codepoint, Glyph* glyph) @extern("sft_lookup");
+fn int gmetrics(Sft* sft, Glyph glyph, GMetrics* metrics) @extern("sft_gmetrics");
+fn int kerning (Sft* sft, Glyph leftGlyph, Glyph rightGlyph,
+                 Kerning* kerning) @extern("sft_kerning");
+fn int render  (Sft* sft, Glyph glyph, Image image) @extern("sft_render");
