@@ -51,7 +51,7 @@ uniform sampler2D tex;
 out vec4 FragColor;
 
 void main() {
-    vec4 color = texture(tex, vUV - vec2(0.025));
+    vec4 color = texture(tex, vUV);
     vec4 result = vec4(vec3(color.x), color.x);
     FragColor = result;
 }
@@ -61,10 +61,10 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { { 0.5, 0.5, 0.0 }, { 1.0, 1.0 } }, // top right
-                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-0.5,-0.5, 0.0 }, { 0.0, 0.0 } }, // bottom left
-                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } }, // top left
+                          { { 1.0, 1.0, 0.0 }, { 1.0, 1.0 } }, // top right
+                          { { 1.0,-1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
+                          { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
+                          { {-1.0, 1.0, 0.0 }, { 0.0, 1.0 } }, // top left
                         }; 
     renderer.indices = {
                          0, 1, 3,

@@ -12,9 +12,7 @@ import std::math;
 
 fn int main(String[] args)
 {
-    io::printn(schrift::version());
-
-    int s = 2;
+    int s = 25;
     schrift::Sft sft = {
         .xScale = 16.0 * s,
         .yScale = 16.0 * s,
@@ -29,7 +27,7 @@ fn int main(String[] args)
     defer schrift::freefont(sft.font);
 
     schrift::Glyph gid;  //  unsigned long gid;
-	if (schrift::lookup(&sft, 'z', &gid) < 0)
+	if (schrift::lookup(&sft, 'l', &gid) < 0)
     {
 		io::eprintn("missing glyph");
         return -1;
@@ -46,9 +44,9 @@ fn int main(String[] args)
 		.width  = (mtx.minWidth + 3) & ~3,
 		.height = mtx.minHeight,
 	};
-    img.width = (int)math::pow(2, math::ceil(math::log(img.width, 10) / math::log(2, 10)));
-    img.height = (int)math::pow(2, math::ceil(math::log(img.height, 10) / math::log(2, 10)));
+    io::printfn("(%d, %d)", img.width, img.height);
 	char* pixels = mem::new_array(char, (usz)img.width * (usz)img.height);
+    defer mem::free(pixels);
 	img.pixels = pixels;
 	if (schrift::render(&sft, gid, img) < 0)
 	{
@@ -60,7 +58,7 @@ fn int main(String[] args)
     window::initSystem();
     defer window::terminateSystem();
 
-    window::Window* window = window::create(800, 600, "m0th")!!;
+    window::Window* window = window::create(img.width, img.height, "m0th")!!;
     defer window.free();
 
     input::InputHandler* inputHandler = input::createHandler(input::InputButton[] {
@@ -78,6 +76,7 @@ fn int main(String[] args)
     
     uint texture;
     gl::genTextures(1, &texture);
+    defer gl::deleteTextures(1, &texture);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
     // set the texture wrapping/filtering options (on the currently bound texture object)
     gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S, gl::GL_REPEAT);	

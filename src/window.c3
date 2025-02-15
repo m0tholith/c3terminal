@@ -18,6 +18,7 @@ struct Window
 
 fn void initSystem()
 {
+    glfw::initHint(0x00050003, 0x00060004);
     glfw::init();
 }
 fn void terminateSystem()
@@ -31,7 +32,7 @@ fn Window*! create(int width, int height, ZString name)
     glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
     glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
     glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
-    glfw::windowHint(glfw::RESIZABLE, 0);
+    glfw::windowHint(glfw::RESIZABLE, 1);
     glfw::Window* glfwWin = glfw::createWindow(width, height, name, null, null);
     if (glfwWin == null)
     {
@@ -52,6 +53,7 @@ fn Window*! create(int width, int height, ZString name)
  *>
 fn void Window.free(Window* window)
 {
+    glfw::destroyWindow(window.glfwWin);
     mem::free(window);
 }
 
