@@ -29,7 +29,7 @@ fn int main(String[] args)
     defer schrift::freefont(sft.font);
 
     schrift::Glyph gid;  //  unsigned long gid;
-	if (schrift::lookup(&sft, 'c', &gid) < 0)
+	if (schrift::lookup(&sft, 'A', &gid) < 0)
     {
 		io::eprintn("missing glyph");
         return -1;
@@ -48,7 +48,7 @@ fn int main(String[] args)
 	};
     img.width = (int)math::pow(2, math::ceil(math::log(img.width, 10) / math::log(2, 10)));
     img.height = (int)math::pow(2, math::ceil(math::log(img.height, 10) / math::log(2, 10)));
-	char[] pixels = mem::new_array(char, (usz)img.width * (usz)img.height);
+	char* pixels = mem::new_array(char, (usz)img.width * (usz)img.height);
 	img.pixels = pixels;
 	if (schrift::render(&sft, gid, img) < 0)
 	{
@@ -83,8 +83,8 @@ fn int main(String[] args)
     gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR_MIPMAP_LINEAR);
     gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
     // load and generate the texture
-    char* data = (char*)&pixels;
-    gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGB, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, data);
+    char* data = pixels;
+    gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RED, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, data);
     gl::generateMipmap(gl::GL_TEXTURE_2D);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
 
