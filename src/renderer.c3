@@ -17,6 +17,7 @@ struct Vector3
 struct Vertex
 {
     Vector3 position;
+    Vector2 uv;
 }
 struct Renderer
 {
@@ -30,29 +31,38 @@ ZString vertexShaderSource    = `
 #version 330 core
 
 layout (location = 0) in vec3 vertPos;
+layout (location = 1) in vec2 vertUV;
+
+out vec2 vUV;
+
 void main() {
     gl_Position = vec4(vertPos.x, vertPos.y, vertPos.z, 1.0);
+    vUV = vertUV;
 }
 `;
 ZString fragmentShaderSource  = `
 #version 330 core
 
+in vec2 vUV;
+uniform sampler2D tex;
+
 out vec4 FragColor;
+
 void main() {
-    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    FragColor = vec4(texture(tex, vUV).r);
 }
 `;
 
 fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
-    renderer.vertices = { { {-0.5,-0.5, 0.0 } },
-                          { { 0.5,-0.5, 0.0 } },
-                          { {-0.5, 0.5, 0.0 } },
+    renderer.vertices = { { {-0.5,-0.5, 0.0 }, { 0.0, 0.0 } },
+                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } },
+                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } },
 
-                          { { 0.5, 0.5, 0.0 } },
-                          { { 0.5,-0.5, 0.0 } },
-                          { {-0.5, 0.5, 0.0 } } }; 
+                          { { 0.5, 0.5, 0.0 }, { 1.0, 1.0 } },
+                          { { 0.5,-0.5, 0.0 }, { 1.0, 0.0 } },
+                          { {-0.5, 0.5, 0.0 }, { 0.0, 1.0 } } }; 
 
     gl::genVertexArrays(1, &renderer.vao);
     gl::bindVertexArray(renderer.vao);
@@ -62,7 +72,9 @@ fn Renderer* create()
     gl::bufferData(gl::GL_ARRAY_BUFFER, renderer.vertices.len * Vertex.sizeof, (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
 
     int attr = 0;
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.position.sizeof, (void*)0);
+    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.position.sizeof, (void*)Vertex.position.offsetof);
+    gl::enableVertexAttribArray(attr++);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.uv.sizeof, (void*)Vertex.uv.offsetof);
     gl::enableVertexAttribArray(attr++);
 
     bool success;

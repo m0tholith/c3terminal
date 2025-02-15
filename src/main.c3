@@ -4,9 +4,11 @@ import window;
 import input;
 import renderer;
 import glfw;
+import opengl;
 import schrift;
 
 import std::io;
+import std::math;
 
 fn int main(String[] args)
 {
@@ -16,7 +18,6 @@ fn int main(String[] args)
     schrift::Sft sft = {
         .xScale = 16.0 * s,
         .yScale = 16.0 * s,
-        .flags = SFT_DOWNWARD_Y,
     };
 
     sft.font = schrift::loadfile("test.ttf");
@@ -28,7 +29,7 @@ fn int main(String[] args)
     defer schrift::freefont(sft.font);
 
     schrift::Glyph gid;  //  unsigned long gid;
-	if (schrift::lookup(&sft, 'A', &gid) < 0)
+	if (schrift::lookup(&sft, 'c', &gid) < 0)
     {
 		io::eprintn("missing glyph");
         return -1;
@@ -45,6 +46,8 @@ fn int main(String[] args)
 		.width  = (mtx.minWidth + 3) & ~3,
 		.height = mtx.minHeight,
 	};
+    img.width = (int)math::pow(2, math::ceil(math::log(img.width, 10) / math::log(2, 10)));
+    img.height = (int)math::pow(2, math::ceil(math::log(img.height, 10) / math::log(2, 10)));
 	char[] pixels = mem::new_array(char, (usz)img.width * (usz)img.height);
 	img.pixels = pixels;
 	if (schrift::render(&sft, gid, img) < 0)
@@ -52,7 +55,6 @@ fn int main(String[] args)
         io::eprintn("could not render glyph");
         return -1;
     }
-
 
 
     window::initSystem();
@@ -70,6 +72,21 @@ fn int main(String[] args)
 
     renderer::Renderer* renderer = renderer::create();
     defer renderer.free();
+
+    
+    uint texture;
+    gl::genTextures(1, &texture);
+    gl::bindTexture(gl::GL_TEXTURE_2D, texture);
+    // set the texture wrapping/filtering options (on the currently bound texture object)
+    gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_S, gl::GL_REPEAT);	
+    gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_WRAP_T, gl::GL_REPEAT);
+    gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR_MIPMAP_LINEAR);
+    gl::texParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
+    // load and generate the texture
+    char* data = (char*)&pixels;
+    gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGB, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, data);
+    gl::generateMipmap(gl::GL_TEXTURE_2D);
+    gl::bindTexture(gl::GL_TEXTURE_2D, texture);
 
     while (!window.shouldClose)
     {
