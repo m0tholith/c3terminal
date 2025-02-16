@@ -12,17 +12,17 @@ import renderer;
 
 struct Glyph
 {
-    uint width; uint height;
     schrift::UChar codepoint;
+    schrift::GMetrics metrics;
     uint textureId;
     Renderer* renderer;
 }
 
-fn Glyph* create(schrift::UChar codepoint, int scaling = 16)
+fn Glyph* create(schrift::UChar codepoint, double scaling = 16)
 {
     Glyph* out = mem::new(Glyph);
     
-    int s = scaling;
+    double s = scaling;
     schrift::Sft sft = {
         .xScale = s,
         .yScale = s,
@@ -76,23 +76,28 @@ fn Glyph* create(schrift::UChar codepoint, int scaling = 16)
     gl::generateMipmap(gl::GL_TEXTURE_2D);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
 
-    out.width = img.width;
-    out.height = img.height;
+    out.metrics = mtx;
     out.codepoint = codepoint;
     out.textureId = texture;
     out.renderer = renderer::create();
 
     return out;
 }
-fn void Glyph.render(Glyph* self, window::Window* window, float x, float y, int width, int height)
+fn void Glyph.render(Glyph* self, window::Window* window, double x, double y, int width, int height)
 {
-    x = x / window.width  * 2 - 1;
-    y = y / window.height * 2 - 1;
-    self.renderer.transform = Matrix3x3(<float>) {
-        (float)width / window.width, 0,                             x,
-        0,                           (float)height / window.height, -y,
-        0,                           0,                             1,
-    };
+    float x1 = (float)x / window.width  * 2 - 1;
+    float y1 = (float)y / window.height * 2 - 1;
+    float x2 = (float)(x + width) / window.width  * 2 - 1;
+    float y2 = (float)(y + height) / window.height * 2 - 1;
+
+    self.renderer.vertices[0].position = { x2, y2, 0 };
+    self.renderer.vertices[1].position = { x2, y1, 0 };
+    self.renderer.vertices[2].position = { x1, y1, 0 };
+    self.renderer.vertices[3].position = { x1, y2, 0 };
+
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices), (void*)&self.renderer.vertices, gl::GL_DYNAMIC_DRAW);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
 
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);
     self.renderer.render();

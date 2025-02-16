@@ -30,8 +30,6 @@ struct Renderer
     uint vbo;
     uint ebo;
     uint shader;
-    matrix::Matrix3x3(<float>) transform;
-    uint transformUniformLocation;
 }
 
 ZString vertexShaderSource    = `
@@ -41,10 +39,9 @@ layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 vertUV;
 
 out vec2 vUV;
-uniform mat3 transform;
 
 void main() {
-    gl_Position = vec4(vec2(transform * vertPos), 0.0, 1.0);
+    gl_Position = vec4(vec2(vertPos), 0.0, 1.0);
     vUV = vertUV;
 }
 `;
@@ -84,7 +81,7 @@ fn Renderer* create()
     gl::bindVertexArray(renderer.vao);
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_DYNAMIC_DRAW);
 
     gl::bindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     gl::bufferData(gl::GL_ELEMENT_ARRAY_BUFFER, $sizeof(renderer.indices), (void*)&renderer.indices, gl::GL_STATIC_DRAW);
@@ -136,9 +133,6 @@ fn Renderer* create()
         io::eprintfn("Failed to compile shader program: %s", infoLog);
     }
 
-    renderer.transform = matrix::IDENTITY3(<float>);
-    renderer.transformUniformLocation = gl::getUniformLocation(renderer.shader, "transform");
-
     return renderer;
 }
 
@@ -146,7 +140,6 @@ fn void Renderer.render(Renderer* renderer)
 {
     gl::useProgram(renderer.shader);
     gl::bindVertexArray(renderer.vao);
-    gl::uniformMatrix3fv(renderer.transformUniformLocation, 1, true, (void*)&renderer.transform);
     gl::drawElements(gl::GL_TRIANGLES, renderer.indices.len, gl::GL_UNSIGNED_INT, (void*)0);
 }
 

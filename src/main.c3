@@ -10,6 +10,7 @@ import glyph;
 
 import std::io;
 import std::math;
+import std::collections::map;
 
 fn int main(String[] args)
 {
@@ -28,12 +29,29 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glyph::Glyph* glyph = glyph::create('i', 25);
-    defer glyph.free();
+    map::HashMap(<schrift::UChar, glyph::Glyph*>) glyphs;
+    glyphs.new_init();
+    defer {
+        for (char i = 'a'; i <= 'z'; i++) glyphs[i].free()!!;
+        glyphs.free();
+    }
+    for (char i = 'a'; i <= 'z'; i++) glyphs[i] = glyph::create(i, 48);
 
     while (!window.shouldClose)
     {
-        glyph.render(window, 200, 100, 12, 20);
+        double x = 100;
+        double y = 100;
+        for (char i = 'a'; i <= 'z'; i++)
+        {
+            glyph::Glyph* g = glyphs[i]!!;
+            double xpos = x + g.metrics.leftSideBearing;
+            double ypos = y + (double)g.metrics.yOffset;
+            int w = g.metrics.minWidth;
+            int h = g.metrics.minHeight;
+
+            g.render(window, (float)xpos, (float)ypos, w, h);
+            x += g.metrics.advanceWidth;
+        }
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
