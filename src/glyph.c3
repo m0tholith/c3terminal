@@ -4,39 +4,142 @@ import std::io;
 import std::math;
 import std::math::matrix;
 import std::core::mem;
+import std::collections::list;
 
 import opengl;
 import schrift;
 import window;
 import renderer;
 
+struct Font
+{
+    schrift::Sft ctx;
+    list::List(<Glyph*>) glyphs;
+    double renderSize;
+    Renderer* renderer;
+}
+fault FontError
+{
+    FONT_LOAD_FAILED,
+    GLYPH_NOT_FOUND,
+}
+fn Font*! createFont(ZString filename, double renderSize)
+{
+    Font* font = mem::new(Font);
+    font.renderSize = renderSize;
+    font.renderer = renderer::create();
+    font.glyphs.new_init();
+
+    font.ctx = {
+        .xScale = renderSize * 2,
+        .yScale = renderSize * 2,
+    };
+    font.ctx.font = schrift::loadfile(filename);
+    if (font.ctx.font == null)
+    {
+        return FontError.FONT_LOAD_FAILED?;
+    }
+    return font;
+}
+/*
+    Tries to find glyph, and if doesn't exist, creates it
+*/
+fn Glyph*! Font.getGlyph(Font* self, schrift::UChar codepoint)
+{
+    if (try g = self.findGlyph(codepoint)) return g;
+
+    Glyph* glyph = createGlyph(self.ctx, codepoint);
+    if (glyph == null) return FontError.GLYPH_NOT_FOUND?;
+    foreach (idx, g : self.glyphs)
+    {
+        if (g.codepoint > codepoint)
+        {
+            self.glyphs.insert_at(idx, glyph);
+            return glyph;
+        }
+    }
+    self.glyphs.push(glyph);
+    return glyph;
+}
+/*
+    Tries to find glyph, and if doesn't exist, returns FontError.GLYPH_NOT_FOUND
+*/
+fn Glyph*! Font.findGlyph(Font* self, schrift::UChar codepoint)
+{
+    if (self.glyphs.len() == 0) return FontError.GLYPH_NOT_FOUND?;
+    usz l = 0;
+    usz r = self.glyphs.len() - 1;
+    usz m;
+    while (l <= r)
+    {
+        m = (usz)((l + r) / 2);
+        Glyph* g = self.glyphs[m];
+        if (g.codepoint == codepoint)
+        {
+            return g;
+        }
+        else if (g.codepoint < codepoint)
+        {
+            l = m + 1;
+        }
+        else
+        {
+            r = m - 1;
+        }
+    }
+
+    return FontError.GLYPH_NOT_FOUND?;
+}
+fn void! Font.renderGlyph(Font* self, window::Window* window, schrift::UChar codepoint, double x, double y, double fontSize)
+{
+    Glyph*! glyph = self.getGlyph(codepoint);
+    if (catch excuse = glyph)
+    {
+        return excuse?;
+    }
+
+    double s = fontSize / self.renderSize;
+    x += glyph.metrics.leftSideBearing * s;
+    y += glyph.metrics.yOffset * s;
+    double w = glyph.metrics.minWidth * s;
+    double h = glyph.metrics.minHeight * s;
+
+    float x1 = (float)x / window.width  * 2 - 1;
+    float y1 = (float)y / window.height * 2 - 1;
+    float x2 = (float)(x + w) / window.width  * 2 - 1;
+    float y2 = (float)(y + h) / window.height * 2 - 1;
+
+    self.renderer.vertices[0].position = { x2, y2, 0 };
+    self.renderer.vertices[1].position = { x2, y1, 0 };
+    self.renderer.vertices[2].position = { x1, y1, 0 };
+    self.renderer.vertices[3].position = { x1, y2, 0 };
+
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices), (void*)&self.renderer.vertices, gl::GL_DYNAMIC_DRAW);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
+
+    gl::bindTexture(gl::GL_TEXTURE_2D, glyph.textureId);
+    self.renderer.render();
+}
+fn void Font.free(Font* self)
+{
+    schrift::freefont(self.ctx.font);
+    foreach (glyph : self.glyphs)
+    {
+        glyph.free();
+    }
+    self.glyphs.free();
+    mem::free(self);
+}
+
 struct Glyph
 {
     schrift::UChar codepoint;
     schrift::GMetrics metrics;
-    double scale;
     uint textureId;
-    Renderer* renderer;
 }
-
-fn Glyph* create(schrift::UChar codepoint, double scaling = 16)
+fn Glyph* createGlyph(schrift::Sft sft, schrift::UChar codepoint)
 {
-    Glyph* out = mem::new(Glyph);
-    
-    double s = scaling;
-    schrift::Sft sft = {
-        .xScale = s,
-        .yScale = s,
-    };
-
-    sft.font = schrift::loadfile("test.ttf");
-    if (sft.font == null)
-    {
-        io::eprintn("font loading failed");
-        return null;
-    }
-    defer schrift::freefont(sft.font);
-
     schrift::Glyph gid;  //  unsigned long gid;
 	if (schrift::lookup(&sft, codepoint, &gid) < 0)
     {
@@ -77,42 +180,15 @@ fn Glyph* create(schrift::UChar codepoint, double scaling = 16)
     gl::generateMipmap(gl::GL_TEXTURE_2D);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
 
+    Glyph* out = mem::new(Glyph);
     out.metrics = mtx;
     out.codepoint = codepoint;
-    out.scale = s / 2;
     out.textureId = texture;
-    out.renderer = renderer::create();
 
     return out;
-}
-fn void Glyph.render(Glyph* self, window::Window* window, double x, double y, double fontSize)
-{
-    double s = fontSize / self.scale;
-    x += self.metrics.leftSideBearing * s;
-    y += self.metrics.yOffset * s;
-    double w = self.metrics.minWidth * s;
-    double h = self.metrics.minHeight * s;
-
-    float x1 = (float)x / window.width  * 2 - 1;
-    float y1 = (float)y / window.height * 2 - 1;
-    float x2 = (float)(x + w) / window.width  * 2 - 1;
-    float y2 = (float)(y + h) / window.height * 2 - 1;
-
-    self.renderer.vertices[0].position = { x2, y2, 0 };
-    self.renderer.vertices[1].position = { x2, y1, 0 };
-    self.renderer.vertices[2].position = { x1, y1, 0 };
-    self.renderer.vertices[3].position = { x1, y2, 0 };
-
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices), (void*)&self.renderer.vertices, gl::GL_DYNAMIC_DRAW);
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
-
-    gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);
-    self.renderer.render();
 }
 fn void Glyph.free(Glyph* self)
 {
     gl::deleteTextures(1, &self.textureId);
-    self.renderer.free();
     mem::free(self);
 }

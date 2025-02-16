@@ -29,13 +29,7 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    map::HashMap(<schrift::UChar, glyph::Glyph*>) glyphs;
-    glyphs.new_init();
-    defer {
-        for (char i = 'a'; i <= 'z'; i++) glyphs[i].free()!!;
-        glyphs.free();
-    }
-    for (char i = 'a'; i <= 'z'; i++) glyphs[i] = glyph::create(i, 120);
+    glyph::Font* font = glyph::createFont("test.ttf", 120)!!;
 
     while (!window.shouldClose)
     {
@@ -44,10 +38,19 @@ fn int main(String[] args)
         double fontSize = 24;
         for (char i = 'a'; i <= 'z'; i++)
         {
-            glyph::Glyph* g = glyphs[i]!!;
+            glyph::Glyph* g = font.getGlyph(i)!!;
 
-            g.render(window, x, y, 24);
-            x += g.metrics.advanceWidth * fontSize / g.scale;
+            font.renderGlyph(window, i, x, y, fontSize)!!;
+            x += g.metrics.advanceWidth * fontSize / font.renderSize;
+        }
+        x = 100;
+        y = 150;
+        for (char i = 'A'; i <= 'Z'; i++)
+        {
+            glyph::Glyph* g = font.getGlyph(i)!!;
+
+            font.renderGlyph(window, i, x, y, fontSize)!!;
+            x += g.metrics.advanceWidth * fontSize / font.renderSize;
         }
 
         inputHandler.processInput(window);
