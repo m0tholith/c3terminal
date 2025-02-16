@@ -90,7 +90,7 @@ fn Glyph*! Font.findGlyph(Font* self, schrift::UChar codepoint)
 
     return FontError.GLYPH_NOT_FOUND?;
 }
-fn void! Font.renderGlyph(Font* self, window::Window* window, schrift::UChar codepoint, double x, double y, double fontSize)
+fn double! Font.renderGlyph(Font* self, window::Window* window, schrift::UChar codepoint, double x, double y, double fontSize)
 {
     Glyph*! glyph = self.getGlyph(codepoint);
     if (catch excuse = glyph)
@@ -120,6 +120,17 @@ fn void! Font.renderGlyph(Font* self, window::Window* window, schrift::UChar cod
 
     gl::bindTexture(gl::GL_TEXTURE_2D, glyph.textureId);
     self.renderer.render();
+
+    return glyph.metrics.advanceWidth * fontSize / self.renderSize;
+}
+fn void! Font.renderText(Font* self, window::Window* window, String text, double x, double y, double fontSize)
+{
+    foreach (c : text)
+    {
+        double! advance = self.renderGlyph(window, c, x, y, fontSize);
+        if (catch excuse = advance) return excuse?;
+        x += advance;
+    }
 }
 fn void Font.free(Font* self)
 {

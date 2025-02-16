@@ -33,25 +33,9 @@ fn int main(String[] args)
 
     while (!window.shouldClose)
     {
-        double x = 100;
-        double y = 100;
         double fontSize = 24;
-        for (char i = 'a'; i <= 'z'; i++)
-        {
-            glyph::Glyph* g = font.getGlyph(i)!!;
-
-            font.renderGlyph(window, i, x, y, fontSize)!!;
-            x += g.metrics.advanceWidth * fontSize / font.renderSize;
-        }
-        x = 100;
-        y = 150;
-        for (char i = 'A'; i <= 'Z'; i++)
-        {
-            glyph::Glyph* g = font.getGlyph(i)!!;
-
-            font.renderGlyph(window, i, x, y, fontSize)!!;
-            x += g.metrics.advanceWidth * fontSize / font.renderSize;
-        }
+        font.renderText(window, "abcdefghijklmnopqrstuvwxyz", 100, 100, fontSize)!!;
+        font.renderText(window, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 100, 150, fontSize)!!;
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
