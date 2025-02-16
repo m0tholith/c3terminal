@@ -35,22 +35,19 @@ fn int main(String[] args)
         for (char i = 'a'; i <= 'z'; i++) glyphs[i].free()!!;
         glyphs.free();
     }
-    for (char i = 'a'; i <= 'z'; i++) glyphs[i] = glyph::create(i, 48);
+    for (char i = 'a'; i <= 'z'; i++) glyphs[i] = glyph::create(i, 120);
 
     while (!window.shouldClose)
     {
         double x = 100;
         double y = 100;
+        double fontSize = 24;
         for (char i = 'a'; i <= 'z'; i++)
         {
             glyph::Glyph* g = glyphs[i]!!;
-            double xpos = x + g.metrics.leftSideBearing;
-            double ypos = y + (double)g.metrics.yOffset;
-            int w = g.metrics.minWidth;
-            int h = g.metrics.minHeight;
 
-            g.render(window, (float)xpos, (float)ypos, w, h);
-            x += g.metrics.advanceWidth;
+            g.render(window, x, y, 24);
+            x += g.metrics.advanceWidth * fontSize / g.scale;
         }
 
         inputHandler.processInput(window);

@@ -14,6 +14,7 @@ struct Glyph
 {
     schrift::UChar codepoint;
     schrift::GMetrics metrics;
+    double scale;
     uint textureId;
     Renderer* renderer;
 }
@@ -78,17 +79,24 @@ fn Glyph* create(schrift::UChar codepoint, double scaling = 16)
 
     out.metrics = mtx;
     out.codepoint = codepoint;
+    out.scale = s / 2;
     out.textureId = texture;
     out.renderer = renderer::create();
 
     return out;
 }
-fn void Glyph.render(Glyph* self, window::Window* window, double x, double y, int width, int height)
+fn void Glyph.render(Glyph* self, window::Window* window, double x, double y, double fontSize)
 {
+    double s = fontSize / self.scale;
+    x += self.metrics.leftSideBearing * s;
+    y += self.metrics.yOffset * s;
+    double w = self.metrics.minWidth * s;
+    double h = self.metrics.minHeight * s;
+
     float x1 = (float)x / window.width  * 2 - 1;
     float y1 = (float)y / window.height * 2 - 1;
-    float x2 = (float)(x + width) / window.width  * 2 - 1;
-    float y2 = (float)(y + height) / window.height * 2 - 1;
+    float x2 = (float)(x + w) / window.width  * 2 - 1;
+    float y2 = (float)(y + h) / window.height * 2 - 1;
 
     self.renderer.vertices[0].position = { x2, y2, 0 };
     self.renderer.vertices[1].position = { x2, y1, 0 };
