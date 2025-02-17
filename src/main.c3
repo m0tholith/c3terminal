@@ -44,7 +44,7 @@ fn int main(String[] args)
         if (quitInput.activated()) window.shouldClose = true;
 
         window.refresh();
-        window.clearColor(0, 0, 0);
+        window.clearColor(0.1176, 0.1176, 0.1803);
 
         time = glfw::getTime();
     }

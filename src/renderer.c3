@@ -50,12 +50,14 @@ ZString fragmentShaderSource  = `
 
 in vec2 vUV;
 uniform sampler2D tex;
+uniform vec3 bg = vec3(0.1176, 0.1176, 0.1803);
+uniform vec3 fg = vec3(0.8039, 0.8392, 0.9568);
 
 out vec4 FragColor;
 
 void main() {
-    vec4 color = texture(tex, vUV);
-    vec4 result = vec4(vec3(color.x), color.x);
+    float color = texture(tex, vUV).x;
+    vec4 result = vec4(mix(bg, fg, color), 1);
     FragColor = result;
 }
 `;
