@@ -31,17 +31,22 @@ fn int main(String[] args)
 
     glyph::Font* font = glyph::createFont("test.ttf", 120)!!;
 
+    double time;
     while (!window.shouldClose)
     {
-        double fontSize = 24;
-        font.renderText(window, "abcdefghijklmnopqrstuvwxyz", 100, 100, fontSize)!!;
-        font.renderText(window, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 100, 150, fontSize)!!;
+        double fontSize = 10;
+        font.renderText(window, "abcdefghijklmnopqrstuvwxyz", 100 + 30 * math::sin(30 * time), 100, fontSize)!!;
+        font.renderText(window, "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 200 + 30 * math::sin(20 * time+10), 200+fontSize*2, fontSize)!!;
+        font.renderText(window, "Program linked to executable 'build/terminal'.", 100, 200+fontSize*4 + 40 * math::sin(10 * time+20), fontSize)!!;
+        font.renderText(window, "Lorem ipsum dolor sit amet orci aliquam.", 0, 500, fontSize)!!;
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
 
         window.refresh();
         window.clearColor(0, 0, 0);
+
+        time = glfw::getTime();
     }
 
 	return 0;
