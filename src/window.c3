@@ -52,7 +52,9 @@ fn Window*! create(int width, int height, ZString name)
     }
     glfw::setWindowSizeCallback(glfwWin, &windowSizeCallback);
     glfw::makeContextCurrent(glfwWin);
+    glfw::windowHint(glfw::SAMPLES, 2);
     gl::viewport(0, 0, width, height);
+    gl::enable(gl::GL_MULTISAMPLE);
 
     Window* window = mem::new(Window);
     window.glfwWin = glfwWin;
