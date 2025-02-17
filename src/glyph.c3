@@ -50,7 +50,6 @@ fn Glyph*! Font.getGlyph(Font* self, schrift::UChar codepoint)
 
     Glyph* glyph = createGlyph(self.ctx, codepoint);
     if (glyph == null) return FontError.GLYPH_NOT_FOUND?;
-    glyph.codepoint = codepoint;
     if (self.glyphs.len() == 0)
     {
         self.glyphs.push(glyph);
@@ -66,6 +65,7 @@ fn Glyph*! Font.getGlyph(Font* self, schrift::UChar codepoint)
         }
     }
     self.glyphs.push(glyph);
+
     return glyph;
 }
 /*
@@ -154,10 +154,11 @@ struct Glyph
     schrift::GMetrics metrics;
     uint textureId;
 }
-fn Glyph* createGlyph(schrift::Sft sft, schrift::UChar codepoint)
+fn Glyph* createGlyph(schrift::Sft sft, schrift::UChar c)
 {
     schrift::Glyph gid;  //  unsigned long gid;
-	if (schrift::lookup(&sft, codepoint, &gid) < 0)
+    schrift::UChar codepoint = c;
+	if (schrift::lookup(&sft, c, &gid) < 0)
     {
 		io::eprintn("missing glyph");
         return null;
@@ -195,6 +196,7 @@ fn Glyph* createGlyph(schrift::Sft sft, schrift::UChar codepoint)
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, pixels);
     gl::generateMipmap(gl::GL_TEXTURE_2D);
     gl::bindTexture(gl::GL_TEXTURE_2D, 0);
+
 
     return mem::new(Glyph, { codepoint, mtx, texture });
 }
