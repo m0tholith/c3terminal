@@ -50,11 +50,18 @@ fn Glyph*! Font.getGlyph(Font* self, schrift::UChar codepoint)
 
     Glyph* glyph = createGlyph(self.ctx, codepoint);
     if (glyph == null) return FontError.GLYPH_NOT_FOUND?;
-    foreach (idx, g : self.glyphs)
+    glyph.codepoint = codepoint;
+    if (self.glyphs.len() == 0)
     {
-        if (g.codepoint > codepoint)
+        self.glyphs.push(glyph);
+        return glyph;
+    }
+
+    for (usz i = 0; i < self.glyphs.len(); i++)
+    {
+        if (self.glyphs[i].codepoint > codepoint)
         {
-            self.glyphs.insert_at(idx, glyph);
+            self.glyphs.insert_at(i, glyph);
             return glyph;
         }
     }
@@ -66,10 +73,9 @@ fn Glyph*! Font.getGlyph(Font* self, schrift::UChar codepoint)
 */
 fn Glyph*! Font.findGlyph(Font* self, schrift::UChar codepoint)
 {
-    if (self.glyphs.len() == 0) return FontError.GLYPH_NOT_FOUND?;
-    usz l = 0;
-    usz r = self.glyphs.len() - 1;
-    usz m;
+    long l = 0;
+    long r = self.glyphs.len() - 1;
+    long m;
     while (l <= r)
     {
         m = (usz)((l + r) / 2);
@@ -87,7 +93,6 @@ fn Glyph*! Font.findGlyph(Font* self, schrift::UChar codepoint)
             r = m - 1;
         }
     }
-
     return FontError.GLYPH_NOT_FOUND?;
 }
 fn double! Font.renderGlyph(Font* self, window::Window* window, schrift::UChar codepoint, double x, double y, double fontSize)
@@ -189,14 +194,9 @@ fn Glyph* createGlyph(schrift::Sft sft, schrift::UChar codepoint)
     // load and generate the texture
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGBA, img.width, img.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, pixels);
     gl::generateMipmap(gl::GL_TEXTURE_2D);
-    gl::bindTexture(gl::GL_TEXTURE_2D, texture);
+    gl::bindTexture(gl::GL_TEXTURE_2D, 0);
 
-    Glyph* out = mem::new(Glyph);
-    out.metrics = mtx;
-    out.codepoint = codepoint;
-    out.textureId = texture;
-
-    return out;
+    return mem::new(Glyph, { codepoint, mtx, texture });
 }
 fn void Glyph.free(Glyph* self)
 {
