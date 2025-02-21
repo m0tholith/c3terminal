@@ -52,15 +52,15 @@ in vec2 vUV;
 uniform sampler2D tex;
 uniform vec2 texPos;
 uniform vec2 texSize;
-uniform vec3 bg = vec3(0.1176, 0.1176, 0.1803);
-uniform vec3 fg = vec3(0.8039, 0.8392, 0.9568);
+uniform vec4 bg = vec4(0.1176, 0.1176, 0.1803, 0);
+uniform vec4 fg = vec4(0.8039, 0.8392, 0.9568, 1);
 
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = texPos + texSize * (1 - vUV);
+    vec2 uv = texPos + texSize * vUV;
     float color = texture(tex, uv).x;
-    vec4 result = vec4(mix(bg, fg, color), 1);
+    vec4 result = mix(bg, fg, color);
     FragColor = result;
 }
 `;
@@ -69,13 +69,13 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { { 1.0, 1.0, 1.0 }, { 1.0, 1.0 } }, // top right
-                          { { 1.0,-1.0, 1.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-1.0,-1.0, 1.0 }, { 0.0, 0.0 } }, // bottom left
-                          { {-1.0, 1.0, 1.0 }, { 0.0, 1.0 } }, // top left
+                          { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
+                          { { 1.0,-1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
+                          { {-1.0, 1.0, 0.0 }, { 0.0, 1.0 } }, // top left
+                          { { 1.0, 1.0, 0.0 }, { 1.0, 1.0 } }, // top right
                         }; 
     renderer.indices = {
-                         0, 1, 3,
+                         0, 1, 2,
                          1, 2, 3
                        };
 

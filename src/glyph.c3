@@ -13,7 +13,7 @@ import stb_truetype;
 
 struct FontAtlas
 {
-    int width; int height;
+    ushort width; ushort height;
     float fontSize;
 
     uint startCodepoint; uint endCodepoint;
@@ -33,7 +33,7 @@ fn FontAtlas*! createFontAtlas(float fontSize)
 {
     FontAtlas* self = mem::new(FontAtlas);
     self.startCodepoint = START_CP; self.endCodepoint = END_CP;
-    self.width = 1024; self.height = 1024;
+    self.width = 128; self.height = 128;
     self.fontSize = fontSize;
     self.renderer = renderer::create();
 
@@ -50,6 +50,28 @@ fn FontAtlas*! createFontAtlas(float fontSize)
     stb_truetype::packFontRange(ctx, contents, 0, fontSize, self.startCodepoint, self.endCodepoint, self.chars.ptr);
     stb_truetype::packEnd(ctx);
     mem::free(ctx);
+
+    // flip image
+    {
+        int top = 0;
+        int bottom = (self.height - 1) * self.width;
+        while (top < bottom)
+        {
+            for (int j = 0; j < self.width; j++)
+            {
+                @swap(self.pixels[j + top], self.pixels[j + bottom]);
+            }
+            top += self.width;
+            bottom -= self.width;
+        }
+    }
+    // flip y values of chars
+    for (int i = 0; i < self.chars.len; i++)
+    {
+        self.chars[i].y0 = self.height - self.chars[i].y0;
+        self.chars[i].y1 = self.height - self.chars[i].y1;
+        @swap(self.chars[i].y0, self.chars[i].y1);
+    }
 
     uint texture;
     gl::genTextures(1, &texture);
@@ -73,7 +95,6 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
     while (l >= 0 && l <= r)
     {
         m = (l + r) / 2;
-        // io::printfn("comparing %03d to %03d (%c to %c)", codepoint, m, codepoint, m);
         if (m == codepoint)
         {
             return &self.chars[m - self.startCodepoint];
@@ -88,7 +109,6 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
         }
     }
 
-    // io::eprintfn("ERROR: could not find codepoint '%c'", codepoint);
     return FontAtlasError.CHAR_NOT_FOUND?;
 }
 fn void FontAtlas.bindTexture(FontAtlas* self)
@@ -100,25 +120,25 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     stb_truetype::PackedChar* pChar = self.getChar(codepoint)!;
 
     float s = fontSize / self.fontSize;
-    float w = 14.0f;
-    float h = 30.0f;
 
-    float xm = x + w / 2;
-    float ym = y + h / 2;
+    float w = (float)(pChar.x1 - pChar.x0) * s;
+    float h = (float)(pChar.y1 - pChar.y0) * s;
 
-    float xd = (float)math::abs(pChar.x1 - pChar.x0) * s / 2;
-    float yd = (float)math::abs(pChar.y1 - pChar.y0) * s / 2;
+    float xo = pChar.xoff * s;
+    float yo = pChar.yoff * s;
 
-    float x1 = (float)(xm + xd) / window.width  * 2 - 1; // right
-    float y1 = (float)(ym - yd) / window.height * 2 - 1; // down
-    float x2 = (float)(xm - xd) / window.width  * 2 - 1; // left
-    float y2 = (float)(ym + yd) / window.height * 2 - 1; // up
+    x += xo;
+    y -= yo + h;
 
-    io::printfn("x1: %f  y1: %f    x2: %f  y2: %f", x1, y1, x2, y2);
-    self.renderer.vertices[0].position = { x2, y2, 0 };
+    float x1 = x        / window.width  * 2 - 1;
+    float x2 = (x + w)  / window.width  * 2 - 1;
+    float y1 = y        / window.height * 2 - 1;
+    float y2 = (y + h)  / window.height * 2 - 1;
+
+    self.renderer.vertices[0].position = { x1, y1, 0 };
     self.renderer.vertices[1].position = { x2, y1, 0 };
-    self.renderer.vertices[2].position = { x1, y1, 0 };
-    self.renderer.vertices[3].position = { x1, y2, 0 };
+    self.renderer.vertices[2].position = { x1, y2, 0 };
+    self.renderer.vertices[3].position = { x2, y2, 0 };
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices),
