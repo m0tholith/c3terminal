@@ -31,38 +31,40 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
+    glyph::FontAtlas* atlas = glyph::createFontAtlas(40)!!;
 
     char[] accepted = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
     for (int c = 0; c < accepted.len; c++)
     {
         char i = accepted[c];
-        io::printfn("%03d '%c' \t x0 %03d  y0 %03d    x1 %03d  y1 %03d    xoff %d  yoff %d", i, i, atlas.chars[c].x0, atlas.chars[c].y0, atlas.chars[c].x1, atlas.chars[c].y1, atlas.chars[c].xoff, atlas.chars[c].yoff);
+        io::printfn("%03d '%c' \t x0 %04d  y0 %04d    x1 %04d  y1 %04d    xoff %d  yoff %d", i, i, atlas.chars[c].x0, atlas.chars[c].y0, atlas.chars[c].x1, atlas.chars[c].y1, atlas.chars[c].xoff, atlas.chars[c].yoff);
     }
     atlas.bindTexture();
 
     double time;
-    const int XS = 160;
-    const int YS = 54;
+    const int XS = 19;
+    const int YS = 5;
     char[XS][YS] grid;
-    float xMul = 12.0f;
-    float yMul = 20.0f;
+    float xMul = 14.0f;
+    float yMul = 30.0f;
     math::random::SimpleRandom rand;
-    for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[rand.next_byte() % accepted.len];
+    for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[i + j * XS];
     while (!window.shouldClose)
     {
+        /*
         for (int i = 0; i < XS; i++)
         {
             char c = accepted[rand.next_byte() % accepted.len];
             grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
         }
+        */
         
         for (int i = 0; i < XS; i++)
         {
             for (int j = 0; j < YS; j++)
             {
-                atlas.renderGlyph(window, grid[j][i], i * xMul, (j+1.0f) * yMul, atlas.fontSize)!!;
+                atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, atlas.fontSize)!!;
             }
         }
 

@@ -33,7 +33,7 @@ fn FontAtlas*! createFontAtlas(float fontSize)
 {
     FontAtlas* self = mem::new(FontAtlas);
     self.startCodepoint = START_CP; self.endCodepoint = END_CP;
-    self.width = 128; self.height = 128;
+    self.width = 1024; self.height = 1024;
     self.fontSize = fontSize;
     self.renderer = renderer::create();
 
@@ -100,20 +100,25 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     stb_truetype::PackedChar* pChar = self.getChar(codepoint)!;
 
     float s = fontSize / self.fontSize;
-    x += pChar.xoff * s;
-    y += pChar.yoff * s;
-    float w = (float)math::abs(pChar.x1 - pChar.x0) * s;
-    float h = (float)math::abs(pChar.y1 - pChar.y0) * s;
+    float w = 14.0f;
+    float h = 30.0f;
 
-    float x1 = (float)x / window.width  * 2 - 1;
-    float y1 = (float)y / window.height * 2 - 1;
-    float x2 = (float)(x + w) / window.width  * 2 - 1;
-    float y2 = (float)(y + h) / window.height * 2 - 1;
+    float xm = x + w / 2;
+    float ym = y + h / 2;
 
-    self.renderer.vertices[0].position = { x2, y1, 0 };
-    self.renderer.vertices[1].position = { x2, y2, 0 };
-    self.renderer.vertices[2].position = { x1, y2, 0 };
-    self.renderer.vertices[3].position = { x1, y1, 0 };
+    float xd = (float)math::abs(pChar.x1 - pChar.x0) * s / 2;
+    float yd = (float)math::abs(pChar.y1 - pChar.y0) * s / 2;
+
+    float x1 = (float)(xm + xd) / window.width  * 2 - 1; // right
+    float y1 = (float)(ym - yd) / window.height * 2 - 1; // down
+    float x2 = (float)(xm - xd) / window.width  * 2 - 1; // left
+    float y2 = (float)(ym + yd) / window.height * 2 - 1; // up
+
+    io::printfn("x1: %f  y1: %f    x2: %f  y2: %f", x1, y1, x2, y2);
+    self.renderer.vertices[0].position = { x2, y2, 0 };
+    self.renderer.vertices[1].position = { x2, y1, 0 };
+    self.renderer.vertices[2].position = { x1, y1, 0 };
+    self.renderer.vertices[3].position = { x1, y2, 0 };
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices),

@@ -58,7 +58,7 @@ uniform vec3 fg = vec3(0.8039, 0.8392, 0.9568);
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = texPos + texSize * vUV;
+    vec2 uv = texPos + texSize * (1 - vUV);
     float color = texture(tex, uv).x;
     vec4 result = vec4(mix(bg, fg, color), 1);
     FragColor = result;
