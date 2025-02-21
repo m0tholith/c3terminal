@@ -2,7 +2,7 @@
   "langrev": "1",
   "warnings":  [ "no-unused" ],
   "dependency-search-paths":  [ "lib" ],
-  "dependencies":  [ "opengl", "glfw", "schrift", "stb_truetype" ],
+  "dependencies":  [ "opengl", "glfw", "stb_truetype" ],
   "authors":  [ "John Doe <john.doe@example.com>" ],
   "version": "0.1.0",
   "sources":  [ "src/**" ],

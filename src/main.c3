@@ -5,11 +5,12 @@ import input;
 import renderer;
 import glfw;
 import opengl;
-import schrift;
 import glyph;
+import stb_truetype;
 
 import libc;
 import std::io;
+import std::core::mem;
 import std::math;
 import std::collections::map;
 
@@ -30,22 +31,27 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glyph::Font* font = glyph::createFont("test.ttf", 120)!!;
+    glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
 
-    char[] accepted = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-=_+[]{}\\|/<>,.;':\"`~ ";
+    char[] accepted = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
+    for (int c = 0; c < accepted.len; c++)
+    {
+        char i = accepted[c];
+        io::printfn("%03d '%c' \t x0 %03d  y0 %03d    x1 %03d  y1 %03d    xoff %d  yoff %d", i, i, atlas.chars[c].x0, atlas.chars[c].y0, atlas.chars[c].x1, atlas.chars[c].y1, atlas.chars[c].xoff, atlas.chars[c].yoff);
+    }
+    atlas.bindTexture();
 
     double time;
     const int XS = 160;
     const int YS = 54;
     char[XS][YS] grid;
-    double xMul = 12.0;
-    double yMul = 20.0;
+    float xMul = 12.0f;
+    float yMul = 20.0f;
     math::random::SimpleRandom rand;
     for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[rand.next_byte() % accepted.len];
     while (!window.shouldClose)
     {
-        double fontSize = 10;
-
         for (int i = 0; i < XS; i++)
         {
             char c = accepted[rand.next_byte() % accepted.len];
@@ -56,7 +62,7 @@ fn int main(String[] args)
         {
             for (int j = 0; j < YS; j++)
             {
-                if (grid[j][i] != 0) font.renderGlyph(window, grid[j][i], i * xMul, 4 + j * yMul, fontSize)!!;
+                atlas.renderGlyph(window, grid[j][i], i * xMul, (j+1.0f) * yMul, atlas.fontSize)!!;
             }
         }
 
