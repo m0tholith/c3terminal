@@ -142,8 +142,8 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     float texSizeX = (float)(pChar.x1 - pChar.x0) / self.width;
     float texSizeY = (float)(pChar.y1 - pChar.y0) / self.height;
 
-    gl::uniform2f(gl::getUniformLocation(self.renderer.shader, "texPos"), texPosX, texPosY);
-    gl::uniform2f(gl::getUniformLocation(self.renderer.shader, "texSize"), texSizeX, texSizeY);
+    gl::uniform2f(self.renderer.uniformTexPos, texPosX, texPosY);
+    gl::uniform2f(self.renderer.uniformTexSize, texSizeX, texSizeY);
 
     self.bindTexture();
     self.renderer.render();

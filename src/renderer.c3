@@ -30,6 +30,9 @@ struct Renderer
     uint vbo;
     uint ebo;
     uint shader;
+
+    uint uniformTexPos;
+    uint uniformTexSize;
 }
 
 ZString vertexShaderSource    = `
@@ -137,6 +140,11 @@ fn Renderer* create()
         gl::getProgramInfoLog(renderer.shader, 512, null, (char*)&infoLog);
         io::eprintfn("Failed to compile shader program: %s", infoLog);
     }
+
+    gl::useProgram(renderer.shader);
+    renderer.uniformTexPos  = gl::getUniformLocation(renderer.shader, "texPos");
+    renderer.uniformTexSize = gl::getUniformLocation(renderer.shader, "texSize");
+    gl::useProgram(0);
 
     return renderer;
 }
