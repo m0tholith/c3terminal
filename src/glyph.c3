@@ -156,6 +156,14 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     self.bindTexture();
     self.renderer.render();
 }
+fn void FontAtlas.free(FontAtlas* self)
+{
+    mem::free(self.chars);
+    mem::free(self.pixels);
+    gl::deleteTextures(1, &self.textureId);
+    self.renderer.free();
+    mem::free(self);
+}
 
 fn char[]! readFile(String filename, char[] buffer) @local
 {

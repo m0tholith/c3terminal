@@ -32,6 +32,7 @@ fn int main(String[] args)
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
     glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
+    defer atlas.free();
 
     char[] accepted = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
