@@ -135,15 +135,7 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     float y1 = y        / window.height * 2 - 1;
     float y2 = (y + h)  / window.height * 2 - 1;
 
-    self.renderer.vertices[0].position = { x1, y1, 0 };
-    self.renderer.vertices[1].position = { x2, y1, 0 };
-    self.renderer.vertices[2].position = { x1, y2, 0 };
-    self.renderer.vertices[3].position = { x2, y2, 0 };
-
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.renderer.vertices),
-                   (void*)&self.renderer.vertices, gl::GL_DYNAMIC_DRAW);
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
+    self.renderer.updateQuad(x1, y1, x2, y2);
 
     float texPosX  = (float)pChar.x0 / self.width;
     float texPosY  = (float)pChar.y0 / self.height;
