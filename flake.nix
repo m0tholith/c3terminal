@@ -24,6 +24,9 @@
         packages = with pkgs; [
           (c3c.outputs.packages.${system}.default)
           glfw
+
+          # debugging
+          renderdoc
         ];
       };
     };
