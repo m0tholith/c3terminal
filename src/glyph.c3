@@ -11,6 +11,8 @@ import window;
 import renderer;
 import stb_truetype;
 
+import remotery;
+
 struct FontAtlas
 {
     ushort width; ushort height;
@@ -73,6 +75,8 @@ fn FontAtlas*! createFontAtlas(float fontSize)
         @swap(self.chars[i].y0, self.chars[i].y1);
     }
 
+    remotery::beginOpenGLSample("Glyph Texture Creation");
+
     uint texture;
     gl::genTextures(1, &texture);
     gl::bindTexture(gl::GL_TEXTURE_2D, texture);
@@ -84,6 +88,8 @@ fn FontAtlas*! createFontAtlas(float fontSize)
     // load and generate the texture
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_R8, self.width, self.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, self.pixels.ptr);
     self.textureId = texture;
+
+    remotery::endOpenGLSample();
 
     return self;
 }
@@ -113,7 +119,9 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
 }
 fn void FontAtlas.bindTexture(FontAtlas* self)
 {
+    remotery::beginOpenGLSample("Glyph Texture Creation");
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
+    remotery::endOpenGLSample();
 }
 fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint codepoint, float x, float y, float fontSize)
 {
@@ -142,8 +150,10 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     float texSizeX = (float)(pChar.x1 - pChar.x0) / self.width;
     float texSizeY = (float)(pChar.y1 - pChar.y0) / self.height;
 
+    remotery::beginOpenGLSample("Glyph Texture Position and Size");
     gl::uniform2f(self.renderer.uniformTexPos, texPosX, texPosY);
     gl::uniform2f(self.renderer.uniformTexSize, texSizeX, texSizeY);
+    remotery::endOpenGLSample();
 
     self.bindTexture();
     self.renderer.render();
@@ -152,7 +162,9 @@ fn void FontAtlas.free(FontAtlas* self)
 {
     mem::free(self.chars);
     mem::free(self.pixels);
+    remotery::beginOpenGLSample("Deleting Glyph Texture");
     gl::deleteTextures(1, &self.textureId);
+    remotery::endOpenGLSample();
     self.renderer.free();
     mem::free(self);
 }

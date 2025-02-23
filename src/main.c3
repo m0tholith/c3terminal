@@ -14,6 +14,8 @@ import std::core::mem;
 import std::math;
 import std::collections::map;
 
+import remotery;
+
 fn int main(String[] args)
 {
     window::initSystem();
@@ -30,6 +32,12 @@ fn int main(String[] args)
 
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
+
+    remotery::Remotery* rmt;
+    remotery::createGlobalInstance(&rmt);
+    defer remotery::destroyGlobalInstance(rmt);
+    remotery::bindOpenGL();
+    defer remotery::unbindOpenGL();
 
     glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
     defer atlas.free();
@@ -48,22 +56,37 @@ fn int main(String[] args)
     for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[rand.next_byte() % accepted.len];
     while (!window.shouldClose)
     {
-        for (int i = 0; i < 1; i++)
+        defer remotery::markFrame();
+
         {
-            char c = accepted[rand.next_byte() % accepted.len];
-            grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
-        }
-        
-        for (int j = 0; j < YS; j++)
-        {
-            for (int i = 0; i < XS; i++)
+            remotery::beginCPUSample("Rendering", 0);
+            defer remotery::endCPUSample();
+            for (int j = 0; j < YS; j++)
             {
-                atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
+                for (int i = 0; i < XS; i++)
+                {
+                    atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
+                }
             }
         }
 
-        inputHandler.processInput(window);
-        if (quitInput.activated()) window.shouldClose = true;
+        {
+            remotery::beginCPUSample("Randomizing Grid", 0);
+            defer remotery::endCPUSample();
+            for (int i = 0; i < XS; i++)
+            {
+                char c = accepted[rand.next_byte() % accepted.len];
+                grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
+            }
+        }
+
+        {
+            remotery::beginCPUSample("Input processing", 0);
+            defer remotery::endCPUSample();
+
+            inputHandler.processInput(window);
+            if (quitInput.activated()) window.shouldClose = true;
+        }
 
         window.clearColor(0.1176, 0.1176, 0.1803);
         window.refresh();

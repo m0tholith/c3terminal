@@ -7,6 +7,8 @@
   "version": "0.1.0",
   "sources":  [ "src/**" ],
   "test-sources":  [ "test/**" ],
+  "c-sources": [ "csource/**" ],
+  "c-include-dirs": [ "csource/include" ],
   "output": "build",
   "targets": {
     "terminal": {

@@ -6,6 +6,8 @@ import std::math::matrix;
 
 import opengl;
 
+import remotery;
+
 struct Vector2
 {
     float x;
@@ -70,6 +72,9 @@ void main() {
 
 fn Renderer* create()
 {
+    remotery::beginOpenGLSample("Generating Renderer");
+    defer remotery::endOpenGLSample();
+
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
                           { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
@@ -88,21 +93,28 @@ fn Renderer* create()
 
     gl::bindVertexArray(renderer.vao);
 
+    remotery::beginOpenGLSample("Buffering VBO");
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.vbo);
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_DYNAMIC_DRAW);
+    remotery::endOpenGLSample();
 
+    remotery::beginOpenGLSample("Buffering EBO");
     gl::bindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     gl::bufferData(gl::GL_ELEMENT_ARRAY_BUFFER, $sizeof(renderer.indices), (void*)&renderer.indices, gl::GL_STATIC_DRAW);
+    remotery::endOpenGLSample();
 
+    remotery::beginOpenGLSample("Setting Vertex Attributes");
     int attr = 0;
     gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
     gl::enableVertexAttribArray(attr++);
     gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.uv.offsetof);
     gl::enableVertexAttribArray(attr++);
+    remotery::endOpenGLSample();
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
     gl::bindVertexArray(0);
 
+    remotery::beginOpenGLSample("Generating shaders");
     bool success;
     char[512] infoLog;
     uint vertexShader = gl::createShader(gl::GL_VERTEX_SHADER);
@@ -145,6 +157,7 @@ fn Renderer* create()
     renderer.uniformTexPos  = gl::getUniformLocation(renderer.shader, "texPos");
     renderer.uniformTexSize = gl::getUniformLocation(renderer.shader, "texSize");
     gl::useProgram(0);
+    remotery::endOpenGLSample();
 
     return renderer;
 }
@@ -156,24 +169,30 @@ fn void Renderer.updateQuad(Renderer* self, float x1, float y1, float x2, float 
     self.vertices[2].position = { x1, y2, 0 };
     self.vertices[3].position = { x2, y2, 0 };
 
+    remotery::beginOpenGLSample("Updating Renderer Quad");
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.vbo);
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.vertices),
                    (void*)&self.vertices, gl::GL_DYNAMIC_DRAW);
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
+    remotery::endOpenGLSample();
 }
 
 fn void Renderer.render(Renderer* renderer)
 {
+    remotery::beginOpenGLSample("Rendering Quad");
     gl::useProgram(renderer.shader);
     gl::bindVertexArray(renderer.vao);
     gl::drawElements(gl::GL_TRIANGLES, renderer.indices.len, gl::GL_UNSIGNED_INT, (void*)0);
+    remotery::endOpenGLSample();
 }
 
 fn void Renderer.free(Renderer* renderer)
 {
+    remotery::beginOpenGLSample("Freeing all buffers");
     gl::deleteVertexArrays(1, &renderer.vao);
     gl::deleteBuffers(1, &renderer.vbo);
     gl::deleteBuffers(1, &renderer.ebo);
     gl::deleteProgram(renderer.shader);
+    remotery::endOpenGLSample();
     mem::free(renderer);
 }
