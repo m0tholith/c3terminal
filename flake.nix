@@ -27,6 +27,7 @@
 
           # debugging
           renderdoc
+          tracy
         ];
       };
     };

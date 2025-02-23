@@ -14,8 +14,13 @@ import std::core::mem;
 import std::math;
 import std::collections::map;
 
+import tracy;
+
 fn int main(String[] args)
 {
+    tracy::TracyCZoneCtx ctx = tracy::zone(depth: 10, name: "Main Scope");
+    defer tracy::zoneEnd(ctx);
+
     window::initSystem();
     defer window::terminateSystem();
 
@@ -48,17 +53,29 @@ fn int main(String[] args)
     for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[rand.next_byte() % accepted.len];
     while (!window.shouldClose)
     {
-        for (int i = 0; i < 1; i++)
+        defer tracy::frameMark();
+
         {
-            char c = accepted[rand.next_byte() % accepted.len];
-            grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
+            tracy::TracyCZoneCtx randomCtx = tracy::zone(name: "Randomizing chars");
+            defer tracy::zoneEnd(randomCtx);
+            for (int i = 0; i < 1; i++)
+            {
+                char c = accepted[rand.next_byte() % accepted.len];
+                grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
+            }
         }
         
-        for (int j = 0; j < YS; j++)
         {
-            for (int i = 0; i < XS; i++)
+            tracy::TracyCZoneCtx renderCtx = tracy::zone(name: "Rendering");
+            defer tracy::zoneEnd(renderCtx);
+            for (int j = 0; j < YS; j++)
             {
-                atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
+                tracy::TracyCZoneCtx rowCtx = tracy::zone(name: "Row Render");
+                defer tracy::zoneEnd(rowCtx);
+                for (int i = 0; i < XS; i++)
+                {
+                    atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
+                }
             }
         }
 
