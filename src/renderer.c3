@@ -31,6 +31,7 @@ struct Renderer
     uint ebo;
     uint shader;
 
+    uint uniformQuad;
     uint uniformTexPos;
     uint uniformTexSize;
 }
@@ -40,11 +41,23 @@ ZString vertexShaderSource    = `
 
 layout (location = 0) in vec3 vertPos;
 layout (location = 1) in vec2 vertUV;
+uniform vec4 quadCoords; // x1, y1, x2, y2
+
+vec2 getPos(vec3 inVec) {
+    vec2 result;
+
+    if (inVec.x < 0) result.x = quadCoords.x;
+    else             result.x = quadCoords.z;
+    if (inVec.y < 0) result.y = quadCoords.y;
+    else             result.y = quadCoords.w;
+
+    return result;
+}
 
 out vec2 vUV;
 
 void main() {
-    gl_Position = vec4(vec2(vertPos), 0.0, 1.0);
+    gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
     vUV = vertUV;
 }
 `;
@@ -89,7 +102,7 @@ fn Renderer* create()
     gl::bindVertexArray(renderer.vao);
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_DYNAMIC_DRAW);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
 
     gl::bindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     gl::bufferData(gl::GL_ELEMENT_ARRAY_BUFFER, $sizeof(renderer.indices), (void*)&renderer.indices, gl::GL_STATIC_DRAW);
@@ -112,8 +125,8 @@ fn Renderer* create()
     gl::getShaderiv(vertexShader, gl::GL_COMPILE_STATUS, (int*)&success);
     if (!success)
     {
-        gl::getShaderInfoLog(vertexShader, 512, null, (char*)&infoLog);
-        io::eprintfn("Failed to compile vertex shader: %s", infoLog);
+        gl::getShaderInfoLog(vertexShader, 512, null, (ZString)&infoLog);
+        io::eprintfn("Failed to compile vertex shader: %s", (ZString)&infoLog);
     }
 
     uint fragmentShader = gl::createShader(gl::GL_FRAGMENT_SHADER);
@@ -123,8 +136,8 @@ fn Renderer* create()
     gl::getShaderiv(fragmentShader, gl::GL_COMPILE_STATUS, (int*)&success);
     if (!success)
     {
-        gl::getShaderInfoLog(fragmentShader, 512, null, (char*)&infoLog);
-        io::eprintfn("Failed to compile fragment shader: %s", infoLog);
+        gl::getShaderInfoLog(fragmentShader, 512, null, (ZString)&infoLog);
+        io::eprintfn("Failed to compile fragment shader: %s", (ZString)&infoLog);
     }
 
     renderer.shader = gl::createProgram();
@@ -136,12 +149,14 @@ fn Renderer* create()
     gl::deleteShader(fragmentShader);
 
     gl::getProgramiv(renderer.shader, gl::GL_LINK_STATUS, (int*)&success);
-    if (!success) {
-        gl::getProgramInfoLog(renderer.shader, 512, null, (char*)&infoLog);
-        io::eprintfn("Failed to compile shader program: %s", infoLog);
+    if (!success)
+    {
+        gl::getProgramInfoLog(renderer.shader, 512, null, (ZString)&infoLog);
+        io::eprintfn("Failed to compile shader program: %s", (ZString)&infoLog);
     }
 
     gl::useProgram(renderer.shader);
+    renderer.uniformQuad    = gl::getUniformLocation(renderer.shader, "quadCoords");
     renderer.uniformTexPos  = gl::getUniformLocation(renderer.shader, "texPos");
     renderer.uniformTexSize = gl::getUniformLocation(renderer.shader, "texSize");
     gl::useProgram(0);
@@ -151,15 +166,8 @@ fn Renderer* create()
 
 fn void Renderer.updateQuad(Renderer* self, float x1, float y1, float x2, float y2)
 {
-    self.vertices[0].position = { x1, y1, 0 };
-    self.vertices[1].position = { x2, y1, 0 };
-    self.vertices[2].position = { x1, y2, 0 };
-    self.vertices[3].position = { x2, y2, 0 };
-
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.vertices),
-                   (void*)&self.vertices, gl::GL_DYNAMIC_DRAW);
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
+    gl::useProgram(self.shader);
+    gl::uniform4f(self.uniformQuad, x1, y1, x2, y2);
 }
 
 fn void Renderer.render(Renderer* renderer)
