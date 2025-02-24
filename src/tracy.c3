@@ -2,7 +2,7 @@ module tracy;
 
 const TRACY_ENABLE @builtin = 1;
 
-enum TracyPlotFormat
+enum PlotFormat
 {
     NUMBER,
     MEMORY,
@@ -10,7 +10,7 @@ enum TracyPlotFormat
     WATT
 }
 
-extern fn void ___tracy_set_thread_name(ZString name) @local;
+extern fn void ___tracy_set_thread_name(ZString name);
 
 macro setThreadName(ZString name) { ___tracy_set_thread_name(name); }
 
@@ -36,25 +36,29 @@ struct ___Tracy_gpu_time_data
     char context;
 }
 
-struct ___Tracy_gpu_zone_begin_data {
+struct ___Tracy_gpu_zone_begin_data
+{
     ulong srcloc;
     ushort queryId;
     char context;
 }
 
-struct ___Tracy_gpu_zone_begin_callstack_data {
+struct ___Tracy_gpu_zone_begin_callstack_data
+{
     ulong srcloc;
     int depth;
     ushort queryId;
     char context;
 }
 
-struct ___Tracy_gpu_zone_end_data {
+struct ___Tracy_gpu_zone_end_data
+{
     ushort queryId;
     char context;
 }
 
-struct ___Tracy_gpu_new_context_data {
+struct ___Tracy_gpu_new_context_data
+{
     long gpuTime;
     float period;
     char context;
@@ -62,19 +66,22 @@ struct ___Tracy_gpu_new_context_data {
     char type;
 }
 
-struct ___Tracy_gpu_context_name_data {
+struct ___Tracy_gpu_context_name_data
+{
     char context;
     ZString name;
     ushort len;
 }
 
-struct ___Tracy_gpu_calibration_data {
+struct ___Tracy_gpu_calibration_data
+{
     long gpuTime;
     long cpuDelta;
     char context;
 }
 
-struct ___Tracy_gpu_time_sync_data {
+struct ___Tracy_gpu_time_sync_data
+{
     long gpuTime;
     char context;
 }
@@ -83,16 +90,17 @@ def __Tracy_lockable_context_data = void;
 
 // Some containers don't support storing const types.
 // This struct, as visible to user, is immutable, so treat it as if const was declared here.
-def /*const*/ TracyCZoneCtx = ___Tracy_c_zone_context;
+def /*const*/ ZoneCtx = ___Tracy_c_zone_context;
 
-def TracyCLockCtx = __Tracy_lockable_context_data*;
+def LockCtx = __Tracy_lockable_context_data*;
 
 // #ifdef TRACY_MANUAL_LIFETIME
 extern fn void ___tracy_startup_profiler() @if($defined(TRACY_MANUAL_LIFETIME));
 extern fn void ___tracy_shutdown_profiler() @if($defined(TRACY_MANUAL_LIFETIME));
 extern fn int ___tracy_profiler_started() @if($defined(TRACY_MANUAL_LIFETIME));
 
-macro int isStarted() {
+macro int isStarted()
+{
     $if $defined(TRACY_MANUAL_LIFETIME):
         return ___tracy_profiler_started();
     $endif
@@ -102,15 +110,15 @@ macro int isStarted() {
 extern fn ulong ___tracy_alloc_srcloc(uint line, ZString source, usz sourceSz, ZString function, usz functionSz, uint color);
 extern fn ulong ___tracy_alloc_srcloc_name(uint line, ZString source, usz sourceSz, ZString function, usz functionSz, ZString name, usz nameSz, uint color);
 
-extern fn TracyCZoneCtx ___tracy_emit_zone_begin(___Tracy_source_location_data* srcloc, int active);
-extern fn TracyCZoneCtx ___tracy_emit_zone_begin_callstack(___Tracy_source_location_data* srcloc, int depth, int active);
-extern fn TracyCZoneCtx ___tracy_emit_zone_begin_alloc(ulong srcloc, int active);
-extern fn TracyCZoneCtx ___tracy_emit_zone_begin_alloc_callstack(ulong srcloc, int depth, int active);
-extern fn void ___tracy_emit_zone_end(TracyCZoneCtx ctx);
-extern fn void ___tracy_emit_zone_text(TracyCZoneCtx ctx, ZString txt, usz size);
-extern fn void ___tracy_emit_zone_name(TracyCZoneCtx ctx, ZString txt, usz size);
-extern fn void ___tracy_emit_zone_color(TracyCZoneCtx ctx, uint color);
-extern fn void ___tracy_emit_zone_value(TracyCZoneCtx ctx, ulong value);
+extern fn ZoneCtx ___tracy_emit_zone_begin(___Tracy_source_location_data* srcloc, int active);
+extern fn ZoneCtx ___tracy_emit_zone_begin_callstack(___Tracy_source_location_data* srcloc, int depth, int active);
+extern fn ZoneCtx ___tracy_emit_zone_begin_alloc(ulong srcloc, int active);
+extern fn ZoneCtx ___tracy_emit_zone_begin_alloc_callstack(ulong srcloc, int depth, int active);
+extern fn void ___tracy_emit_zone_end(ZoneCtx ctx);
+extern fn void ___tracy_emit_zone_text(ZoneCtx ctx, ZString txt, usz size);
+extern fn void ___tracy_emit_zone_name(ZoneCtx ctx, ZString txt, usz size);
+extern fn void ___tracy_emit_zone_color(ZoneCtx ctx, uint color);
+extern fn void ___tracy_emit_zone_value(ZoneCtx ctx, ulong value);
 
 extern fn void ___tracy_emit_gpu_zone_begin(___Tracy_gpu_zone_begin_data);
 extern fn void ___tracy_emit_gpu_zone_begin_callstack(___Tracy_gpu_zone_begin_callstack_data);
@@ -143,20 +151,20 @@ macro int isConnected()
 
 const TRACY_CALLSTACK @if(!$defined(TRACY_CALLSTACK)) = 1;
 
-macro TracyCZoneCtx zone(int active = 1, int depth = TRACY_CALLSTACK, ZString name = null, uint color = 0)
+macro ZoneCtx zone(int active = 1, int depth = TRACY_CALLSTACK, ZString name = null, uint color = 0)
 {
     ___Tracy_source_location_data source = { name, $$FUNC, $$FILEPATH, $$LINE, color };
     return ___tracy_emit_zone_begin_callstack(&source, depth, active);
 }
-macro zoneEnd(TracyCZoneCtx ctx)
+macro zoneEnd(ZoneCtx ctx)
 {
     ___tracy_emit_zone_end(ctx);
 }
 
-macro zoneText(TracyCZoneCtx ctx, ZString txt, usz size) { ___tracy_emit_zone_text(ctx, txt, size); }
-macro zoneName(TracyCZoneCtx ctx, ZString txt, usz size) { ___tracy_emit_zone_name(ctx, txt, size); }
-macro zoneColor(TracyCZoneCtx ctx, uint color)           { ___tracy_emit_zone_color(ctx, color);    }
-macro zoneValue(TracyCZoneCtx ctx, ulong value)          { ___tracy_emit_zone_value(ctx, value);    }
+macro zoneText(ZoneCtx ctx, ZString txt, usz size) { ___tracy_emit_zone_text(ctx, txt, size); }
+macro zoneName(ZoneCtx ctx, ZString txt, usz size) { ___tracy_emit_zone_name(ctx, txt, size); }
+macro zoneColor(ZoneCtx ctx, uint color)           { ___tracy_emit_zone_color(ctx, color);    }
+macro zoneValue(ZoneCtx ctx, ulong value)          { ___tracy_emit_zone_value(ctx, value);    }
 
 
 extern fn void ___tracy_emit_memory_alloc(void* ptr, usz size, int secure);

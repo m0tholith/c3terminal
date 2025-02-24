@@ -18,8 +18,8 @@ import tracy;
 
 fn int main(String[] args)
 {
-    tracy::TracyCZoneCtx ctx = tracy::zone(depth: 10, name: "Main Scope");
-    defer tracy::zoneEnd(ctx);
+    tracy::ZoneCtx tracyMainScope = tracy::zone(depth: 10, name: "Main Scope");
+    defer tracy::zoneEnd(tracyMainScope);
 
     window::initSystem();
     defer window::terminateSystem();
@@ -56,8 +56,8 @@ fn int main(String[] args)
         defer tracy::frameMark();
 
         {
-            tracy::TracyCZoneCtx randomCtx = tracy::zone(name: "Randomizing chars");
-            defer tracy::zoneEnd(randomCtx);
+            tracy::ZoneCtx tracyRandomZone = tracy::zone(name: "Randomizing chars");
+            defer tracy::zoneEnd(tracyRandomZone);
             for (int i = 0; i < 1; i++)
             {
                 char c = accepted[rand.next_byte() % accepted.len];
@@ -66,14 +66,14 @@ fn int main(String[] args)
         }
         
         {
-            tracy::TracyCZoneCtx renderCtx = tracy::zone(name: "Rendering");
-            defer tracy::zoneEnd(renderCtx);
+            tracy::ZoneCtx tracyRenderZone = tracy::zone(name: "Rendering");
+            defer tracy::zoneEnd(tracyRenderZone);
             for (int j = 0; j < YS; j++)
             {
                 for (int i = 0; i < XS; i++)
                 {
-                    tracy::TracyCZoneCtx glyphCtx = tracy::zone(name: "Glyph Render");
-                    defer tracy::zoneEnd(glyphCtx);
+                    tracy::ZoneCtx tracyGlyphZone = tracy::zone(name: "Glyph Render");
+                    defer tracy::zoneEnd(tracyGlyphZone);
                     atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
                 }
             }
