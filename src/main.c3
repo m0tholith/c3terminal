@@ -70,10 +70,10 @@ fn int main(String[] args)
             defer tracy::zoneEnd(renderCtx);
             for (int j = 0; j < YS; j++)
             {
-                tracy::TracyCZoneCtx rowCtx = tracy::zone(name: "Row Render");
-                defer tracy::zoneEnd(rowCtx);
                 for (int i = 0; i < XS; i++)
                 {
+                    tracy::TracyCZoneCtx glyphCtx = tracy::zone(name: "Glyph Render");
+                    defer tracy::zoneEnd(glyphCtx);
                     atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
                 }
             }
