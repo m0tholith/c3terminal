@@ -69,6 +69,13 @@ fn int main(String[] args)
         window.refresh();
 
         time = glfw::getTime();
+
+        GLenum err = gl::getError();
+        while (err != 0)
+        {
+            io::printfn("0x%08X", err);
+            err = gl::getError();
+        }
     }
 
 	return 0;
