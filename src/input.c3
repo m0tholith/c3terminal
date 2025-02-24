@@ -4,6 +4,8 @@ import glfw;
 import std::core::mem;
 import std::collections;
 
+import tracy;
+
 fault InputHandlerError
 {
     INPUT_NAME_NOT_FOUND,
@@ -28,14 +30,14 @@ struct InputHandler
 
 fn InputHandler* createHandler(InputButton[] inputs)
 {
-    InputHandler* handler = mem::new(InputHandler);
+    InputHandler* handler = tracy::mem::new(InputHandler);
     handler.inputs.new_init_with_array(inputs);
     return handler;
 }
 fn void InputHandler.free(InputHandler* handler)
 {
     handler.inputs.free();
-    mem::free(handler);
+    tracy::mem::free(handler);
 }
 fn void InputHandler.addInput(InputHandler* handler, InputButton input)
 {

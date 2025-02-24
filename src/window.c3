@@ -6,6 +6,8 @@ import std::collections::list;
 import glfw;
 import opengl;
 
+import tracy;
+
 fault WindowError
 {
     WINDOW_FAILED_INIT,
@@ -56,7 +58,7 @@ fn Window*! create(int width, int height, ZString name)
     gl::viewport(0, 0, width, height);
     gl::enable(gl::GL_MULTISAMPLE);
 
-    Window* window = mem::new(Window);
+    Window* window = tracy::mem::new(Window);
     window.glfwWin = glfwWin;
     window.width = width;
     window.height = height;
@@ -71,7 +73,7 @@ fn Window*! create(int width, int height, ZString name)
 fn void Window.free(Window* window)
 {
     glfw::destroyWindow(window.glfwWin);
-    mem::free(window);
+    tracy::mem::free(window);
 }
 
 <*

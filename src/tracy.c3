@@ -1,6 +1,6 @@
 module tracy;
 
-const TRACY_ENABLE = 1;
+const TRACY_ENABLE @builtin = 1;
 
 enum TracyPlotFormat
 {
@@ -175,28 +175,6 @@ extern fn void ___tracy_emit_messageL(ZString txt, int callstack_depth);
 extern fn void ___tracy_emit_messageC(ZString txt, usz size, uint color, int callstack_depth);
 extern fn void ___tracy_emit_messageLC(ZString txt, uint color, int callstack_depth);
 
-macro alloc(void* ptr, usz size, int depth = TRACY_CALLSTACK, int secure = 0)
-{
-    ___tracy_emit_memory_alloc_callstack(ptr, size, depth, secure);
-}
-macro free(void* ptr, int depth = TRACY_CALLSTACK, int secure = 0)
-{
-    ___tracy_emit_memory_free_callstack(ptr, depth, secure);
-}
-macro memoryDiscard(ZString name, int depth = TRACY_CALLSTACK, int secure = 0)
-{
-    ___tracy_emit_memory_discard_callstack(name, secure, depth);
-}
-
-macro allocNamed(void* ptr, usz size, ZString name, int depth = TRACY_CALLSTACK, int secure = 0)
-{
-    ___tracy_emit_memory_alloc_callstack_named(ptr, size, depth, secure, name);
-}
-macro freeNamed(void* ptr, ZString name, int depth = TRACY_CALLSTACK, int secure = 0)
-{
-    ___tracy_emit_memory_free_callstack(ptr, depth, secure, name);
-}
-
 macro message(ZString txt, usz size, int depth = TRACY_CALLSTACK)
 {
     ___tracy_emit_message(txt, size, depth);
@@ -324,4 +302,49 @@ macro fiberEnter(ZString fiber) @if($defined(TRACY_FIBERS))
 macro fiberLeave() @if($defined(TRACY_FIBERS))
 {
     ___tracy_fiber_leave();
+}
+
+
+module tracy::mem;
+
+import std::core::mem;
+
+macro malloc(usz size, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+{
+    void* ptr = core::mem::malloc(size);
+    tracy::___tracy_emit_memory_alloc_callstack(ptr, size, depth, secure);
+    return ptr;
+}
+macro new($Type, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+{
+    $Type* ptr = core::mem::new($Type);
+    tracy::___tracy_emit_memory_alloc_callstack(ptr, $Type.sizeof, depth, secure);
+    return ptr;
+}
+macro new_array($Type, usz elements, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+{
+    $Type[] ptr = core::mem::new_array($Type, elements);
+    tracy::___tracy_emit_memory_alloc_callstack(ptr, elements * $Type.sizeof, depth, secure);
+    return ptr;
+}
+macro free(void* ptr, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+{
+    core::mem::free(ptr);
+    tracy::___tracy_emit_memory_free_callstack(ptr, depth, secure);
+}
+macro memoryDiscard(ZString name, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+{
+    tracy::___tracy_emit_memory_discard_callstack(name, secure, depth);
+}
+
+macro alloc_named(usz size, int depth = tracy::TRACY_CALLSTACK, int secure = 0, ZString name)
+{
+    void* ptr = core::mem::malloc(size);
+    tracy::___tracy_emit_memory_alloc_callstack_named(ptr, size, depth, secure, name);
+    return ptr;
+}
+macro free_named(void* ptr, int depth = tracy::TRACY_CALLSTACK, int secure = 0, ZString name)
+{
+    core::mem::free(ptr);
+    tracy::___tracy_emit_memory_free_callstack_named(ptr, depth, secure, name);
 }

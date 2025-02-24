@@ -11,6 +11,8 @@ import window;
 import renderer;
 import stb_truetype;
 
+import tracy;
+
 struct FontAtlas
 {
     ushort width; ushort height;
@@ -31,25 +33,25 @@ fault FontAtlasError
 const uint START_CP = 32; const uint END_CP = 127;
 fn FontAtlas*! createFontAtlas(float fontSize)
 {
-    FontAtlas* self = mem::new(FontAtlas);
+    FontAtlas* self = tracy::mem::new(FontAtlas);
     self.startCodepoint = START_CP; self.endCodepoint = END_CP;
     self.width = 128; self.height = 128;
     self.fontSize = fontSize;
     self.renderer = renderer::create();
 
-    self.chars = mem::new_array(stb_truetype::PackedChar, END_CP);
-    self.pixels = mem::new_array(char, (usz)(self.width * self.height));
+    self.chars = tracy::mem::new_array(stb_truetype::PackedChar, END_CP);
+    self.pixels = tracy::mem::new_array(char, (usz)(self.width * self.height));
 
-    char[] contents = mem::new_array(char, io::file::get_size("test.ttf"))!!;
-    defer mem::free(contents);
+    char[] contents = tracy::mem::new_array(char, io::file::get_size("test.ttf"))!!;
+    defer tracy::mem::free(contents);
     readFile("test.ttf", contents)!;
 
-    stb_truetype::PackContext* ctx = mem::new(stb_truetype::PackContext);
+    stb_truetype::PackContext* ctx = tracy::mem::new(stb_truetype::PackContext);
 
     if (stb_truetype::packBegin(ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
     stb_truetype::packFontRange(ctx, contents, 0, fontSize, self.startCodepoint, self.endCodepoint, self.chars.ptr);
     stb_truetype::packEnd(ctx);
-    mem::free(ctx);
+    tracy::mem::free(ctx);
 
     // flip image
     {
@@ -150,11 +152,11 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
 }
 fn void FontAtlas.free(FontAtlas* self)
 {
-    mem::free(self.chars);
-    mem::free(self.pixels);
+    tracy::mem::free(self.chars);
+    tracy::mem::free(self.pixels);
     gl::deleteTextures(1, &self.textureId);
     self.renderer.free();
-    mem::free(self);
+    tracy::mem::free(self);
 }
 
 fn char[]! readFile(String filename, char[] buffer) @local

@@ -6,6 +6,8 @@ import std::math::matrix;
 
 import opengl;
 
+import tracy;
+
 struct Vector2
 {
     float x;
@@ -70,7 +72,7 @@ void main() {
 
 fn Renderer* create()
 {
-    Renderer* renderer = mem::new(Renderer);
+    Renderer* renderer = tracy::mem::new(Renderer);
     renderer.vertices = { 
                           { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
                           { { 1.0,-1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
@@ -175,5 +177,5 @@ fn void Renderer.free(Renderer* renderer)
     gl::deleteBuffers(1, &renderer.vbo);
     gl::deleteBuffers(1, &renderer.ebo);
     gl::deleteProgram(renderer.shader);
-    mem::free(renderer);
+    tracy::mem::free(renderer);
 }
