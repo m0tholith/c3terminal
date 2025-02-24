@@ -149,12 +149,10 @@ macro int isConnected()
     return ___tracy_connected();
 }
 
-const TRACY_CALLSTACK @if(!$defined(TRACY_CALLSTACK)) = 1;
-
-macro ZoneCtx zone(int active = 1, int depth = TRACY_CALLSTACK, ZString name = null, uint color = 0)
+macro ZoneCtx zone(int active = 1, ZString name = null, uint color = 0)
 {
     ___Tracy_source_location_data source = { name, $$FUNC, $$FILEPATH, $$LINE, color };
-    return ___tracy_emit_zone_begin_callstack(&source, depth, active);
+    return ___tracy_emit_zone_begin(&source, active);
 }
 macro zoneEnd(ZoneCtx ctx)
 {
@@ -183,21 +181,21 @@ extern fn void ___tracy_emit_messageL(ZString txt, int callstack_depth);
 extern fn void ___tracy_emit_messageC(ZString txt, usz size, uint color, int callstack_depth);
 extern fn void ___tracy_emit_messageLC(ZString txt, uint color, int callstack_depth);
 
-macro message(ZString txt, usz size, int depth = TRACY_CALLSTACK)
+macro message(ZString txt, usz size)
 {
-    ___tracy_emit_message(txt, size, depth);
+    ___tracy_emit_message(txt, size, TRACY_CALLSTACK);
 }
-macro messageL(ZString txt, int depth = TRACY_CALLSTACK)
+macro messageL(ZString txt)
 {
-    ___tracy_emit_messageL(txt, depth);
+    ___tracy_emit_messageL(txt, TRACY_CALLSTACK);
 }
-macro messageC(ZString txt, usz size, uint color, int depth = TRACY_CALLSTACK)
+macro messageC(ZString txt, usz size, uint color)
 {
-    ___tracy_emit_messageC(txt, size, color, depth);
+    ___tracy_emit_messageC(txt, size, color, TRACY_CALLSTACK);
 }
-macro messageLC(ZString txt, uint color, int depth = TRACY_CALLSTACK)
+macro messageLC(ZString txt, uint color)
 {
-    ___tracy_emit_messageLC(txt, color, depth);
+    ___tracy_emit_messageLC(txt, color, TRACY_CALLSTACK);
 }
 
 
@@ -317,42 +315,42 @@ module tracy::mem;
 
 import std::core::mem;
 
-macro malloc(usz size, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+macro malloc(usz size, int secure = 0)
 {
     void* ptr = core::mem::malloc(size);
-    tracy::___tracy_emit_memory_alloc_callstack(ptr, size, depth, secure);
+    tracy::___tracy_emit_memory_alloc(ptr, size, secure);
     return ptr;
 }
-macro new($Type, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+macro new($Type, int secure = 0)
 {
     $Type* ptr = core::mem::new($Type);
-    tracy::___tracy_emit_memory_alloc_callstack(ptr, $Type.sizeof, depth, secure);
+    tracy::___tracy_emit_memory_alloc(ptr, $Type.sizeof, secure);
     return ptr;
 }
-macro new_array($Type, usz elements, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+macro new_array($Type, usz elements, int secure = 0)
 {
     $Type[] ptr = core::mem::new_array($Type, elements);
-    tracy::___tracy_emit_memory_alloc_callstack(ptr, elements * $Type.sizeof, depth, secure);
+    tracy::___tracy_emit_memory_alloc(ptr, elements * $Type.sizeof, secure);
     return ptr;
 }
-macro free(void* ptr, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+macro free(void* ptr, int secure = 0)
 {
     core::mem::free(ptr);
-    tracy::___tracy_emit_memory_free_callstack(ptr, depth, secure);
+    tracy::___tracy_emit_memory_free(ptr, secure);
 }
-macro memoryDiscard(ZString name, int depth = tracy::TRACY_CALLSTACK, int secure = 0)
+macro memoryDiscard(ZString name, int secure = 0)
 {
-    tracy::___tracy_emit_memory_discard_callstack(name, secure, depth);
+    tracy::___tracy_emit_memory_discard(name, secure);
 }
 
-macro alloc_named(usz size, int depth = tracy::TRACY_CALLSTACK, int secure = 0, ZString name)
+macro alloc_named(usz size, int secure = 0, ZString name)
 {
     void* ptr = core::mem::malloc(size);
-    tracy::___tracy_emit_memory_alloc_callstack_named(ptr, size, depth, secure, name);
+    tracy::___tracy_emit_memory_alloc_named(ptr, size, secure, name);
     return ptr;
 }
-macro free_named(void* ptr, int depth = tracy::TRACY_CALLSTACK, int secure = 0, ZString name)
+macro free_named(void* ptr, int secure = 0, ZString name)
 {
     core::mem::free(ptr);
-    tracy::___tracy_emit_memory_free_callstack_named(ptr, depth, secure, name);
+    tracy::___tracy_emit_memory_free_named(ptr, secure, name);
 }

@@ -18,7 +18,7 @@ import tracy;
 
 fn int main(String[] args)
 {
-    tracy::ZoneCtx tracyMainScope = tracy::zone(depth: 10, name: "Main Scope");
+    tracy::ZoneCtx tracyMainScope = tracy::zone(name: "Main Scope");
     defer tracy::zoneEnd(tracyMainScope);
 
     window::initSystem();
