@@ -19,7 +19,7 @@ struct Vector3
 }
 struct Vertex
 {
-    Vector3 position;
+    Vector2 position;
     Vector2 uv;
 }
 struct Renderer
@@ -39,11 +39,11 @@ struct Renderer
 ZString vertexShaderSource    = `
 #version 330 core
 
-layout (location = 0) in vec3 vertPos;
+layout (location = 0) in vec2 vertPos;
 layout (location = 1) in vec2 vertUV;
 uniform vec4 quadCoords; // x1, y1, x2, y2
 
-vec2 getPos(vec3 inVec) {
+vec2 getPos(vec2 inVec) {
     vec2 result;
 
     if (inVec.x < 0) result.x = quadCoords.x;
@@ -85,10 +85,10 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { {-1.0,-1.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
-                          { { 1.0,-1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-1.0, 1.0, 0.0 }, { 0.0, 1.0 } }, // top left
-                          { { 1.0, 1.0, 0.0 }, { 1.0, 1.0 } }, // top right
+                          { {-1.0,-1.0 }, { 0.0, 0.0 } }, // bottom left
+                          { { 1.0,-1.0 }, { 1.0, 0.0 } }, // bottom right
+                          { {-1.0, 1.0 }, { 0.0, 1.0 } }, // top left
+                          { { 1.0, 1.0 }, { 1.0, 1.0 } }, // top right
                         }; 
     renderer.indices = {
                          0, 1, 2,
