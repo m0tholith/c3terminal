@@ -54,6 +54,7 @@ fn int main(String[] args)
             grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
         }
         
+        atlas.bindTexture();
         for (int j = 0; j < YS; j++)
         {
             for (int i = 0; i < XS; i++)

@@ -84,6 +84,7 @@ fn FontAtlas*! createFontAtlas(float fontSize)
     // load and generate the texture
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_R8, self.width, self.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, self.pixels.ptr);
     self.textureId = texture;
+    self.bindTexture();
 
     return self;
 }
@@ -145,7 +146,6 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     gl::uniform2f(self.renderer.uniformTexPos, texPosX, texPosY);
     gl::uniform2f(self.renderer.uniformTexSize, texSizeX, texSizeY);
 
-    self.bindTexture();
     self.renderer.render();
 }
 fn void FontAtlas.free(FontAtlas* self)
