@@ -31,7 +31,8 @@ fn int main(String[] args)
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
+    const FONT_SIZE = 20;
+    glyph::FontAtlas* atlas = glyph::createFontAtlas(FONT_SIZE)!!;
     defer atlas.free();
 
     char[] accepted = {' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'};
@@ -42,10 +43,10 @@ fn int main(String[] args)
     int xs = 240;
     int ys = 54;
     char[1920 * 1080] grid;
-    float xMul = 8.0f;
-    float yMul = 20.0f;
+    float xMul = atlas.getChar('#')!!.xadvance;
+    float yMul = FONT_SIZE;
     math::random::SimpleRandom rand;
-    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = ' ';
+    for (int i = 0; i < grid.len; i++) grid[i] = ' ';
     renderer::Vector2[4] cursors;
     while (!window.shouldClose)
     {
@@ -57,7 +58,7 @@ fn int main(String[] args)
         }
         foreach (&cursor : cursors)
         {
-            if ((float)rand.next_byte() / char.max < 0.05f)
+            if ((float)rand.next_byte() / char.max < 0.1f)
             {
                 cursor.y = 0;
                 cursor.x = (float)rand.next_byte() / (float)char.max * xs;
