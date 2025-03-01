@@ -131,12 +131,12 @@ fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint cod
     x += xo;
     y -= yo + h;
 
-    float x1 = x        / window.width  * 2 - 1;
-    float x2 = (x + w)  / window.width  * 2 - 1;
-    float y1 = y        / window.height * 2 - 1;
-    float y2 = (y + h)  / window.height * 2 - 1;
+    x = x / window.width  * 2 - 1;
+    y = y / window.height * 2 - 1;
+    w = w / window.width  * 2;
+    h = h / window.height * 2;
 
-    self.renderer.updateQuad(x1, y1, x2, y2);
+    self.renderer.updateQuad(x, y, w, h);
 
     float texPosX  = (float)pChar.x0 / self.width;
     float texPosY  = (float)pChar.y0 / self.height;

@@ -29,7 +29,8 @@ struct Renderer
     uint vbo;
     uint shader;
 
-    uint uniformQuad;
+    uint uniformQuadPos;
+    uint uniformQuadSize;
     uint uniformTexPos;
     uint uniformTexSize;
 }
@@ -39,17 +40,11 @@ ZString vertexShaderSource    = `
 
 layout (location = 0) in vec2 vertPos;
 layout (location = 1) in vec2 vertUV;
-uniform vec4 quadCoords; // x1, y1, x2, y2
+uniform vec2 quadPos;
+uniform vec2 quadSize;
 
 vec2 getPos(vec2 inVec) {
-    vec2 result;
-
-    if (inVec.x < 0) result.x = quadCoords.x;
-    else             result.x = quadCoords.z;
-    if (inVec.y < 0) result.y = quadCoords.y;
-    else             result.y = quadCoords.w;
-
-    return result;
+    return quadPos + quadSize * inVec;
 }
 
 out vec2 vUV;
@@ -83,11 +78,11 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { {-1.0,-1.0 }, { 0.0, 0.0 } }, // bottom left
-                          { { 1.0,-1.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-1.0, 1.0 }, { 0.0, 1.0 } }, // top left
-                          { { 1.0,-1.0 }, { 1.0, 0.0 } }, // bottom right
-                          { {-1.0, 1.0 }, { 0.0, 1.0 } }, // top left
+                          { { 0.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
+                          { { 1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
+                          { { 0.0, 1.0 }, { 0.0, 1.0 } }, // top left
+                          { { 1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
+                          { { 0.0, 1.0 }, { 0.0, 1.0 } }, // top left
                           { { 1.0, 1.0 }, { 1.0, 1.0 } }, // top right
                         }; 
 
@@ -148,18 +143,20 @@ fn Renderer* create()
     }
 
     gl::useProgram(renderer.shader);
-    renderer.uniformQuad    = gl::getUniformLocation(renderer.shader, "quadCoords");
-    renderer.uniformTexPos  = gl::getUniformLocation(renderer.shader, "texPos");
-    renderer.uniformTexSize = gl::getUniformLocation(renderer.shader, "texSize");
+    renderer.uniformQuadPos   = gl::getUniformLocation(renderer.shader, "quadPos");
+    renderer.uniformQuadSize  = gl::getUniformLocation(renderer.shader, "quadSize");
+    renderer.uniformTexPos    = gl::getUniformLocation(renderer.shader, "texPos");
+    renderer.uniformTexSize   = gl::getUniformLocation(renderer.shader, "texSize");
     gl::useProgram(0);
 
     return renderer;
 }
 
-fn void Renderer.updateQuad(Renderer* self, float x1, float y1, float x2, float y2)
+fn void Renderer.updateQuad(Renderer* self, float x, float y, float w, float h)
 {
     gl::useProgram(self.shader);
-    gl::uniform4f(self.uniformQuad, x1, y1, x2, y2);
+    gl::uniform2f(self.uniformQuadPos, x, y);
+    gl::uniform2f(self.uniformQuadSize, w, h);
 }
 
 fn void Renderer.render(Renderer* renderer)
