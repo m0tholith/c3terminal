@@ -45,16 +45,11 @@ fn int main(String[] args)
     float xMul = 8.0f;
     float yMul = 20.0f;
     math::random::SimpleRandom rand;
-    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = accepted[rand.next_byte() % accepted.len];
+    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = accepted[(long)(j + ys * i) % accepted.len];
     while (!window.shouldClose)
     {
         xs = (int)(window.width  / xMul);
         ys = (int)(window.height / yMul);
-        for (int i = 0; i < xs; i++)
-        {
-            char c = accepted[rand.next_byte() % accepted.len];
-            grid[rand.next_byte() % ys + ys * (rand.next_byte() % xs)] = c;
-        }
         
         atlas.renderGrid((char*)&grid, window.width, window.height, xs, ys, 20)!!;
 
