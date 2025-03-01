@@ -57,6 +57,8 @@ fn Window*! create(int width, int height, ZString name)
     glfw::windowHint(glfw::SAMPLES, 2);
     gl::viewport(0, 0, width, height);
     gl::enable(gl::GL_MULTISAMPLE);
+    gl::enable(gl::GL_BLEND);
+    gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
     Window* window = mem::new(Window);
     window.glfwWin = glfwWin;
@@ -70,7 +72,7 @@ fn Window*! create(int width, int height, ZString name)
 <*
  @require window != null : "window is null"
  *>
-fn void Window.free(Window* window)
+fn void Window.free(Window* window) @local
 {
     glfw::destroyWindow(window.glfwWin);
     mem::free(window);

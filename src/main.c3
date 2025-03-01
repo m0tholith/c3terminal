@@ -28,9 +28,6 @@ fn int main(String[] args)
 
     input::InputButton* quitInput = inputHandler.getInput("quit")!!;
 
-    gl::enable(gl::GL_BLEND);
-    gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
-
     const FONT_SIZE = 20;
     glyph::FontAtlas* atlas = glyph::createFontAtlas(FONT_SIZE)!!;
     defer atlas.free();
