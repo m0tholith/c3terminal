@@ -124,8 +124,8 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, char* grid, int width, int height
         for (int yIdx = 0; yIdx < gridH; yIdx++)
         {
             int idx = xIdx + gridW * yIdx;
-            float x = (float)(int)(xIdx * width  / gridW);
-            float y = (float)(int)(yIdx * height / gridH);
+            float x = (float)(int)(xIdx * width / gridW);
+            float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
 
             stb_truetype::PackedChar* pChar = self.getChar(grid[idx])!;
 
@@ -135,7 +135,7 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, char* grid, int width, int height
             float h = (float)(pChar.y1 - pChar.y0) * s;
 
             float xo = pChar.xoff * s;
-            float yo = pChar.yoff * s;
+            float yo = pChar.yoff * s - 4;
 
             x += xo;
             y -= yo + h;
