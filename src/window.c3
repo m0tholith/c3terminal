@@ -15,6 +15,8 @@ struct Window
 {
     glfw::Window* glfwWin;
     bool shouldClose;
+    bool sizeChanged; // toggles at the frame when the
+                      // size was changed, and then resets
     uint width;
     uint height;
 }
@@ -86,6 +88,8 @@ fn void Window.clearColor(Window* window, float red, float green, float blue)
  *>
 fn void Window.refresh(Window* window)
 {
+    window.sizeChanged = false;
+
     glfw::makeContextCurrent(window.glfwWin);
 
     glfw::swapBuffers(window.glfwWin);
@@ -108,6 +112,9 @@ fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height)
         {
             window.width = width;
             window.height = height;
+
+            window.sizeChanged = true;
+            break;
         }
     }
 }
