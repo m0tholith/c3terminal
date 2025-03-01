@@ -45,11 +45,25 @@ fn int main(String[] args)
     float xMul = 8.0f;
     float yMul = 20.0f;
     math::random::SimpleRandom rand;
-    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = accepted[(long)(j + ys * i) % accepted.len];
+    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = ' ';
+    renderer::Vector2[4] cursors;
     while (!window.shouldClose)
     {
-        xs = (int)(window.width  / xMul);
-        ys = (int)(window.height / yMul);
+        if (window.sizeChanged)
+        {
+            for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = ' ';
+            xs = (int)(window.width  / xMul);
+            ys = (int)(window.height / yMul);
+        }
+        foreach (&cursor : cursors)
+        {
+            if ((float)rand.next_byte() / char.max < 0.05f)
+            {
+                cursor.y = 0;
+                cursor.x = (float)rand.next_byte() / (float)char.max * xs;
+            }
+            grid[(int)cursor.x + xs * (int)cursor.y++] = accepted[(rand.next_byte() % (accepted.len - 1)) + 1];
+        }
         
         atlas.renderGrid((char*)&grid, window.width, window.height, xs, ys, 20)!!;
 
