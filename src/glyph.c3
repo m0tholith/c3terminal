@@ -29,7 +29,7 @@ fault FontAtlasError
     CHAR_NOT_FOUND,
 }
 const uint START_CP = 32; const uint END_CP = 127;
-fn FontAtlas*! createFontAtlas(float fontSize)
+fn FontAtlas*! createFontAtlas(String filename, float fontSize)
 {
     FontAtlas* self = mem::new(FontAtlas);
     self.startCodepoint = START_CP; self.endCodepoint = END_CP;
@@ -40,9 +40,9 @@ fn FontAtlas*! createFontAtlas(float fontSize)
     self.chars = mem::new_array(stb_truetype::PackedChar, END_CP);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
 
-    char[] contents = mem::new_array(char, io::file::get_size("test.ttf"))!!;
+    char[] contents = mem::new_array(char, io::file::get_size(filename))!!;
     defer mem::free(contents);
-    readFile("test.ttf", contents)!;
+    readFile(filename, contents)!;
 
     stb_truetype::PackContext* ctx = mem::new(stb_truetype::PackContext);
 
