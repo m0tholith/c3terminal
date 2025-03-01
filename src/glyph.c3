@@ -110,6 +110,7 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
         }
     }
 
+    io::eprintfn("could not find char '%c' (%d)", codepoint, codepoint);
     return FontAtlasError.CHAR_NOT_FOUND?;
 }
 fn void FontAtlas.bindTexture(FontAtlas* self)
