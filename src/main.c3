@@ -34,27 +34,29 @@ fn int main(String[] args)
     glyph::FontAtlas* atlas = glyph::createFontAtlas(20)!!;
     defer atlas.free();
 
-    char[] accepted = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+    char[] accepted = {' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'};
 
     atlas.bindTexture();
 
     double time;
-    const int XS = 240;
-    const int YS = 54;
-    char[XS][YS] grid;
+    int xs = 240;
+    int ys = 54;
+    char[1920 * 1080] grid;
     float xMul = 8.0f;
     float yMul = 20.0f;
     math::random::SimpleRandom rand;
-    for (int i = 0; i < XS; i++) for (int j = 0; j < YS; j++) grid[j][i] = accepted[rand.next_byte() % accepted.len];
+    for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = accepted[rand.next_byte() % accepted.len];
     while (!window.shouldClose)
     {
-        for (int i = 0; i < 1; i++)
+        xs = (int)(window.width  / xMul);
+        ys = (int)(window.height / yMul);
+        for (int i = 0; i < xs; i++)
         {
             char c = accepted[rand.next_byte() % accepted.len];
-            grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
+            grid[rand.next_byte() % ys + ys * (rand.next_byte() % xs)] = c;
         }
         
-        atlas.renderGrid((char*)&grid, 1920, 1080, XS, YS, 20)!!;
+        atlas.renderGrid((char*)&grid, window.width, window.height, xs, ys, 20)!!;
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
