@@ -116,36 +116,54 @@ fn void FontAtlas.bindTexture(FontAtlas* self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
-fn void! FontAtlas.renderGlyph(FontAtlas* self, window::Window* window, uint codepoint, float x, float y, float fontSize)
+fn void! FontAtlas.renderGrid(FontAtlas* self, char* grid, int width, int height, int gridW, int gridH, float fontSize)
 {
-    stb_truetype::PackedChar* pChar = self.getChar(codepoint)!;
+    int uniformIdx = 0;
+    for (int xIdx = 0; xIdx < gridW; xIdx++)
+    {
+        for (int yIdx = 0; yIdx < gridH; yIdx++)
+        {
+            int idx = xIdx + gridW * yIdx;
+            float x = (float)(int)(xIdx * width  / gridW);
+            float y = (float)(int)(yIdx * height / gridH);
 
-    float s = fontSize / self.fontSize;
+            stb_truetype::PackedChar* pChar = self.getChar(grid[idx])!;
 
-    float w = (float)(pChar.x1 - pChar.x0) * s;
-    float h = (float)(pChar.y1 - pChar.y0) * s;
+            float s = fontSize / self.fontSize;
 
-    float xo = pChar.xoff * s;
-    float yo = pChar.yoff * s;
+            float w = (float)(pChar.x1 - pChar.x0) * s;
+            float h = (float)(pChar.y1 - pChar.y0) * s;
 
-    x += xo;
-    y -= yo + h;
+            float xo = pChar.xoff * s;
+            float yo = pChar.yoff * s;
 
-    x = x / window.width  * 2 - 1;
-    y = y / window.height * 2 - 1;
-    w = w / window.width  * 2;
-    h = h / window.height * 2;
+            x += xo;
+            y -= yo + h;
 
-    self.renderer.updateQuad(x, y, w, h);
+            x = x / width  * 2 - 1;
+            y = y / height * 2 - 1;
+            w = w / width  * 2;
+            h = h / height * 2;
 
-    float texPosX  = (float)pChar.x0 / self.width;
-    float texPosY  = (float)pChar.y0 / self.height;
-    float texSizeX = (float)(pChar.x1 - pChar.x0) / self.width;
-    float texSizeY = (float)(pChar.y1 - pChar.y0) / self.height;
+            float texPosX  = (float)pChar.x0 / self.width;
+            float texPosY  = (float)pChar.y0 / self.height;
+            float texSizeX = (float)(pChar.x1 - pChar.x0) / self.width;
+            float texSizeY = (float)(pChar.y1 - pChar.y0) / self.height;
 
-    gl::uniform2f(self.renderer.uniformTexPos, texPosX, texPosY);
-    gl::uniform2f(self.renderer.uniformTexSize, texSizeX, texSizeY);
+            if (uniformIdx >= renderer::ARRAY_MAX)
+            {
+                uniformIdx = 0;
+                self.renderer.render();
+            }
 
+            self.renderer.arrQuadPos [uniformIdx] = { x, y };
+            self.renderer.arrQuadSize[uniformIdx] = { w, h };
+            self.renderer.arrTexPos  [uniformIdx] = { texPosX, texPosY };
+            self.renderer.arrTexSize [uniformIdx] = { texSizeX, texSizeY };
+
+            uniformIdx++;
+        }
+    }
     self.renderer.render();
 }
 fn void FontAtlas.free(FontAtlas* self)

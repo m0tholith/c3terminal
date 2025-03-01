@@ -6,6 +6,8 @@ import std::math::matrix;
 
 import opengl;
 
+const ARRAY_MAX = 1 << 9;
+
 struct Vector2
 {
     float x;
@@ -33,41 +35,58 @@ struct Renderer
     uint uniformQuadSize;
     uint uniformTexPos;
     uint uniformTexSize;
+
+    Vector2[ARRAY_MAX] arrQuadPos;
+    Vector2[ARRAY_MAX] arrQuadSize;
+    Vector2[ARRAY_MAX] arrTexPos;
+    Vector2[ARRAY_MAX] arrTexSize;
 }
 
 ZString vertexShaderSource    = `
 #version 330 core
 
+const int ARRAY_MAX = 1 << 9;
+
 layout (location = 0) in vec2 vertPos;
 layout (location = 1) in vec2 vertUV;
-uniform vec2 quadPos;
-uniform vec2 quadSize;
+uniform vec2 quadPos[ARRAY_MAX];
+uniform vec2 quadSize[ARRAY_MAX];
 
 vec2 getPos(vec2 inVec) {
-    return quadPos + quadSize * inVec;
+    return quadPos[gl_InstanceID] + quadSize[gl_InstanceID] * inVec;
 }
 
-out vec2 vUV;
+out VS_OUT {
+    flat int idx;
+    vec2 uv;
+} vs_out;
 
 void main() {
     gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
-    vUV = vertUV;
+    vs_out.uv = vertUV;
+    vs_out.idx = gl_InstanceID;
 }
 `;
 ZString fragmentShaderSource  = `
 #version 330 core
 
-in vec2 vUV;
+const int ARRAY_MAX = 1 << 9;
+
+in VS_OUT {
+    flat int idx;
+    vec2 uv;
+} fs_in;
+
 uniform sampler2D tex;
-uniform vec2 texPos;
-uniform vec2 texSize;
+uniform vec2 texPos[ARRAY_MAX];
+uniform vec2 texSize[ARRAY_MAX];
 uniform vec4 bg = vec4(0.1176, 0.1176, 0.1803, 0);
 uniform vec4 fg = vec4(0.8039, 0.8392, 0.9568, 1);
 
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = texPos + texSize * vUV;
+    vec2 uv = texPos[fs_in.idx] + texSize[fs_in.idx] * fs_in.uv;
     float color = texture(tex, uv).x;
     vec4 result = mix(bg, fg, color);
     FragColor = result;
@@ -99,9 +118,6 @@ fn Renderer* create()
     gl::enableVertexAttribArray(attr++);
     gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.uv.offsetof);
     gl::enableVertexAttribArray(attr++);
-
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, 0);
-    gl::bindVertexArray(0);
 
     bool success;
     char[512] infoLog;
@@ -147,23 +163,18 @@ fn Renderer* create()
     renderer.uniformQuadSize  = gl::getUniformLocation(renderer.shader, "quadSize");
     renderer.uniformTexPos    = gl::getUniformLocation(renderer.shader, "texPos");
     renderer.uniformTexSize   = gl::getUniformLocation(renderer.shader, "texSize");
-    gl::useProgram(0);
 
     return renderer;
 }
 
-fn void Renderer.updateQuad(Renderer* self, float x, float y, float w, float h)
-{
-    gl::useProgram(self.shader);
-    gl::uniform2f(self.uniformQuadPos, x, y);
-    gl::uniform2f(self.uniformQuadSize, w, h);
-}
-
 fn void Renderer.render(Renderer* renderer)
 {
-    gl::useProgram(renderer.shader);
-    gl::bindVertexArray(renderer.vao);
-    gl::drawArrays(gl::GL_TRIANGLES, 0, renderer.vertices.len);
+    gl::uniform2fv(renderer.uniformQuadPos,  ARRAY_MAX, (float*)&renderer.arrQuadPos);
+    gl::uniform2fv(renderer.uniformQuadSize, ARRAY_MAX, (float*)&renderer.arrQuadSize);
+    gl::uniform2fv(renderer.uniformTexPos,   ARRAY_MAX, (float*)&renderer.arrTexPos);
+    gl::uniform2fv(renderer.uniformTexSize,  ARRAY_MAX, (float*)&renderer.arrTexSize);
+
+    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, ARRAY_MAX);
 }
 
 fn void Renderer.free(Renderer* renderer)

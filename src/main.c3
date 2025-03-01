@@ -54,14 +54,7 @@ fn int main(String[] args)
             grid[rand.next_byte() % YS][rand.next_byte() % XS] = c;
         }
         
-        atlas.bindTexture();
-        for (int j = 0; j < YS; j++)
-        {
-            for (int i = 0; i < XS; i++)
-            {
-                atlas.renderGlyph(window, grid[j][i], i * xMul, j * yMul, 20)!!;
-            }
-        }
+        atlas.renderGrid((char*)&grid, 1920, 1080, XS, YS, 20)!!;
 
         inputHandler.processInput(window);
         if (quitInput.activated()) window.shouldClose = true;
