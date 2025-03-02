@@ -31,14 +31,14 @@ fn int main(String[] args)
         terminal.preRender();
         foreach (&cursor : cursors)
         {
-            if (rnd() < 0.1f)
+            if (rnd() < 0.1f || terminal.window.sizeChanged)
             {
-                cursor.y = 0;
+                cursor.y = terminal.grid.height - 1;
                 cursor.x = rand(terminal.grid.width);
             }
             terminal.cursor.set(cursor.x, cursor.y);
             terminal.assignChar((char)rand_in_range(33, 126));
-            cursor.y++;
+            cursor.y = --cursor.y % terminal.grid.height;
         }
         
         terminal.render()!!;
