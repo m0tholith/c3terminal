@@ -112,7 +112,7 @@ fn void! Terminal.render(Terminal* self)
         err = gl::getError();
     }
 
-    self.window.clearColor(0.1176, 0.1176, 0.1803);
+    self.window.clearColor(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
 
     double newTime = glfw::getTime();

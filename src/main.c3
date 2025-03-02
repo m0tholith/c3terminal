@@ -19,7 +19,7 @@ const FPS = 60.0;
 
 fn int main(String[] args)
 {
-    terminal::Terminal* terminal = terminal::create(900, 600, "m0tty", "test.ttf", fontSize: 20, fps: 0)!!;
+    terminal::Terminal* terminal = terminal::create(900, 600, "m0tty", "test.ttf", fontSize: 20, bgR: 0.1176f, bgG: 0.117f, bgB: 0.1803f, fps: 0)!!;
     defer terminal.free();
     terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
     input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
