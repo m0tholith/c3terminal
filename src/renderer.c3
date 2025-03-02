@@ -80,15 +80,15 @@ in VS_OUT {
 uniform sampler2D tex;
 uniform vec2 texPos[ARRAY_MAX];
 uniform vec2 texSize[ARRAY_MAX];
-uniform vec4 bg = vec4(0.1176, 0.1176, 0.1803, 0);
-uniform vec4 fg = vec4(0.8039, 0.8392, 0.9568, 1);
+uniform vec3 bg = vec3(0.1176, 0.1176, 0.1803);
+uniform vec3 fg = vec3(0.8039, 0.8392, 0.9568);
 
 out vec4 FragColor;
 
 void main() {
     vec2 uv = texPos[fs_in.idx] + texSize[fs_in.idx] * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = mix(bg, fg, color);
+    vec4 result = vec4(mix(bg, fg, color), 1);
     FragColor = result;
 }
 `;
