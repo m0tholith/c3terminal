@@ -13,7 +13,7 @@ import std::io;
 
 struct Grid @local
 {
-    uint[] str;
+    glyph::GridChar[] str;
     uint width; uint height;
     float fontSize;
 }
@@ -53,12 +53,12 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
     glyph::FontAtlas* atlas = glyph::createFontAtlas(fontName, fontSize)!;
     defer catch { atlas.free(); }
 
-    Grid grid = { mem::new_array(uint, gridSize),
+    Grid grid = { mem::new_array(glyph::GridChar, gridSize),
                   (uint)((float)windowWidth  / atlas.charMaxX),
                   (uint)((float)windowHeight / atlas.charMaxY),
                   fontSize };
     defer catch { grid.free(); }
-    for (usz i = 0; i < gridSize; i++) grid.str[i] = ' ';
+    for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', bg, fg };
 
     Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, bg, fg, fps == 0 ? 0 : 1.0/fps, 0 });
     return result;
@@ -68,7 +68,7 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
  *>
 fn void Terminal.assignChar(Terminal* self, uint codepoint)
 {
-    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y] = codepoint;
+    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].codepoint = codepoint;
 }
 fn void Terminal.preRender(Terminal* self)
 {
@@ -78,7 +78,7 @@ fn void Terminal.preRender(Terminal* self)
         {
             for (int j = 0; j < self.grid.height; j++)
             {
-                self.grid.str[i + self.grid.width * j] = ' ';
+                self.grid.str[i + self.grid.width * j].codepoint = ' ';
             }
         }
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
@@ -88,9 +88,7 @@ fn void Terminal.preRender(Terminal* self)
 }
 fn void! Terminal.render(Terminal* self)
 {
-    gl::uniform3f(self.fontAtlas.renderer.uniformBg, self.bg.x, self.bg.y, self.bg.z);
-    gl::uniform3f(self.fontAtlas.renderer.uniformFg, self.fg.x, self.fg.y, self.fg.z);
-    self.fontAtlas.renderGrid(self.grid.str.ptr, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.renderGrid(self.grid.str, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
     GLenum err = gl::getError();
     while (err != 0)

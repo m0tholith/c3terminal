@@ -33,6 +33,8 @@ struct Renderer
     Vec2f[ARRAY_MAX] arrQuadSize;
     Vec2f[ARRAY_MAX] arrTexPos;
     Vec2f[ARRAY_MAX] arrTexSize;
+    Vec3f[ARRAY_MAX] arrBg;
+    Vec3f[ARRAY_MAX] arrFg;
 }
 
 ZString vertexShaderSource    = `
@@ -73,15 +75,15 @@ in VS_OUT {
 uniform sampler2D tex;
 uniform vec2 texPos[ARRAY_MAX];
 uniform vec2 texSize[ARRAY_MAX];
-uniform vec3 bg = vec3(0.1176, 0.1176, 0.1803);
-uniform vec3 fg = vec3(0.8039, 0.8392, 0.9568);
+uniform vec3 bg[ARRAY_MAX];
+uniform vec3 fg[ARRAY_MAX];
 
 out vec4 FragColor;
 
 void main() {
     vec2 uv = texPos[fs_in.idx] + texSize[fs_in.idx] * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = vec4(mix(bg, fg, color), 1);
+    vec4 result = vec4(mix(bg[fs_in.idx], fg[fs_in.idx], color), 1);
     FragColor = result;
 }
 `;
@@ -168,6 +170,8 @@ fn void Renderer.render(Renderer* renderer)
     gl::uniform2fv(renderer.uniformQuadSize, ARRAY_MAX, (float*)&renderer.arrQuadSize);
     gl::uniform2fv(renderer.uniformTexPos,   ARRAY_MAX, (float*)&renderer.arrTexPos);
     gl::uniform2fv(renderer.uniformTexSize,  ARRAY_MAX, (float*)&renderer.arrTexSize);
+    gl::uniform3fv(renderer.uniformBg,       ARRAY_MAX, (float*)&renderer.arrBg);
+    gl::uniform3fv(renderer.uniformFg,       ARRAY_MAX, (float*)&renderer.arrFg);
 
     gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, ARRAY_MAX);
 }

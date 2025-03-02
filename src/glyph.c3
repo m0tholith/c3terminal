@@ -121,7 +121,13 @@ fn void FontAtlas.bindTexture(FontAtlas* self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
-fn void! FontAtlas.renderGrid(FontAtlas* self, uint* grid, int width, int height, int gridW, int gridH, float fontSize)
+struct GridChar
+{
+    uint codepoint;
+    float[<3>] bg;
+    float[<3>] fg;
+}
+fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int height, int gridW, int gridH, float fontSize)
 {
     int uniformIdx = 0;
     for (int xIdx = 0; xIdx < gridW; xIdx++)
@@ -129,10 +135,12 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, uint* grid, int width, int height
         for (int yIdx = 0; yIdx < gridH; yIdx++)
         {
             int idx = xIdx + gridW * yIdx;
+            GridChar c = grid[idx];
+
             float x = (float)(int)(xIdx * width / gridW);
             float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
 
-            stb_truetype::PackedChar* pChar = self.getChar(grid[idx])!;
+            stb_truetype::PackedChar* pChar = self.getChar(c.codepoint)!;
 
             float s = fontSize / self.fontSize;
 
@@ -165,6 +173,8 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, uint* grid, int width, int height
             self.renderer.arrQuadSize[uniformIdx] = { w, h };
             self.renderer.arrTexPos  [uniformIdx] = { texPosX, texPosY };
             self.renderer.arrTexSize [uniformIdx] = { texSizeX, texSizeY };
+            self.renderer.arrBg      [uniformIdx] = c.bg;
+            self.renderer.arrFg      [uniformIdx] = c.fg;
 
             uniformIdx++;
         }
