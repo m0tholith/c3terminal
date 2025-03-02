@@ -8,7 +8,8 @@ import opengl;
 
 const ARRAY_MAX = 256;
 
-def Vec2f = float[<2>];
+def Vec2f = float[2] @local;
+def Vec3f = float[3] @local;
 struct Vertex
 {
     Vec2f position;
