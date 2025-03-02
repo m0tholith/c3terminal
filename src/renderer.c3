@@ -8,21 +8,11 @@ import opengl;
 
 const ARRAY_MAX = 1 << 9;
 
-struct Vector2
-{
-    float x;
-    float y;
-}
-struct Vector3
-{
-    float x;
-    float y;
-    float z;
-}
+def Vec2f = float[<2>];
 struct Vertex
 {
-    Vector2 position;
-    Vector2 uv;
+    Vec2f position;
+    Vec2f uv;
 }
 struct Renderer
 {
@@ -36,10 +26,10 @@ struct Renderer
     uint uniformTexPos;
     uint uniformTexSize;
 
-    Vector2[ARRAY_MAX] arrQuadPos;
-    Vector2[ARRAY_MAX] arrQuadSize;
-    Vector2[ARRAY_MAX] arrTexPos;
-    Vector2[ARRAY_MAX] arrTexSize;
+    Vec2f[ARRAY_MAX] arrQuadPos;
+    Vec2f[ARRAY_MAX] arrQuadSize;
+    Vec2f[ARRAY_MAX] arrTexPos;
+    Vec2f[ARRAY_MAX] arrTexSize;
 }
 
 ZString vertexShaderSource    = `

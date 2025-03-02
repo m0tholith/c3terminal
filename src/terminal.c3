@@ -11,11 +11,6 @@ import std::core::mem;
 import std::thread;
 import std::io;
 
-struct Cursor @local
-{
-    uint x;
-    uint y;
-}
 struct Grid @local
 {
     uint[] str;
@@ -27,10 +22,10 @@ struct Terminal
     window::Window* window;
     input::InputHandler* inputHandler;
     glyph::FontAtlas* fontAtlas;
-    Cursor cursor;
+    uint[<2>] cursor;
     Grid grid;
-    struct bg { float r; float g; float b; }
-    struct fg { float r; float g; float b; }
+    float[<3>] bg;
+    float[<3>] fg;
     // default value of 0 means as much as refresh rate
     double fps;
     double time;
@@ -46,7 +41,7 @@ struct Terminal
 
  @require fps >= 0
  *>
-fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "terminal", String fontName, float fontSize = 20.0f, usz gridSize = 32400, float bgR = 0, float bgG = 0, float bgB = 0, float fgR = 0, float fgG = 0, float fgB = 0, double fps = 0)
+fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1}, double fps = 0)
 {
     window::initSystem();
     window::Window* window = window::create(windowWidth, windowHeight, windowName)!;
@@ -65,18 +60,8 @@ fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "te
     defer catch { grid.free(); }
     for (usz i = 0; i < gridSize; i++) grid.str[i] = ' ';
 
-    Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, {bgR,bgG,bgB}, {fgR,fgG,fgB}, fps == 0 ? 0 : 1.0/fps, 0 });
+    Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, bg, fg, fps == 0 ? 0 : 1.0/fps, 0 });
     return result;
-}
-fn void Cursor.set(Cursor* self, uint x, uint y)
-{
-    self.x = x;
-    self.y = y;
-}
-fn void Cursor.add(Cursor* self, long x, long y)
-{
-    self.x = (uint)((long)self.x + x);
-    self.y = (uint)((long)self.y + y);
 }
 <*
  Assigns character to terminal's current cursor position
