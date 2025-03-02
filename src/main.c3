@@ -1,12 +1,8 @@
 module terminal;
 
-import window;
+import terminal;
 import input;
-import renderer;
 import glfw;
-import opengl;
-import glyph;
-import stb_truetype;
 
 import libc;
 import std::io;
@@ -16,25 +12,10 @@ import std::collections::map;
 
 fn int main(String[] args)
 {
-    window::initSystem();
-    defer window::terminateSystem();
-
-    window::Window* window = window::create(900, 600, "m0th")!!;
-
-    input::InputHandler* inputHandler = input::createHandler(input::InputButton[] {
-        { "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 }
-    });
-    defer inputHandler.free();
-
-    input::InputButton* quitInput = inputHandler.getInput("quit")!!;
-
-    const FONT_SIZE = 20;
-    glyph::FontAtlas* atlas = glyph::createFontAtlas("test.ttf", FONT_SIZE)!!;
-    defer atlas.free();
-
-    char[] accepted = {' ', '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ':', ';', '<', '=', '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '[', '\\', ']', '^', '_', '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}', '~'};
-
-    atlas.bindTexture();
+    terminal::Terminal terminal = terminal::create(900, 600, "m0tty", "test.ttf", 20)!!;
+    defer terminal.free();
+    terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
+    input::InputButton* quit = terminal.inputHandler.getInput("quit");
 
     double time;
     int xs = 240;
