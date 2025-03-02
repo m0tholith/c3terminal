@@ -1,11 +1,13 @@
 module terminal;
 
+import glfw;
 import glyph;
 import renderer;
 import window;
 import input;
 
 import std::core::mem;
+import std::thread;
 
 struct Cursor @local
 {
@@ -27,6 +29,9 @@ struct Terminal
     Grid grid;
     struct bg { float r; float g; float b; }
     struct fg { float r; float g; float b; }
+    // default value of 0 means as much as refresh rate
+    double fps;
+    double time;
 }
 
 <*
@@ -36,8 +41,10 @@ struct Terminal
  - Input system
  - Font atlas
  - Grid of characters
+
+ @require fps >= 0
  *>
-fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "terminal", String fontName, float fontSize = 20.0f, usz gridSize = 32400, float bgR = 0, float bgG = 0, float bgB = 0, float fgR = 0, float fgG = 0, float fgB = 0)
+fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "terminal", String fontName, float fontSize = 20.0f, usz gridSize = 32400, float bgR = 0, float bgG = 0, float bgB = 0, float fgR = 0, float fgG = 0, float fgB = 0, double fps = 0)
 {
     window::initSystem();
     window::Window* window = window::create(windowWidth, windowHeight, windowName)!;
@@ -56,7 +63,7 @@ fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "te
     defer catch { grid.free(); }
     for (usz i = 0; i < gridSize; i++) grid.str[i] = ' ';
 
-    Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, {bgR,bgG,bgB}, {fgR,fgG,fgB} });
+    Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, {bgR,bgG,bgB}, {fgR,fgG,fgB}, fps == 0 ? 0 : 1.0/fps, 0 });
     return result;
 }
 fn void Cursor.set(Cursor* self, uint x, uint y)
@@ -98,6 +105,11 @@ fn void! Terminal.render(Terminal* self)
 
     self.window.clearColor(0.1176, 0.1176, 0.1803);
     self.window.refresh();
+
+    double newTime = glfw::getTime();
+    double dt = newTime - self.time;
+    if (dt < self.fps) thread::sleep_ms((ulong)((self.fps - dt) * 1000));
+    self.time = newTime;
 }
 fn void Grid.free(Grid* self) @local
 {

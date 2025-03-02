@@ -19,7 +19,7 @@ const FPS = 60.0;
 
 fn int main(String[] args)
 {
-    terminal::Terminal* terminal = terminal::create(900, 600, "m0tty", "test.ttf", 20)!!;
+    terminal::Terminal* terminal = terminal::create(900, 600, "m0tty", "test.ttf", fontSize: 20, fps: 0)!!;
     defer terminal.free();
     terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
     input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
@@ -44,11 +44,6 @@ fn int main(String[] args)
         terminal.render()!!;
 
         if (quitInput.activated()) terminal.window.shouldClose = true;
-
-        double newTime = glfw::getTime();
-        double dt = newTime - time;
-        if (dt < 1.0/FPS) thread::sleep_ms((ulong)((1.0/FPS - dt) * 1000));
-        time = newTime;
 
         GLenum err = gl::getError();
         while (err != 0)
