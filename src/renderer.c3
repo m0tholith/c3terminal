@@ -6,7 +6,7 @@ import std::math::matrix;
 
 import opengl;
 
-const ARRAY_MAX = 1 << 9;
+const ARRAY_MAX = 256;
 
 def Vec2f = float[<2>];
 struct Vertex
@@ -37,7 +37,7 @@ struct Renderer
 ZString vertexShaderSource    = `
 #version 330 core
 
-const int ARRAY_MAX = 1 << 9;
+const int ARRAY_MAX = 256;
 
 layout (location = 0) in vec2 vertPos;
 layout (location = 1) in vec2 vertUV;
@@ -62,7 +62,7 @@ void main() {
 ZString fragmentShaderSource  = `
 #version 330 core
 
-const int ARRAY_MAX = 1 << 9;
+const int ARRAY_MAX = 256;
 
 in VS_OUT {
     flat int idx;
