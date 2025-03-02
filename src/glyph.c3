@@ -20,6 +20,7 @@ struct FontAtlas
     stb_truetype::PackedChar[] chars;
     char[] pixels;
     uint textureId;
+    float charMaxX; float charMaxY;
 
     renderer::Renderer* renderer;
 }
@@ -72,6 +73,9 @@ fn FontAtlas*! createFontAtlas(String filename, float fontSize)
         self.chars[i].y1 = self.height - self.chars[i].y1;
         @swap(self.chars[i].y0, self.chars[i].y1);
     }
+
+    self.charMaxX = self.getChar('#')!!.xadvance;
+    self.charMaxY = fontSize;
 
     uint texture;
     gl::genTextures(1, &texture);
