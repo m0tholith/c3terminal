@@ -121,7 +121,7 @@ fn void FontAtlas.bindTexture(FontAtlas* self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
-fn void! FontAtlas.renderGrid(FontAtlas* self, char* grid, int width, int height, int gridW, int gridH, float fontSize)
+fn void! FontAtlas.renderGrid(FontAtlas* self, uint* grid, int width, int height, int gridW, int gridH, float fontSize)
 {
     int uniformIdx = 0;
     for (int xIdx = 0; xIdx < gridW; xIdx++)

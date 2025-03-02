@@ -18,7 +18,7 @@ struct Cursor @local
 }
 struct Grid @local
 {
-    char[] str;
+    uint[] str;
     uint width; uint height;
     float fontSize;
 }
@@ -58,7 +58,7 @@ fn Terminal*! create(int windowWidth, int windowHeight, ZString windowName = "te
     glyph::FontAtlas* atlas = glyph::createFontAtlas(fontName, fontSize)!;
     defer catch { atlas.free(); }
 
-    Grid grid = { mem::new_array(char, gridSize),
+    Grid grid = { mem::new_array(uint, gridSize),
                   (uint)((float)windowWidth  / atlas.charMaxX),
                   (uint)((float)windowHeight / atlas.charMaxY),
                   fontSize };
@@ -81,7 +81,7 @@ fn void Cursor.add(Cursor* self, long x, long y)
 <*
  Assigns character to terminal's current cursor position
  *>
-fn void Terminal.assignChar(Terminal* self, char codepoint)
+fn void Terminal.assignChar(Terminal* self, uint codepoint)
 {
     self.grid.str[self.cursor.x + self.grid.width * self.cursor.y] = codepoint;
 }
