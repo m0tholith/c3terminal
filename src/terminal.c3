@@ -88,6 +88,8 @@ fn void Terminal.preRender(Terminal* self)
 }
 fn void! Terminal.render(Terminal* self)
 {
+    gl::uniform3f(self.fontAtlas.renderer.uniformBg, self.bg.x, self.bg.y, self.bg.z);
+    gl::uniform3f(self.fontAtlas.renderer.uniformFg, self.fg.x, self.fg.y, self.fg.z);
     self.fontAtlas.renderGrid(self.grid.str.ptr, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
     GLenum err = gl::getError();

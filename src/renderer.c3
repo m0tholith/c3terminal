@@ -25,6 +25,8 @@ struct Renderer
     uint uniformQuadSize;
     uint uniformTexPos;
     uint uniformTexSize;
+    uint uniformBg;
+    uint uniformFg;
 
     Vec2f[ARRAY_MAX] arrQuadPos;
     Vec2f[ARRAY_MAX] arrQuadSize;
@@ -153,6 +155,8 @@ fn Renderer* create()
     renderer.uniformQuadSize  = gl::getUniformLocation(renderer.shader, "quadSize");
     renderer.uniformTexPos    = gl::getUniformLocation(renderer.shader, "texPos");
     renderer.uniformTexSize   = gl::getUniformLocation(renderer.shader, "texSize");
+    renderer.uniformBg        = gl::getUniformLocation(renderer.shader, "bg");
+    renderer.uniformFg        = gl::getUniformLocation(renderer.shader, "fg");
 
     return renderer;
 }
