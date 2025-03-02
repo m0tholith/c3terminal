@@ -1,6 +1,7 @@
 module terminal;
 
 import glfw;
+import opengl;
 import glyph;
 import renderer;
 import window;
@@ -8,6 +9,7 @@ import input;
 
 import std::core::mem;
 import std::thread;
+import std::io;
 
 struct Cursor @local
 {
@@ -102,6 +104,13 @@ fn void Terminal.preRender(Terminal* self)
 fn void! Terminal.render(Terminal* self)
 {
     self.fontAtlas.renderGrid(self.grid.str.ptr, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+
+    GLenum err = gl::getError();
+    while (err != 0)
+    {
+        io::eprintfn("GL error 0x%08X", err);
+        err = gl::getError();
+    }
 
     self.window.clearColor(0.1176, 0.1176, 0.1803);
     self.window.refresh();
