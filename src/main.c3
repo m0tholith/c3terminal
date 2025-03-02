@@ -1,58 +1,54 @@
-module terminal;
+module main;
 
 import terminal;
 import input;
 import glfw;
+import opengl;
 
 import libc;
 import std::io;
+import std::time;
+import std::thread;
 import std::core::mem;
 import std::math;
 import std::collections::map;
 
+struct Cursor { uint x; uint y; }
+
+const FPS = 60.0;
+
 fn int main(String[] args)
 {
-    terminal::Terminal terminal = terminal::create(900, 600, "m0tty", "test.ttf", 20)!!;
+    terminal::Terminal* terminal = terminal::create(900, 600, "m0tty", "test.ttf", 20)!!;
     defer terminal.free();
     terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
-    input::InputButton* quit = terminal.inputHandler.getInput("quit");
+    input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
 
     double time;
-    int xs = 240;
-    int ys = 54;
-    char[1920 * 1080] grid;
-    float xMul = atlas.getChar('#')!!.xadvance;
-    float yMul = FONT_SIZE;
-    math::random::SimpleRandom rand;
-    for (int i = 0; i < grid.len; i++) grid[i] = ' ';
-    renderer::Vector2[4] cursors;
-    while (!window.shouldClose)
+    Cursor[4] cursors;
+    while (!terminal.window.shouldClose)
     {
-        if (window.sizeChanged)
-        {
-            for (int i = 0; i < xs; i++) for (int j = 0; j < ys; j++) grid[j + ys * i] = ' ';
-            xs = (int)(window.width  / xMul);
-            ys = (int)(window.height / yMul);
-        }
+        terminal.preRender();
         foreach (&cursor : cursors)
         {
-            if ((float)rand.next_byte() / char.max < 0.1f)
+            if (rnd() < 0.1f)
             {
                 cursor.y = 0;
-                cursor.x = (float)rand.next_byte() / (float)char.max * xs;
+                cursor.x = rand(terminal.grid.width);
             }
-            grid[(int)cursor.x + xs * (int)cursor.y++] = accepted[(rand.next_byte() % (accepted.len - 1)) + 1];
+            terminal.cursor.set(cursor.x, cursor.y);
+            terminal.assignChar((char)rand_in_range(33, 126));
+            cursor.y++;
         }
         
-        atlas.renderGrid((char*)&grid, window.width, window.height, xs, ys, 20)!!;
+        terminal.render()!!;
 
-        inputHandler.processInput(window);
-        if (quitInput.activated()) window.shouldClose = true;
+        if (quitInput.activated()) terminal.window.shouldClose = true;
 
-        window.clearColor(0.1176, 0.1176, 0.1803);
-        window.refresh();
-
-        time = glfw::getTime();
+        double newTime = glfw::getTime();
+        double dt = newTime - time;
+        if (dt < 1.0/FPS) thread::sleep_ms((ulong)((1.0/FPS - dt) * 1000));
+        time = newTime;
 
         GLenum err = gl::getError();
         while (err != 0)
