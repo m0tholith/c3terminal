@@ -169,12 +169,12 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int h
                 self.renderer.render();
             }
 
-            self.renderer.arrQuadPos [uniformIdx] = { x, y };
-            self.renderer.arrQuadSize[uniformIdx] = { w, h };
-            self.renderer.arrTexPos  [uniformIdx] = { texPosX, texPosY };
-            self.renderer.arrTexSize [uniformIdx] = { texSizeX, texSizeY };
-            self.renderer.arrBg      [uniformIdx] = c.bg;
-            self.renderer.arrFg      [uniformIdx] = c.fg;
+            self.renderer.instanceData[uniformIdx].quadPos  = { x, y };
+            self.renderer.instanceData[uniformIdx].quadSize = { w, h };
+            self.renderer.instanceData[uniformIdx].texPos   = { texPosX, texPosY };
+            self.renderer.instanceData[uniformIdx].texSize  = { texSizeX, texSizeY };
+            self.renderer.instanceData[uniformIdx].bg       = c.bg;
+            self.renderer.instanceData[uniformIdx].fg       = c.fg;
 
             uniformIdx++;
         }

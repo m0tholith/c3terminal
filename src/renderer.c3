@@ -6,13 +6,23 @@ import std::math::matrix;
 
 import opengl;
 
-const ARRAY_MAX = 256;
+const ARRAY_MAX = 4096;
 
 def Vec2f = float[2] @local;
 def Vec3f = float[3] @local;
 struct Vertex
 {
     Vec2f position;
+}
+struct InstanceData @packed
+{
+    Vec2f quadPos;
+    Vec2f quadSize;
+    Vec2f texPos;
+    Vec2f texSize;
+
+    Vec3f bg;
+    Vec3f fg;
 }
 struct Renderer
 {
@@ -21,67 +31,65 @@ struct Renderer
     uint vbo;
     uint shader;
 
-    uint uniformQuadPos;
-    uint uniformQuadSize;
-    uint uniformTexPos;
-    uint uniformTexSize;
-    uint uniformBg;
-    uint uniformFg;
+    uint instanceVbo;
 
-    Vec2f[ARRAY_MAX] arrQuadPos;
-    Vec2f[ARRAY_MAX] arrQuadSize;
-    Vec2f[ARRAY_MAX] arrTexPos;
-    Vec2f[ARRAY_MAX] arrTexSize;
-    Vec3f[ARRAY_MAX] arrBg;
-    Vec3f[ARRAY_MAX] arrFg;
+    InstanceData[ARRAY_MAX] instanceData;
 }
 
 ZString vertexShaderSource    = `
 #version 330 core
 
-const int ARRAY_MAX = 256;
-
 layout (location = 0) in vec2 vertPos;
-uniform vec2 quadPos[ARRAY_MAX];
-uniform vec2 quadSize[ARRAY_MAX];
+layout (location = 1) in vec2 quadPos;
+layout (location = 2) in vec2 quadSize;
+layout (location = 3) in vec2 texPos;
+layout (location = 4) in vec2 texSize;
+layout (location = 5) in vec3 bg;
+layout (location = 6) in vec3 fg;
 
 vec2 getPos(vec2 inVec) {
-    return quadPos[gl_InstanceID] + quadSize[gl_InstanceID] * inVec;
+    return quadPos + quadSize * inVec;
 }
 
 out VS_OUT {
     flat int idx;
     vec2 uv;
+    vec2 texPos;
+    vec2 texSize;
+    vec3 bg;
+    vec3 fg;
 } vs_out;
 
 void main() {
     gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
     vs_out.uv = vertPos;
     vs_out.idx = gl_InstanceID;
+    vs_out.texPos  = texPos;
+    vs_out.texSize = texSize;
+    vs_out.bg      = bg;
+    vs_out.fg      = fg;
 }
 `;
 ZString fragmentShaderSource  = `
 #version 330 core
 
-const int ARRAY_MAX = 256;
-
 in VS_OUT {
     flat int idx;
     vec2 uv;
+    vec2 texPos;
+    vec2 texSize;
+    vec3 bg;
+    vec3 fg;
 } fs_in;
 
 uniform sampler2D tex;
-uniform vec2 texPos[ARRAY_MAX];
-uniform vec2 texSize[ARRAY_MAX];
-uniform vec3 bg[ARRAY_MAX];
-uniform vec3 fg[ARRAY_MAX];
 
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = texPos[fs_in.idx] + texSize[fs_in.idx] * fs_in.uv;
+    vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = vec4(mix(bg[fs_in.idx], fg[fs_in.idx], color), 1);
+    vec4 result = vec4(mix(fs_in.bg, fs_in.fg, color), 1);
     FragColor = result;
 }
 `;
@@ -89,14 +97,14 @@ void main() {
 fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
-    renderer.vertices = { 
+    renderer.vertices = {
                           { { 0.0, 0.0 } }, // bottom left
                           { { 1.0, 0.0 } }, // bottom right
                           { { 0.0, 1.0 } }, // top left
                           { { 1.0, 0.0 } }, // bottom right
                           { { 0.0, 1.0 } }, // top left
                           { { 1.0, 1.0 } }, // top right
-                        }; 
+                        };
 
     gl::genVertexArrays(1, &renderer.vao);
     gl::genBuffers(1, &renderer.vbo);
@@ -107,8 +115,39 @@ fn Renderer* create()
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
 
     int attr = 0;
+    gl::enableVertexAttribArray(attr);
     gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
-    gl::enableVertexAttribArray(attr++);
+    attr++;
+
+    gl::genBuffers(1, &renderer.instanceVbo);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.instanceVbo);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.instanceData), (void*)&renderer.instanceData, gl::GL_DYNAMIC_DRAW);
+
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.quadPos.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.quadSize.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.texPos.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.texSize.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
+
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.bg.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
+    gl::enableVertexAttribArray(attr);
+    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.fg.offsetof);
+    gl::vertexAttribDivisor(attr, 1);
+    attr++;
 
     bool success;
     char[512] infoLog;
@@ -150,24 +189,14 @@ fn Renderer* create()
     }
 
     gl::useProgram(renderer.shader);
-    renderer.uniformQuadPos   = gl::getUniformLocation(renderer.shader, "quadPos");
-    renderer.uniformQuadSize  = gl::getUniformLocation(renderer.shader, "quadSize");
-    renderer.uniformTexPos    = gl::getUniformLocation(renderer.shader, "texPos");
-    renderer.uniformTexSize   = gl::getUniformLocation(renderer.shader, "texSize");
-    renderer.uniformBg        = gl::getUniformLocation(renderer.shader, "bg");
-    renderer.uniformFg        = gl::getUniformLocation(renderer.shader, "fg");
 
     return renderer;
 }
 
 fn void Renderer.render(Renderer* renderer)
 {
-    gl::uniform2fv(renderer.uniformQuadPos,  ARRAY_MAX, (float*)&renderer.arrQuadPos);
-    gl::uniform2fv(renderer.uniformQuadSize, ARRAY_MAX, (float*)&renderer.arrQuadSize);
-    gl::uniform2fv(renderer.uniformTexPos,   ARRAY_MAX, (float*)&renderer.arrTexPos);
-    gl::uniform2fv(renderer.uniformTexSize,  ARRAY_MAX, (float*)&renderer.arrTexSize);
-    gl::uniform3fv(renderer.uniformBg,       ARRAY_MAX, (float*)&renderer.arrBg);
-    gl::uniform3fv(renderer.uniformFg,       ARRAY_MAX, (float*)&renderer.arrFg);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.instanceVbo);
+    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, $sizeof(renderer.instanceData), &renderer.instanceData);
 
     gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, ARRAY_MAX);
 }
