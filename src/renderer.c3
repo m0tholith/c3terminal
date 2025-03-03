@@ -94,7 +94,13 @@ void main() {
 }
 `;
 
-fn Renderer* create()
+fault RendererError
+{
+    CREATE_SHADER_VERT_FAIL,
+    CREATE_SHADER_FRAG_FAIL,
+    LINK_SHADER_FAIL,
+}
+fn Renderer*! create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = {
@@ -160,6 +166,7 @@ fn Renderer* create()
     {
         gl::getShaderInfoLog(vertexShader, 512, null, (ZString)&infoLog);
         io::eprintfn("Failed to compile vertex shader: %s", (ZString)&infoLog);
+        return RendererError.CREATE_SHADER_VERT_FAIL?;
     }
 
     uint fragmentShader = gl::createShader(gl::GL_FRAGMENT_SHADER);
@@ -171,6 +178,7 @@ fn Renderer* create()
     {
         gl::getShaderInfoLog(fragmentShader, 512, null, (ZString)&infoLog);
         io::eprintfn("Failed to compile fragment shader: %s", (ZString)&infoLog);
+        return RendererError.CREATE_SHADER_FRAG_FAIL?;
     }
 
     renderer.shader = gl::createProgram();
@@ -186,6 +194,7 @@ fn Renderer* create()
     {
         gl::getProgramInfoLog(renderer.shader, 512, null, (ZString)&infoLog);
         io::eprintfn("Failed to compile shader program: %s", (ZString)&infoLog);
+        return RendererError.LINK_SHADER_FAIL?;
     }
 
     gl::useProgram(renderer.shader);
@@ -205,6 +214,7 @@ fn void Renderer.free(Renderer* renderer)
 {
     gl::deleteVertexArrays(1, &renderer.vao);
     gl::deleteBuffers(1, &renderer.vbo);
+    gl::deleteBuffers(1, &renderer.instanceVbo);
     gl::deleteProgram(renderer.shader);
     mem::free(renderer);
 }

@@ -36,7 +36,7 @@ fn FontAtlas*! createFontAtlas(String filename, float fontSize)
     self.startCodepoint = START_CP; self.endCodepoint = END_CP;
     self.width = 128; self.height = 128;
     self.fontSize = fontSize;
-    self.renderer = renderer::create();
+    self.renderer = renderer::create()!;
 
     self.chars = mem::new_array(stb_truetype::PackedChar, END_CP);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
