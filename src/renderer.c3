@@ -13,7 +13,6 @@ def Vec3f = float[3] @local;
 struct Vertex
 {
     Vec2f position;
-    Vec2f uv;
 }
 struct Renderer
 {
@@ -43,7 +42,6 @@ ZString vertexShaderSource    = `
 const int ARRAY_MAX = 256;
 
 layout (location = 0) in vec2 vertPos;
-layout (location = 1) in vec2 vertUV;
 uniform vec2 quadPos[ARRAY_MAX];
 uniform vec2 quadSize[ARRAY_MAX];
 
@@ -58,7 +56,7 @@ out VS_OUT {
 
 void main() {
     gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
-    vs_out.uv = vertUV;
+    vs_out.uv = vertPos;
     vs_out.idx = gl_InstanceID;
 }
 `;
@@ -92,12 +90,12 @@ fn Renderer* create()
 {
     Renderer* renderer = mem::new(Renderer);
     renderer.vertices = { 
-                          { { 0.0, 0.0 }, { 0.0, 0.0 } }, // bottom left
-                          { { 1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
-                          { { 0.0, 1.0 }, { 0.0, 1.0 } }, // top left
-                          { { 1.0, 0.0 }, { 1.0, 0.0 } }, // bottom right
-                          { { 0.0, 1.0 }, { 0.0, 1.0 } }, // top left
-                          { { 1.0, 1.0 }, { 1.0, 1.0 } }, // top right
+                          { { 0.0, 0.0 } }, // bottom left
+                          { { 1.0, 0.0 } }, // bottom right
+                          { { 0.0, 1.0 } }, // top left
+                          { { 1.0, 0.0 } }, // bottom right
+                          { { 0.0, 1.0 } }, // top left
+                          { { 1.0, 1.0 } }, // top right
                         }; 
 
     gl::genVertexArrays(1, &renderer.vao);
@@ -109,9 +107,7 @@ fn Renderer* create()
     gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
 
     int attr = 0;
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
-    gl::enableVertexAttribArray(attr++);
-    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.uv.offsetof);
+    gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
     gl::enableVertexAttribArray(attr++);
 
     bool success;
