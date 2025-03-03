@@ -179,7 +179,7 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int h
             uniformIdx++;
         }
     }
-    self.renderer.render();
+    self.renderer.render(uniformIdx);
 }
 fn void FontAtlas.free(FontAtlas* self)
 {

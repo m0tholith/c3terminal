@@ -202,12 +202,12 @@ fn Renderer*! create()
     return renderer;
 }
 
-fn void Renderer.render(Renderer* renderer)
+fn void Renderer.render(Renderer* renderer, usz count = ARRAY_MAX)
 {
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.instanceVbo);
-    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, $sizeof(renderer.instanceData), &renderer.instanceData);
+    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, count * InstanceData.sizeof, &renderer.instanceData);
 
-    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, ARRAY_MAX);
+    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, count);
 }
 
 fn void Renderer.free(Renderer* renderer)
