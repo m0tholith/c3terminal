@@ -40,8 +40,7 @@ fn int main(String[] args)
             terminal.assignChar((char)rand_in_range(33, 126));
             terminal.assignCharBg({ (float)rnd(), (float)rnd(), (float)rnd() });
             terminal.assignCharFg({ (float)rnd(), (float)rnd(), (float)rnd() });
-            cursor.y--;
-            cursor.y %= terminal.grid.height;
+            cursor.y = --cursor.y % terminal.grid.height;
         }
         
         terminal.render()!!;

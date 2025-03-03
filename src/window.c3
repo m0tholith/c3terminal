@@ -20,13 +20,13 @@ struct Window
     uint width;
     uint height;
 }
-List(<Window*>) windows @local;
+List{Window*} windows @local;
 
 fn void initSystem()
 {
     glfw::initHint(0x00050003, 0x00060004);
     glfw::init();
-    windows.new_init();
+    windows.init(mem);
 }
 fn void terminateSystem()
 {

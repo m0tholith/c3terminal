@@ -23,13 +23,13 @@ fn bool InputButton.activated(InputButton* input)
 
 struct InputHandler
 {
-    List(<InputButton>) inputs;
+    List{InputButton} inputs;
 }
 
 fn InputHandler* createHandler(InputButton[] inputs)
 {
     InputHandler* handler = mem::new(InputHandler);
-    handler.inputs.new_init_with_array(inputs);
+    handler.inputs.init_wrapping_array(mem, inputs);
     return handler;
 }
 fn void InputHandler.free(InputHandler* handler)
