@@ -6,7 +6,7 @@ import std::math::matrix;
 
 import opengl;
 
-const ARRAY_MAX = 4096;
+const ARRAY_MAX = 16384;
 
 def Vec2f = float[2] @local;
 def Vec3f = float[3] @local;
