@@ -25,22 +25,18 @@ fn int main(String[] args)
     input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
 
     double time;
-    Vec2ui[4] cursors;
     while (!terminal.window.shouldClose)
     {
         terminal.preRender();
-        foreach (&cursor : cursors)
+        for (int i = 0; i < terminal.grid.width; i++)
         {
-            if (rnd() < 0.1f || terminal.window.sizeChanged)
-            {
-                cursor.y = terminal.grid.height - 1;
-                cursor.x = rand(terminal.grid.width);
-            }
+            $typeof(terminal.cursor)* cursor = &terminal.cursor;
+            cursor.x = rand(terminal.grid.width);
+            cursor.y = rand(terminal.grid.height);
             terminal.cursor = *cursor;
             terminal.assignChar((char)rand_in_range(33, 126));
             terminal.assignCharBg({ (float)rnd(), (float)rnd(), (float)rnd() });
             terminal.assignCharFg({ (float)rnd(), (float)rnd(), (float)rnd() });
-            cursor.y = --cursor.y % terminal.grid.height;
         }
         
         terminal.render()!!;
