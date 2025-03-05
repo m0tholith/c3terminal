@@ -21,7 +21,6 @@ struct InstanceData @packed
     Vec2f texPos;
     Vec2f texSize;
 
-    Vec3f bg;
     Vec3f fg;
 }
 struct Renderer
@@ -44,8 +43,7 @@ layout (location = 1) in vec2 quadPos;
 layout (location = 2) in vec2 quadSize;
 layout (location = 3) in vec2 texPos;
 layout (location = 4) in vec2 texSize;
-layout (location = 5) in vec3 bg;
-layout (location = 6) in vec3 fg;
+layout (location = 5) in vec3 fg;
 
 vec2 getPos(vec2 inVec) {
     return quadPos + quadSize * inVec;
@@ -56,7 +54,6 @@ out VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 bg;
     vec3 fg;
 } vs_out;
 
@@ -66,7 +63,6 @@ void main() {
     vs_out.idx = gl_InstanceID;
     vs_out.texPos  = texPos;
     vs_out.texSize = texSize;
-    vs_out.bg      = bg;
     vs_out.fg      = fg;
 }
 `;
@@ -78,18 +74,18 @@ in VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 bg;
     vec3 fg;
 } fs_in;
 
 uniform sampler2D tex;
+uniform vec4 bg = vec4(0, 0, 0, 1);
 
 out vec4 FragColor;
 
 void main() {
     vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = vec4(mix(fs_in.bg, fs_in.fg, color), 1);
+    vec4 result = mix(bg, vec4(fs_in.fg, 1), color);
     FragColor = result;
 }
 `;
@@ -146,10 +142,6 @@ fn Renderer*! create()
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
-    gl::enableVertexAttribArray(attr);
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.bg.offsetof);
-    gl::vertexAttribDivisor(attr, 1);
-    attr++;
     gl::enableVertexAttribArray(attr);
     gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.fg.offsetof);
     gl::vertexAttribDivisor(attr, 1);

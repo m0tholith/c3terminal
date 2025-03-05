@@ -58,7 +58,7 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
                   (uint)((float)windowHeight / atlas.charMaxY),
                   fontSize };
     defer catch { grid.free(); }
-    for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', bg, fg };
+    for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', fg };
 
     Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, bg, fg, fps == 0 ? 0 : 1.0/fps, 0 });
     return result;
@@ -73,16 +73,16 @@ fn void Terminal.assignChar(Terminal* self, uint codepoint)
 <*
  Assigns background color to terminal's current cursor position
  *>
-fn void Terminal.assignCharBg(Terminal* self, float[<3>] bg)
+fn void Terminal.assignCharBg(Terminal* self, float[<3>] bg) @deprecated
 {
-    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].bg = bg;
+    // self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].bg = bg;
 }
 <*
  Assigns foreground color to terminal's current cursor position
  *>
 fn void Terminal.assignCharFg(Terminal* self, float[<3>] fg)
 {
-    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].fg = fg;
+    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
 }
 fn void Terminal.preRender(Terminal* self)
 {

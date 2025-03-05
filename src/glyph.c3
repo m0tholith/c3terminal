@@ -124,8 +124,7 @@ fn void FontAtlas.bindTexture(FontAtlas* self)
 struct GridChar
 {
     uint codepoint;
-    float[<3>] bg;
-    float[<3>] fg;
+    float[<3>] color;
 }
 fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int height, int gridW, int gridH, float fontSize)
 {
@@ -173,8 +172,7 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int h
             self.renderer.instanceData[uniformIdx].quadSize = { w, h };
             self.renderer.instanceData[uniformIdx].texPos   = { texPosX, texPosY };
             self.renderer.instanceData[uniformIdx].texSize  = { texSizeX, texSizeY };
-            self.renderer.instanceData[uniformIdx].bg       = c.bg;
-            self.renderer.instanceData[uniformIdx].fg       = c.fg;
+            self.renderer.instanceData[uniformIdx].fg       = c.color;
 
             uniformIdx++;
         }
