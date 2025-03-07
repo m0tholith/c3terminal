@@ -17,6 +17,35 @@ def Vec2ui = uint[<2>];
 
 const FPS = 60.0;
 
+const float[<3>][] COLORS = {
+    { 1.000f, 0.933f, 0.867f },
+    { 1.000f, 0.800f, 0.800f },
+    { 1.000f, 0.800f, 0.933f },
+    { 0.800f, 0.667f, 1.000f },
+    { 1.000f, 0.533f, 0.667f },
+    { 0.933f, 0.667f, 0.667f },
+    { 1.000f, 0.733f, 0.533f },
+    { 1.000f, 0.933f, 0.667f },
+    { 0.667f, 0.933f, 0.667f },
+    { 0.600f, 0.933f, 0.867f },
+    { 0.533f, 0.867f, 0.933f },
+    { 0.467f, 0.800f, 0.933f },
+    { 0.533f, 0.733f, 1.000f },
+    { 0.733f, 0.733f, 1.000f },
+    { 0.800f, 0.867f, 1.000f },
+    { 0.733f, 0.800f, 0.867f },
+    { 0.667f, 0.667f, 0.800f },
+    { 0.600f, 0.600f, 0.733f },
+    { 0.467f, 0.533f, 0.600f },
+    { 0.400f, 0.467f, 0.533f },
+    { 0.333f, 0.333f, 0.467f },
+    { 0.267f, 0.267f, 0.333f },
+    { 0.200f, 0.200f, 0.267f },
+    { 0.067f, 0.067f, 0.133f },
+    { 0.067f, 0.067f, 0.133f },
+    { 0.067f, 0.067f, 0.067f },
+};
+
 fn int main(String[] args)
 {
     terminal::Terminal* terminal = terminal::create(900, 600, "test.ttf", windowName: "m0tty", fontSize: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f }, fps: 0)!!;
@@ -35,8 +64,7 @@ fn int main(String[] args)
             cursor.y = rand(terminal.grid.height);
             terminal.cursor = *cursor;
             terminal.assignChar((char)rand_in_range(33, 126));
-            terminal.assignCharBg({ (float)rnd(), (float)rnd(), (float)rnd() });
-            terminal.assignCharFg({ (float)rnd(), (float)rnd(), (float)rnd() });
+            terminal.assignCharFg(COLORS[rand(COLORS.len)]);
         }
         
         terminal.render()!!;
