@@ -15,8 +15,6 @@ import std::collections::map;
 
 def Vec2ui = uint[<2>];
 
-const FPS = 60.0;
-
 const float[<3>][] COLORS = {
     { 1.000f, 0.933f, 0.867f },
     { 1.000f, 0.800f, 0.800f },
@@ -48,7 +46,7 @@ const float[<3>][] COLORS = {
 
 fn int main(String[] args)
 {
-    terminal::Terminal* terminal = terminal::create(900, 600, "test.ttf", windowName: "m0tty", fontSize: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f }, fps: 0)!!;
+    terminal::Terminal* terminal = terminal::create(900, 600, "test.ttf", windowName: "m0tty", fontSize: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;
     defer terminal.free();
     terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
     input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
