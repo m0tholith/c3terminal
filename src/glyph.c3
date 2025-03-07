@@ -343,48 +343,7 @@ fn Renderer*! create()
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
-    bool success;
-    char[512] infoLog;
-    uint vertexShader = gl::createShader(gl::GL_VERTEX_SHADER);
-    gl::shaderSource(vertexShader, 1, &vertexShaderSource, null);
-    gl::compileShader(vertexShader);
-
-    gl::getShaderiv(vertexShader, gl::GL_COMPILE_STATUS, (int*)&success);
-    if (!success)
-    {
-        gl::getShaderInfoLog(vertexShader, 512, null, (ZString)&infoLog);
-        io::eprintfn("Failed to compile vertex shader: %s", (ZString)&infoLog);
-        return RendererError.CREATE_SHADER_VERT_FAIL?;
-    }
-
-    uint fragmentShader = gl::createShader(gl::GL_FRAGMENT_SHADER);
-    gl::shaderSource(fragmentShader, 1, &fragmentShaderSource, null);
-    gl::compileShader(fragmentShader);
-
-    gl::getShaderiv(fragmentShader, gl::GL_COMPILE_STATUS, (int*)&success);
-    if (!success)
-    {
-        gl::getShaderInfoLog(fragmentShader, 512, null, (ZString)&infoLog);
-        io::eprintfn("Failed to compile fragment shader: %s", (ZString)&infoLog);
-        return RendererError.CREATE_SHADER_FRAG_FAIL?;
-    }
-
-    renderer.shader = gl::createProgram();
-    gl::attachShader(renderer.shader, vertexShader);
-    gl::attachShader(renderer.shader, fragmentShader);
-    gl::linkProgram(renderer.shader);
-
-    gl::deleteShader(vertexShader);
-    gl::deleteShader(fragmentShader);
-
-    gl::getProgramiv(renderer.shader, gl::GL_LINK_STATUS, (int*)&success);
-    if (!success)
-    {
-        gl::getProgramInfoLog(renderer.shader, 512, null, (ZString)&infoLog);
-        io::eprintfn("Failed to compile shader program: %s", (ZString)&infoLog);
-        return RendererError.LINK_SHADER_FAIL?;
-    }
-
+    renderer.shader = loadShader(&vertexShaderSource, &fragmentShaderSource)!;
     gl::useProgram(renderer.shader);
 
     return renderer;
@@ -405,4 +364,27 @@ fn void Renderer.free(Renderer* renderer)
     gl::deleteBuffers(1, &renderer.instanceVbo);
     gl::deleteProgram(renderer.shader);
     mem::free(renderer);
+}
+
+fn uint! loadShader(ZString* vert, ZString* frag) @private
+{
+    bool success;
+    char[512] infoLog;
+
+    uint vertexShader = gl::createShader(gl::GL_VERTEX_SHADER);
+    gl::shaderSource(vertexShader, 1, vert, null);
+    gl::compileShader(vertexShader);
+    defer gl::deleteShader(vertexShader);
+
+    uint fragmentShader = gl::createShader(gl::GL_FRAGMENT_SHADER);
+    gl::shaderSource(fragmentShader, 1, frag, null);
+    gl::compileShader(fragmentShader);
+    defer gl::deleteShader(fragmentShader);
+
+    uint shader = gl::createProgram();
+    gl::attachShader(shader, vertexShader);
+    gl::attachShader(shader, fragmentShader);
+    gl::linkProgram(shader);
+
+    return shader;
 }
