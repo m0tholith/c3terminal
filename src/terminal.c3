@@ -3,7 +3,6 @@ module terminal;
 import glfw;
 import opengl;
 import glyph;
-import renderer;
 import window;
 import input;
 
