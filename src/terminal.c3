@@ -46,6 +46,9 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
     window::Window* window = window::create(windowWidth, windowHeight, windowName)!;
     defer catch { window::terminateSystem(); }
 
+    gl::enable(gl::GL_DEBUG_OUTPUT);
+    gl::debugMessageCallback(&debugMessageCallback, null);
+
     input::InputHandler* inputHandler = input::createHandler({});
     defer catch { inputHandler.free(); }
     
@@ -60,6 +63,7 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
     for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', fg };
 
     Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, bg, fg, fps == 0 ? 0 : 1.0/fps, 0 });
+
     return result;
 }
 <*
@@ -103,13 +107,6 @@ fn void! Terminal.render(Terminal* self)
 {
     self.fontAtlas.renderGrid(self.grid.str, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
-    GLenum err = gl::getError();
-    while (err != 0)
-    {
-        io::eprintfn("GL error 0x%08X", err);
-        err = gl::getError();
-    }
-
     self.window.clearColor(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
 
@@ -129,4 +126,15 @@ fn void Terminal.free(Terminal* self)
     self.inputHandler.free();
     window::terminateSystem();
     mem::free(self);
+}
+
+fn void debugMessageCallback( GLenum source,
+                              GLenum type,
+                              uint id,
+                              GLenum severity,
+                              usz length,
+                              ZString message,
+                              void* userParam)
+{
+    io::eprintfn("GL CALLBACK: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
 }
