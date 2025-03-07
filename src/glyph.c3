@@ -275,14 +275,13 @@ in VS_OUT {
 } fs_in;
 
 uniform sampler2D tex;
-uniform vec4 bg = vec4(0, 0, 0, 1);
 
 out vec4 FragColor;
 
 void main() {
     vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = mix(bg, vec4(fs_in.fg, 1), color);
+    vec4 result = vec4(fs_in.fg, color);
     FragColor = result;
 }
 `;
