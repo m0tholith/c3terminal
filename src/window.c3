@@ -38,14 +38,16 @@ fn void terminateSystem()
     windows.free();
 }
 
-fn Window*! create(int width, int height, ZString name)
+<*
+ @param [&in] name
+ @require self.glfwWin == null
+ @require name != null
+ *>
+fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
 {
-    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 4);
-    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
-    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
-    glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
-    glfw::windowHint(glfw::RESIZABLE, 1);
-    glfw::Window* glfwWin = glfw::createWindow(width, height, name, null, null);
+    Monitor* monitor = null;
+    if (width == 0 || height == 0) monitor = glfw::getPrimaryMonitor();
+    glfw::Window* glfwWin = glfw::createWindow(width, height, name, monitor, null);
     if (glfwWin == null)
     {
         io::eprintf("could not initialize glfw window");
@@ -55,59 +57,57 @@ fn Window*! create(int width, int height, ZString name)
     glfw::setWindowSizeCallback(glfwWin, &windowSizeCallback);
     glfw::makeContextCurrent(glfwWin);
     glfw::swapInterval(0);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 4);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
+    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
+    glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
+    glfw::windowHint(glfw::RESIZABLE, 1);
     glfw::windowHint(glfw::SAMPLES, 2);
     gl::viewport(0, 0, width, height);
     gl::enable(gl::GL_MULTISAMPLE);
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
 
-    Window* window = mem::new(Window);
-    window.glfwWin = glfwWin;
-    window.width = width;
-    window.height = height;
+    self.glfwWin = glfwWin;
+    self.width = width;
+    self.height = height;
 
-    windows.push(window);
-
-    return window;
+    windows.push(self);
 }
 <*
- @require window != null : "window is null"
+ @require self.glfwWin != null
  *>
-fn void Window.free(Window* window) @local
+fn void Window.free(&self) @local
 {
-    glfw::destroyWindow(window.glfwWin);
-    mem::free(window);
+    glfw::destroyWindow(self.glfwWin);
 }
 
-<*
- @require window != null : "window is null"
- *>
-fn void Window.clearColor(Window* window, float red, float green, float blue)
+fn void Window.clearColor(&self, float red, float green, float blue)
 {
     gl::clearColor(red, green, blue, 1.0f);
 }
 <*
- @require window != null : "window is null"
+ @require self.glfwWin != null
  *>
-fn void Window.refresh(Window* window)
+fn void Window.refresh(&self)
 {
-    window.sizeChanged = false;
+    self.sizeChanged = false;
 
-    glfw::makeContextCurrent(window.glfwWin);
+    glfw::makeContextCurrent(self.glfwWin);
 
-    glfw::swapBuffers(window.glfwWin);
+    glfw::swapBuffers(self.glfwWin);
     glfw::pollEvents();
 
     gl::clear(gl::GL_COLOR_BUFFER_BIT);
 
-    if (glfw::windowShouldClose(window.glfwWin) != (int)window.shouldClose)
+    if (glfw::windowShouldClose(self.glfwWin) != (int)self.shouldClose)
     {
-        glfw::setWindowShouldClose(window.glfwWin, (int)window.shouldClose);
+        glfw::setWindowShouldClose(self.glfwWin, (int)self.shouldClose);
     }
-    gl::viewport(0, 0, window.width, window.height);
+    gl::viewport(0, 0, self.width, self.height);
 }
 
-fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height)
+fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height) @private
 {
     foreach (window : windows)
     {

@@ -18,7 +18,7 @@ struct Grid @local
 }
 struct Terminal
 {
-    window::Window* window;
+    window::Window window;
     input::InputHandler inputHandler;
     font_atlas::FontAtlas fontAtlas;
     uint[<2>] cursor;
@@ -37,10 +37,11 @@ struct Terminal
  - Font atlas
  - Grid of characters
  *>
-fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
+fn Terminal*! create(int windowWidth = 0, int windowHeight = 0, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
     window::initSystem();
-    window::Window* window = window::create(windowWidth, windowHeight, windowName)!;
+    window::Window window;
+    window.init(windowWidth, windowHeight, windowName)!;
     defer catch { window::terminateSystem(); }
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
@@ -100,7 +101,7 @@ fn void Terminal.preRender(Terminal* self)
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
         self.grid.height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
     }
-    self.inputHandler.processInput(self.window);
+    self.inputHandler.processInput(&self.window);
 }
 fn void! Terminal.render(Terminal* self)
 {
