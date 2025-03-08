@@ -24,7 +24,7 @@ struct FontAtlas
     uint textureId;
     float charMaxX; float charMaxY;
 
-    renderer::Renderer* renderer;
+    renderer::Renderer renderer;
 }
 fault FontAtlasError
 {
@@ -40,7 +40,7 @@ fn void! FontAtlas.init(&self, String filename, float fontSize, int startCodepoi
     self.startCodepoint = startCodepoint; self.endCodepoint = endCodepoint ;
     self.width = 128; self.height = 128;
     self.fontSize = fontSize;
-    self.renderer = renderer::create()!;
+    self.renderer.init()!;
 
     self.chars = mem::new_array(stb_truetype::PackedChar, self.endCodepoint);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
@@ -248,7 +248,7 @@ struct Renderer
     InstanceData[ARRAY_MAX] instanceData;
 }
 
-ZString vertexShaderSource    = `
+ZString vertexShaderSource @private = `
 #version 330 core
 
 layout (location = 0) in vec2 vertPos;
@@ -279,7 +279,7 @@ void main() {
     vs_out.fg      = fg;
 }
 `;
-ZString fragmentShaderSource  = `
+ZString fragmentShaderSource @private = `
 #version 330 core
 
 in VS_OUT {
@@ -308,34 +308,33 @@ fault RendererError
     CREATE_SHADER_FRAG_FAIL,
     LINK_SHADER_FAIL,
 }
-fn Renderer*! create()
+fn void! Renderer.init(&self)
 {
-    Renderer* renderer = mem::new(Renderer);
-    renderer.vertices = {
-                          { { 0.0, 0.0 } }, // bottom left
-                          { { 1.0, 0.0 } }, // bottom right
-                          { { 0.0, 1.0 } }, // top left
-                          { { 1.0, 0.0 } }, // bottom right
-                          { { 0.0, 1.0 } }, // top left
-                          { { 1.0, 1.0 } }, // top right
-                        };
+    self.vertices = {
+                      { { 0.0, 0.0 } }, // bottom left
+                      { { 1.0, 0.0 } }, // bottom right
+                      { { 0.0, 1.0 } }, // top left
+                      { { 1.0, 0.0 } }, // bottom right
+                      { { 0.0, 1.0 } }, // top left
+                      { { 1.0, 1.0 } }, // top right
+                    };
 
-    gl::genVertexArrays(1, &renderer.vao);
-    gl::genBuffers(1, &renderer.vbo);
+    gl::genVertexArrays(1, &self.vao);
+    gl::genBuffers(1, &self.vbo);
 
-    gl::bindVertexArray(renderer.vao);
+    gl::bindVertexArray(self.vao);
 
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.vbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.vertices), (void*)&renderer.vertices, gl::GL_STATIC_DRAW);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.vbo);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.vertices), (void*)&self.vertices, gl::GL_STATIC_DRAW);
 
     int attr = 0;
     gl::enableVertexAttribArray(attr);
     gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, Vertex.sizeof, (void*)Vertex.position.offsetof);
     attr++;
 
-    gl::genBuffers(1, &renderer.instanceVbo);
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.instanceVbo);
-    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(renderer.instanceData), (void*)&renderer.instanceData, gl::GL_DYNAMIC_DRAW);
+    gl::genBuffers(1, &self.instanceVbo);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.instanceVbo);
+    gl::bufferData(gl::GL_ARRAY_BUFFER, $sizeof(self.instanceData), (void*)&self.instanceData, gl::GL_DYNAMIC_DRAW);
 
     gl::enableVertexAttribArray(attr);
     gl::vertexAttribPointer(attr, 2, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.quadPos.offsetof);
@@ -359,29 +358,35 @@ fn Renderer*! create()
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
-    renderer.shader = loadShader(&vertexShaderSource, &fragmentShaderSource)!;
-    gl::useProgram(renderer.shader);
-
-    return renderer;
+    self.shader = loadShader(&vertexShaderSource, &fragmentShaderSource)!;
+    gl::useProgram(self.shader);
 }
 
-fn void Renderer.render(Renderer* renderer, usz count = ARRAY_MAX)
+<*
+ @require gl::isBuffer(self.instanceVbo)
+ *>
+fn void Renderer.render(&self, usz count = ARRAY_MAX)
 {
-    gl::bindBuffer(gl::GL_ARRAY_BUFFER, renderer.instanceVbo);
-    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, count * InstanceData.sizeof, &renderer.instanceData);
+    if (count == 0) return;
 
-    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, renderer.vertices.len, count);
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.instanceVbo);
+    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, count * InstanceData.sizeof, &self.instanceData);
+
+    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, self.vertices.len, count);
 }
 
-fn void Renderer.free(Renderer* renderer)
+fn void Renderer.free(&self)
 {
-    gl::deleteVertexArrays(1, &renderer.vao);
-    gl::deleteBuffers(1, &renderer.vbo);
-    gl::deleteBuffers(1, &renderer.instanceVbo);
-    gl::deleteProgram(renderer.shader);
-    mem::free(renderer);
+    gl::deleteVertexArrays(1, &self.vao);
+    gl::deleteBuffers(1, &self.vbo);
+    gl::deleteBuffers(1, &self.instanceVbo);
+    gl::deleteProgram(self.shader);
 }
 
+<*
+ @param [&in] vert
+ @param [&in] frag
+ *>
 fn uint! loadShader(ZString* vert, ZString* frag) @private
 {
     bool success;
