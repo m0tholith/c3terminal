@@ -19,7 +19,7 @@ struct Grid @local
 struct Terminal
 {
     window::Window* window;
-    input::InputHandler* inputHandler;
+    input::InputHandler inputHandler;
     font_atlas::FontAtlas fontAtlas;
     uint[<2>] cursor;
     Grid grid;
@@ -46,7 +46,8 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debugMessageCallback, null);
 
-    input::InputHandler* inputHandler = input::createHandler({});
+    input::InputHandler inputHandler;
+    inputHandler.init({});
     defer catch { inputHandler.free(); }
     
     font_atlas::FontAtlas atlas;

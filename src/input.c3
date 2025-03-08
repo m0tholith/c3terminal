@@ -1,8 +1,11 @@
 module input;
-import window;
-import glfw;
+
 import std::core::mem;
 import std::collections;
+import std::io;
+
+import window;
+import glfw;
 
 fault InputHandlerError
 {
@@ -16,9 +19,9 @@ struct InputButton
     int state; // status from glfw (e.g. PRESS)
     int currentState; // the last-reported state of this input
 }
-fn bool InputButton.activated(InputButton* input)
+fn bool InputButton.activated(&self)
 {
-    return input.currentState == input.state;
+    return self.currentState == self.state;
 }
 
 struct InputHandler
@@ -26,32 +29,33 @@ struct InputHandler
     List{InputButton} inputs;
 }
 
-fn InputHandler* createHandler(InputButton[] inputs)
+fn void InputHandler.init(&self, InputButton[] inputs)
 {
-    InputHandler* handler = mem::new(InputHandler);
-    handler.inputs.init_wrapping_array(mem, inputs);
-    return handler;
+    self.inputs.init_wrapping_array(mem, inputs);
 }
-fn void InputHandler.free(InputHandler* handler)
+fn void InputHandler.free(self)
 {
-    handler.inputs.free();
-    mem::free(handler);
+    self.inputs.free();
 }
-fn void InputHandler.addInput(InputHandler* handler, InputButton input)
+fn void InputHandler.addInput(&self, InputButton input)
 {
-    handler.inputs.push(input);
+    self.inputs.push(input);
 }
-fn InputButton*! InputHandler.getInput(InputHandler* handler, String name)
+fn InputButton*! InputHandler.getInput(&self, String name)
 {
-    foreach (&input : handler.inputs)
+    foreach (&input : self.inputs)
     {
         if (input.name == name) return input;
     }
+    io::eprintfn("could not find input %s", name);
     return InputHandlerError.INPUT_NAME_NOT_FOUND?;
 }
-fn void InputHandler.processInput(InputHandler* handler, window::Window* window)
+<*
+ @param [&in] window
+ *>
+fn void InputHandler.processInput(&self, window::Window* window)
 {
-    foreach (&input : handler.inputs)
+    foreach (&input : self.inputs)
     {
         input.currentState = glfw::getKey(window.glfwWin, input.key);
     }
