@@ -37,7 +37,7 @@ struct Terminal
  - Font atlas
  - Grid of characters
  *>
-fn Terminal*! create(int windowWidth = 0, int windowHeight = 0, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
+fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
     window::initSystem();
     window::Window window;
@@ -62,32 +62,41 @@ fn Terminal*! create(int windowWidth = 0, int windowHeight = 0, String fontName,
     defer catch { grid.free(); }
     for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', fg };
 
-    Terminal* result = mem::new(Terminal, { window, inputHandler, atlas, {0,0}, grid, bg, fg, 0 });
-
-    return result;
+    self.window = window;
+    self.inputHandler = inputHandler;
+    self.fontAtlas = atlas;
+    self.grid = grid;
+    self.bg = bg;
+    self.fg = fg;
 }
 <*
  Assigns character to terminal's current cursor position
+
+ @require self.grid.str.ptr != null
  *>
-fn void Terminal.assignChar(Terminal* self, uint codepoint)
+fn void Terminal.assignChar(&self, uint codepoint)
 {
     self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].codepoint = codepoint;
 }
 <*
  Assigns background color to terminal's current cursor position
+
+ @require self.grid.str.ptr != null
  *>
-fn void Terminal.assignCharBg(Terminal* self, float[<3>] bg) @deprecated
+fn void Terminal.assignCharBg(&self, float[<3>] bg) @deprecated
 {
     // self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].bg = bg;
 }
 <*
  Assigns foreground color to terminal's current cursor position
+
+ @require self.grid.str.ptr != null
  *>
-fn void Terminal.assignCharFg(Terminal* self, float[<3>] fg)
+fn void Terminal.assignCharFg(&self, float[<3>] fg)
 {
     self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
 }
-fn void Terminal.preRender(Terminal* self)
+fn void Terminal.preRender(&self)
 {
     if (self.window.sizeChanged)
     {
@@ -103,7 +112,7 @@ fn void Terminal.preRender(Terminal* self)
     }
     self.inputHandler.processInput(&self.window);
 }
-fn void! Terminal.render(Terminal* self)
+fn void! Terminal.render(&self)
 {
     self.fontAtlas.renderGrid(self.grid.str, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
@@ -112,26 +121,25 @@ fn void! Terminal.render(Terminal* self)
 
     self.time = glfw::getTime();
 }
-fn void Grid.free(Grid* self) @local
+fn void Grid.free(self) @local
 {
     mem::free(self.str);
 }
-fn void Terminal.free(Terminal* self)
+fn void Terminal.free(&self)
 {
     self.grid.free();
     self.fontAtlas.free();
     self.inputHandler.free();
     window::terminateSystem();
-    mem::free(self);
 }
 
-fn void debugMessageCallback( GLenum source,
-                              GLenum type,
-                              uint id,
-                              GLenum severity,
-                              usz length,
-                              ZString message,
-                              void* userParam)
+fn void debugMessageCallback(GLenum source,
+                             GLenum type,
+                             uint id,
+                             GLenum severity,
+                             usz length,
+                             ZString message,
+                             void* userParam) @private
 {
     io::eprintfn("GL CALLBACK: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
 }
