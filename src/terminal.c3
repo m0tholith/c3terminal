@@ -12,7 +12,7 @@ import std::io;
 
 struct Grid @local
 {
-    glyph::GridChar[] str;
+    font_atlas::GridChar[] str;
     uint width; uint height;
     float fontSize;
 }
@@ -20,7 +20,7 @@ struct Terminal
 {
     window::Window* window;
     input::InputHandler* inputHandler;
-    glyph::FontAtlas* fontAtlas;
+    font_atlas::FontAtlas fontAtlas;
     uint[<2>] cursor;
     Grid grid;
     float[<3>] bg;
@@ -49,10 +49,11 @@ fn Terminal*! create(int windowWidth, int windowHeight, String fontName, ZString
     input::InputHandler* inputHandler = input::createHandler({});
     defer catch { inputHandler.free(); }
     
-    glyph::FontAtlas* atlas = glyph::createFontAtlas(fontName, fontSize)!;
+    font_atlas::FontAtlas atlas;
+    atlas.init(fontName, fontSize)!;
     defer catch { atlas.free(); }
 
-    Grid grid = { mem::new_array(glyph::GridChar, gridSize),
+    Grid grid = { mem::new_array(font_atlas::GridChar, gridSize),
                   (uint)((float)windowWidth  / atlas.charMaxX),
                   (uint)((float)windowHeight / atlas.charMaxY),
                   fontSize };

@@ -1,11 +1,14 @@
 module glyph;
 
+module glyph::font_atlas;
+
 import std::io;
 import std::math;
 import std::math::matrix;
 import std::core::mem;
 import std::collections::list;
 
+import glyph::renderer;
 import opengl;
 import window;
 import stb_truetype;
@@ -28,16 +31,18 @@ fault FontAtlasError
     PACKBEGIN_FAILED,
     CHAR_NOT_FOUND,
 }
-const uint START_CP = 32; const uint END_CP = 127;
-fn FontAtlas*! createFontAtlas(String filename, float fontSize)
+<*
+ @require filename.ptr != null
+ @require fontSize > 0
+ *>
+fn void! FontAtlas.init(&self, String filename, float fontSize, int startCodepoint = 32, int endCodepoint = 127)
 {
-    FontAtlas* self = mem::new(FontAtlas);
-    self.startCodepoint = START_CP; self.endCodepoint = END_CP;
+    self.startCodepoint = startCodepoint; self.endCodepoint = endCodepoint ;
     self.width = 128; self.height = 128;
     self.fontSize = fontSize;
     self.renderer = renderer::create()!;
 
-    self.chars = mem::new_array(stb_truetype::PackedChar, END_CP);
+    self.chars = mem::new_array(stb_truetype::PackedChar, self.endCodepoint);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
 
     char[] contents = mem::new_array(char, io::file::get_size(filename))!!;
@@ -88,10 +93,11 @@ fn FontAtlas*! createFontAtlas(String filename, float fontSize)
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_R8, self.width, self.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, self.pixels.ptr);
     self.textureId = texture;
     self.bindTexture();
-
-    return self;
 }
-fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
+<*
+ @require self.chars.ptr != null
+ *>
+fn stb_truetype::PackedChar*! FontAtlas.getChar(&self, uint codepoint)
 {
     long l = self.startCodepoint; long r = self.endCodepoint;
     long m;
@@ -116,7 +122,10 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(FontAtlas* self, uint codepoint)
     io::eprintfn("could not find char '%c' (%d)", codepoint, codepoint);
     return FontAtlasError.CHAR_NOT_FOUND?;
 }
-fn void FontAtlas.bindTexture(FontAtlas* self)
+<*
+ @require gl::isTexture(self.textureId)
+ *>
+fn void FontAtlas.bindTexture(&self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
@@ -125,7 +134,11 @@ struct GridChar
     uint codepoint;
     float[<3>] color;
 }
-fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int height, int gridW, int gridH, float fontSize)
+<*
+ @require gridW * gridH < grid.len
+ @require fontSize > 0
+ *>
+fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int gridW, int gridH, float fontSize)
 {
     int uniformIdx = 0;
     for (int xIdx = 0; xIdx < gridW; xIdx++)
@@ -178,15 +191,18 @@ fn void! FontAtlas.renderGrid(FontAtlas* self, GridChar[] grid, int width, int h
     }
     self.renderer.render(uniformIdx);
 }
-fn void FontAtlas.free(FontAtlas* self)
+fn void FontAtlas.free(&self)
 {
     mem::free(self.chars);
     mem::free(self.pixels);
     gl::deleteTextures(1, &self.textureId);
     self.renderer.free();
-    mem::free(self);
 }
 
+<*
+ @require filename.ptr != null
+ @require buffer.ptr != null
+ *>
 fn char[]! readFile(String filename, char[] buffer) @local
 {
     File file = file::open(filename, "r")!;
