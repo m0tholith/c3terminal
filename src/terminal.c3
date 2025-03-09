@@ -103,8 +103,8 @@ fn void Terminal.preRender(&self)
         {
             for (int j = 0; j < self.grid.height; j++)
             {
-                self.grid.fg[i] = { ' ', self.fg };
-                self.grid.bg[i].color = self.bg;
+                self.grid.fg[i + self.grid.width * j] = { ' ', self.fg };
+                self.grid.bg[i + self.grid.width * j].color = self.bg;
             }
         }
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
