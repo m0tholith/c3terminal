@@ -40,32 +40,25 @@ struct Terminal
 fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
     window::initSystem();
-    window::Window window;
-    window.init(windowWidth, windowHeight, windowName)!;
+    self.window.init(windowWidth, windowHeight, windowName)!;
     defer catch { window::terminateSystem(); }
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debugMessageCallback, null);
 
-    input::InputHandler inputHandler;
-    inputHandler.init({});
-    defer catch { inputHandler.free(); }
+    self.inputHandler.init({});
+    defer catch { self.inputHandler.free(); }
     
-    font_atlas::FontAtlas atlas;
-    atlas.init(fontName, fontSize)!;
-    defer catch { atlas.free(); }
+    self.fontAtlas.init(fontName, fontSize)!;
+    defer catch { self.fontAtlas.free(); }
 
-    Grid grid = { mem::new_array(font_atlas::GridChar, gridSize),
-                  (uint)((float)windowWidth  / atlas.charMaxX),
-                  (uint)((float)windowHeight / atlas.charMaxY),
+    self.grid = { mem::new_array(font_atlas::GridChar, gridSize),
+                  (uint)((float)windowWidth  / self.fontAtlas.charMaxX),
+                  (uint)((float)windowHeight / self.fontAtlas.charMaxY),
                   fontSize };
-    defer catch { grid.free(); }
-    for (usz i = 0; i < gridSize; i++) grid.str[i] = { ' ', fg };
+    defer catch { self.grid.free(); }
+    for (usz i = 0; i < gridSize; i++) self.grid.str[i] = { ' ', fg };
 
-    self.window = window;
-    self.inputHandler = inputHandler;
-    self.fontAtlas = atlas;
-    self.grid = grid;
     self.bg = bg;
     self.fg = fg;
 }
