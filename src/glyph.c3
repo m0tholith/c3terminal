@@ -184,7 +184,7 @@ fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int
             self.renderer.instanceData[uniformIdx].quadSize = { w, h };
             self.renderer.instanceData[uniformIdx].texPos   = { texPosX, texPosY };
             self.renderer.instanceData[uniformIdx].texSize  = { texSizeX, texSizeY };
-            self.renderer.instanceData[uniformIdx].fg       = c.color;
+            self.renderer.instanceData[uniformIdx].color    = c.color;
 
             uniformIdx++;
         }
@@ -234,7 +234,7 @@ struct InstanceData @packed
     Vec2f texPos;
     Vec2f texSize;
 
-    Vec3f fg;
+    Vec3f color;
 }
 struct Renderer
 {
@@ -256,7 +256,7 @@ layout (location = 1) in vec2 quadPos;
 layout (location = 2) in vec2 quadSize;
 layout (location = 3) in vec2 texPos;
 layout (location = 4) in vec2 texSize;
-layout (location = 5) in vec3 fg;
+layout (location = 5) in vec3 color;
 
 vec2 getPos(vec2 inVec) {
     return quadPos + quadSize * inVec;
@@ -267,7 +267,7 @@ out VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 fg;
+    vec3 color;
 } vs_out;
 
 void main() {
@@ -276,7 +276,7 @@ void main() {
     vs_out.idx = gl_InstanceID;
     vs_out.texPos  = texPos;
     vs_out.texSize = texSize;
-    vs_out.fg      = fg;
+    vs_out.color   = color;
 }
 `;
 ZString fragmentShaderSource @private = `
@@ -287,7 +287,7 @@ in VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 fg;
+    vec3 color;
 } fs_in;
 
 uniform sampler2D tex;
@@ -297,7 +297,7 @@ out vec4 FragColor;
 void main() {
     vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x;
-    vec4 result = vec4(fs_in.fg, color);
+    vec4 result = vec4(fs_in.color, color);
     FragColor = result;
 }
 `;
@@ -354,7 +354,7 @@ fn void! Renderer.init(&self)
     attr++;
 
     gl::enableVertexAttribArray(attr);
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.fg.offsetof);
+    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.color.offsetof);
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
