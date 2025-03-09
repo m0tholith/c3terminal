@@ -29,17 +29,20 @@ struct InputHandler
     List{InputButton} inputs;
 }
 
+<*
+ @require !self.inputs.is_initialized()
+ *>
 fn void InputHandler.init(&self, InputButton[] inputs)
 {
     self.inputs.init_wrapping_array(mem, inputs);
 }
-fn void InputHandler.free(self)
+fn void InputHandler.free(&self)
 {
-    self.inputs.free();
+    if (self.inputs.is_initialized()) self.inputs.free();
 }
 fn void InputHandler.addInput(&self, InputButton input)
 {
-    self.inputs.push(input);
+    if (self.inputs.is_initialized()) self.inputs.push(input);
 }
 fn InputButton*! InputHandler.getInput(&self, String name)
 {
