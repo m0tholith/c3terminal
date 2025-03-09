@@ -129,7 +129,7 @@ fn void FontAtlas.bindTexture(&self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
-struct GridChar
+struct GridCharFg
 {
     uint codepoint;
     float[<3>] color;
@@ -138,7 +138,7 @@ struct GridChar
  @require gridW * gridH < grid.len
  @require fontSize > 0
  *>
-fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int gridW, int gridH, float fontSize)
+fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height, int gridW, int gridH, float fontSize)
 {
     int uniformIdx = 0;
     for (int xIdx = 0; xIdx < gridW; xIdx++)
@@ -146,7 +146,7 @@ fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int
         for (int yIdx = 0; yIdx < gridH; yIdx++)
         {
             int idx = xIdx + gridW * yIdx;
-            GridChar c = grid[idx];
+            GridCharFg c = grid[idx];
 
             float x = (float)(int)(xIdx * width / gridW);
             float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
@@ -177,7 +177,7 @@ fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int
             if (uniformIdx >= renderer::ARRAY_MAX)
             {
                 uniformIdx = 0;
-                self.renderer.render();
+                self.renderer.renderFg();
             }
 
             self.renderer.instanceData[uniformIdx].quadPos  = { x, y };
@@ -189,7 +189,56 @@ fn void! FontAtlas.renderGrid(&self, GridChar[] grid, int width, int height, int
             uniformIdx++;
         }
     }
-    self.renderer.render(uniformIdx);
+    self.renderer.renderFg(uniformIdx);
+}
+struct GridCharBg
+{
+    inline float[<3>] color;
+}
+<*
+ @require gridW * gridH < grid.len
+ @require fontSize > 0
+ *>
+fn void! FontAtlas.renderGridBg(&self, GridCharBg[] grid, int width, int height, int gridW, int gridH, float fontSize)
+{
+    int uniformIdx = 0;
+    int gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
+    for (int xIdx = 0; xIdx < gridW; xIdx++)
+    {
+        for (int yIdx = 0; yIdx < gridH; yIdx++)
+        {
+            int idx = xIdx + gridW * yIdx;
+            GridCharBg c = grid[idx];
+
+            float x = (float)(int)(xIdx * width / gridW);
+            float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
+
+            float s = fontSize / self.fontSize;
+
+            float w = (float)(int)(width / gridW) * s;
+            float h = (float)(int)(height / gridH) * s;
+
+            x = x / width  * 2 - 1;
+            y = y / height * 2 - 1;
+            w = w / width  * 2;
+            h = h / height * 2;
+
+            if (uniformIdx >= renderer::ARRAY_MAX)
+            {
+                uniformIdx = 0;
+                self.renderer.renderFg();
+            }
+
+            self.renderer.instanceData[uniformIdx].quadPos  = { x, y };
+            self.renderer.instanceData[uniformIdx].quadSize = { w, h };
+            self.renderer.instanceData[uniformIdx].texPos   = { 0, 0 };
+            self.renderer.instanceData[uniformIdx].texSize  = { 0, 0 };
+            self.renderer.instanceData[uniformIdx].color    = c.color;
+
+            uniformIdx++;
+        }
+    }
+    self.renderer.renderBg(uniformIdx);
 }
 fn void FontAtlas.free(&self)
 {
@@ -244,8 +293,9 @@ struct Renderer
     uint shader;
 
     uint instanceVbo;
-
     InstanceData[ARRAY_MAX] instanceData;
+
+    uint uniformUseTexture;
 }
 
 fault RendererError
@@ -305,19 +355,32 @@ fn void! Renderer.init(&self)
     attr++;
 
     self.shader = loadShader(&vertexShaderSource, &fragmentShaderSource)!;
+    self.uniformUseTexture = gl::getUniformLocation(self.shader, "useTexture");
     gl::useProgram(self.shader);
 }
 
 <*
  @require gl::isBuffer(self.instanceVbo)
  *>
-fn void Renderer.render(&self, usz count = ARRAY_MAX)
+fn void Renderer.renderFg(&self, usz count = ARRAY_MAX)
 {
     if (count == 0) return;
 
     gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.instanceVbo);
     gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, count * InstanceData.sizeof, &self.instanceData);
+    gl::uniform1i(self.uniformUseTexture, 1);
+    gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, self.vertices.len, count);
+}
+<*
+ @require gl::isBuffer(self.instanceVbo)
+ *>
+fn void Renderer.renderBg(&self, usz count = ARRAY_MAX)
+{
+    if (count == 0) return;
 
+    gl::bindBuffer(gl::GL_ARRAY_BUFFER, self.instanceVbo);
+    gl::bufferSubData(gl::GL_ARRAY_BUFFER, 0, count * InstanceData.sizeof, &self.instanceData);
+    gl::uniform1i(self.uniformUseTexture, 0);
     gl::drawArraysInstanced(gl::GL_TRIANGLES, 0, self.vertices.len, count);
 }
 

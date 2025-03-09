@@ -12,7 +12,8 @@ import std::io;
 
 struct Grid @local
 {
-    font_atlas::GridChar[] str;
+    font_atlas::GridCharFg[] fg;
+    font_atlas::GridCharBg[] bg;
     uint width; uint height;
     float fontSize;
 }
@@ -52,12 +53,17 @@ fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String 
     self.fontAtlas.init(fontName, fontSize)!;
     defer catch { self.fontAtlas.free(); }
 
-    self.grid = { mem::new_array(font_atlas::GridChar, gridSize),
+    self.grid = { mem::new_array(font_atlas::GridCharFg, gridSize),
+                  mem::new_array(font_atlas::GridCharBg, gridSize),
                   (uint)((float)windowWidth  / self.fontAtlas.charMaxX),
                   (uint)((float)windowHeight / self.fontAtlas.charMaxY),
                   fontSize };
     defer catch { self.grid.free(); }
-    for (usz i = 0; i < gridSize; i++) self.grid.str[i] = { ' ', fg };
+    for (usz i = 0; i < gridSize; i++)
+    {
+        self.grid.fg[i] = { ' ', fg };
+        self.grid.bg[i].color = self.bg;
+    }
 
     self.bg = bg;
     self.fg = fg;
@@ -65,29 +71,29 @@ fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String 
 <*
  Assigns character to terminal's current cursor position
 
- @require self.grid.str.ptr != null
+ @require self.grid.fg.ptr != null
  *>
 fn void Terminal.assignChar(&self, uint codepoint)
 {
-    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].codepoint = codepoint;
+    self.grid.fg[self.cursor.x + self.grid.width * self.cursor.y].codepoint = codepoint;
 }
 <*
  Assigns background color to terminal's current cursor position
 
- @require self.grid.str.ptr != null
+ @require self.grid.bg.ptr != null
  *>
-fn void Terminal.assignCharBg(&self, float[<3>] bg) @deprecated
+fn void Terminal.assignCharBg(&self, float[<3>] bg)
 {
-    // self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].bg = bg;
+    self.grid.bg[self.cursor.x + self.grid.width * self.cursor.y].color = bg;
 }
 <*
  Assigns foreground color to terminal's current cursor position
 
- @require self.grid.str.ptr != null
+ @require self.grid.fg.ptr != null
  *>
 fn void Terminal.assignCharFg(&self, float[<3>] fg)
 {
-    self.grid.str[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
+    self.grid.fg[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
 }
 fn void Terminal.preRender(&self)
 {
@@ -97,7 +103,8 @@ fn void Terminal.preRender(&self)
         {
             for (int j = 0; j < self.grid.height; j++)
             {
-                self.grid.str[i + self.grid.width * j].codepoint = ' ';
+                self.grid.fg[i] = { ' ', self.fg };
+                self.grid.bg[i].color = self.bg;
             }
         }
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
@@ -107,7 +114,8 @@ fn void Terminal.preRender(&self)
 }
 fn void! Terminal.render(&self)
 {
-    self.fontAtlas.renderGrid(self.grid.str, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.renderGridBg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.renderGridFg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
     self.window.clearColor(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
@@ -116,7 +124,8 @@ fn void! Terminal.render(&self)
 }
 fn void Grid.free(self) @local
 {
-    mem::free(self.str);
+    mem::free(self.bg);
+    mem::free(self.fg);
 }
 fn void Terminal.free(&self)
 {

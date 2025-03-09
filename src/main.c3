@@ -64,6 +64,7 @@ fn int main(String[] args)
             terminal.cursor = *cursor;
             terminal.assignChar((char)rand_in_range(33, 126));
             terminal.assignCharFg(COLORS[rand(COLORS.len)]);
+            terminal.assignCharBg(COLORS[rand(COLORS.len)]);
         }
         
         terminal.render()!!;
