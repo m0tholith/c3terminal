@@ -248,60 +248,6 @@ struct Renderer
     InstanceData[ARRAY_MAX] instanceData;
 }
 
-ZString vertexShaderSource @private = `
-#version 330 core
-
-layout (location = 0) in vec2 vertPos;
-layout (location = 1) in vec2 quadPos;
-layout (location = 2) in vec2 quadSize;
-layout (location = 3) in vec2 texPos;
-layout (location = 4) in vec2 texSize;
-layout (location = 5) in vec3 color;
-
-vec2 getPos(vec2 inVec) {
-    return quadPos + quadSize * inVec;
-}
-
-out VS_OUT {
-    flat int idx;
-    vec2 uv;
-    vec2 texPos;
-    vec2 texSize;
-    vec3 color;
-} vs_out;
-
-void main() {
-    gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
-    vs_out.uv = vertPos;
-    vs_out.idx = gl_InstanceID;
-    vs_out.texPos  = texPos;
-    vs_out.texSize = texSize;
-    vs_out.color   = color;
-}
-`;
-ZString fragmentShaderSource @private = `
-#version 330 core
-
-in VS_OUT {
-    flat int idx;
-    vec2 uv;
-    vec2 texPos;
-    vec2 texSize;
-    vec3 color;
-} fs_in;
-
-uniform sampler2D tex;
-
-out vec4 FragColor;
-
-void main() {
-    vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
-    float color = texture(tex, uv).x;
-    vec4 result = vec4(fs_in.color, color);
-    FragColor = result;
-}
-`;
-
 fault RendererError
 {
     CREATE_SHADER_VERT_FAIL,
@@ -409,3 +355,58 @@ fn uint! loadShader(ZString* vert, ZString* frag) @private
 
     return shader;
 }
+
+
+ZString vertexShaderSource @private = `
+#version 330 core
+
+layout (location = 0) in vec2 vertPos;
+layout (location = 1) in vec2 quadPos;
+layout (location = 2) in vec2 quadSize;
+layout (location = 3) in vec2 texPos;
+layout (location = 4) in vec2 texSize;
+layout (location = 5) in vec3 color;
+
+vec2 getPos(vec2 inVec) {
+    return quadPos + quadSize * inVec;
+}
+
+out VS_OUT {
+    flat int idx;
+    vec2 uv;
+    vec2 texPos;
+    vec2 texSize;
+    vec3 color;
+} vs_out;
+
+void main() {
+    gl_Position = vec4(getPos(vertPos), 0.0, 1.0);
+    vs_out.uv = vertPos;
+    vs_out.idx = gl_InstanceID;
+    vs_out.texPos  = texPos;
+    vs_out.texSize = texSize;
+    vs_out.color   = color;
+}
+`;
+ZString fragmentShaderSource @private = `
+#version 330 core
+
+in VS_OUT {
+    flat int idx;
+    vec2 uv;
+    vec2 texPos;
+    vec2 texSize;
+    vec3 color;
+} fs_in;
+
+uniform sampler2D tex;
+
+out vec4 FragColor;
+
+void main() {
+    vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
+    float color = texture(tex, uv).x;
+    vec4 result = vec4(fs_in.color, color);
+    FragColor = result;
+}
+`;
