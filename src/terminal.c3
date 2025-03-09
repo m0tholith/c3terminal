@@ -122,7 +122,7 @@ fn void! Terminal.render(&self)
 
     self.time = glfw::getTime();
 }
-fn void Grid.free(self) @local
+fn void Grid.free(&self) @local
 {
     mem::free(self.bg);
     mem::free(self.fg);
