@@ -7,7 +7,7 @@ import std::io;
 import window;
 import glfw;
 
-fault InputHandlerError
+fault InputMapError
 {
     INPUT_NAME_NOT_FOUND,
 }
@@ -28,23 +28,23 @@ fn bool InputButton.activated(&self)
     return self.currentState == self.state;
 }
 
-struct InputHandler
+struct InputMap
 {
     List{InputButton} inputs;
 }
 
-fn bool InputHandler.is_initialized(&self) @inline @local => self.inputs.is_initialized();
-fn void InputHandler.init(&self, InputButton[] inputs)
+fn bool InputMap.is_initialized(&self) @inline @local => self.inputs.is_initialized();
+fn void InputMap.init(&self, InputButton[] inputs)
 {
     if (self.is_initialized()) return;
     self.inputs.init_wrapping_array(mem, inputs);
 }
-fn void InputHandler.free(&self)
+fn void InputMap.free(&self)
 {
     if (!self.is_initialized()) return;
     self.inputs.free();
 }
-fn void InputHandler.addInput(&self, InputButton input)
+fn void InputMap.addInput(&self, InputButton input)
 {
     if (!self.inputs.is_initialized())
     {
@@ -58,19 +58,19 @@ fn void InputHandler.addInput(&self, InputButton input)
 <*
  @require self.is_initialized()
  *>
-fn InputButton*! InputHandler.getInput(&self, String name)
+fn InputButton*! InputMap.getInput(&self, String name)
 {
     foreach (&input : self.inputs)
     {
         if (input.name == name) return input;
     }
     io::eprintfn("could not find input %s", name);
-    return InputHandlerError.INPUT_NAME_NOT_FOUND?;
+    return InputMapError.INPUT_NAME_NOT_FOUND?;
 }
 <*
  @param [&in] window
  *>
-fn void InputHandler.processInput(&self, window::Window* window)
+fn void InputMap.processInput(&self, window::Window* window)
 {
     if (!self.is_initialized()) self.init({});
     foreach (&input : self.inputs)
