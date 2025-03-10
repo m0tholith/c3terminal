@@ -33,21 +33,31 @@ struct InputHandler
     List{InputButton} inputs;
 }
 
-<*
- @require !self.inputs.is_initialized()
- *>
+fn bool InputHandler.is_initialized(&self) @inline @local => self.inputs.is_initialized();
 fn void InputHandler.init(&self, InputButton[] inputs)
 {
+    if (self.is_initialized()) return;
     self.inputs.init_wrapping_array(mem, inputs);
 }
 fn void InputHandler.free(&self)
 {
-    if (self.inputs.is_initialized()) self.inputs.free();
+    if (!self.is_initialized()) return;
+    self.inputs.free();
 }
 fn void InputHandler.addInput(&self, InputButton input)
 {
-    if (self.inputs.is_initialized()) self.inputs.push(input);
+    if (!self.inputs.is_initialized())
+    {
+        self.init({input});
+    }
+    else
+    {
+        self.inputs.push(input);
+    }
 }
+<*
+ @require self.is_initialized()
+ *>
 fn InputButton*! InputHandler.getInput(&self, String name)
 {
     foreach (&input : self.inputs)
@@ -62,6 +72,7 @@ fn InputButton*! InputHandler.getInput(&self, String name)
  *>
 fn void InputHandler.processInput(&self, window::Window* window)
 {
+    if (!self.is_initialized()) self.init({});
     foreach (&input : self.inputs)
     {
         input.currentState = glfw::getKey(window.glfwWin, input.keycode);
