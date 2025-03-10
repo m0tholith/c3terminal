@@ -49,7 +49,7 @@ fn int main(String[] args)
     terminal::Terminal terminal;
     terminal.init(900, 600, "test.ttf", windowName: "m0tty", fontSize: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;
     defer terminal.free();
-    terminal.inputHandler.addInput({ "quit", glfw::KEY_ESCAPE, glfw::PRESS, -1 });
+    terminal.inputHandler.addInput({ { glfw::KEY_ESCAPE, glfw::PRESS, -1 }, "quit" });
     input::InputButton* quitInput = terminal.inputHandler.getInput("quit")!!;
 
     double time;

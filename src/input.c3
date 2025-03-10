@@ -12,12 +12,16 @@ fault InputHandlerError
     INPUT_NAME_NOT_FOUND,
 }
 
-struct InputButton
+struct InputKey
 {
-    String name;
-    int key; // key from glfw (e.g. KEY_ESCAPE)
+    int keycode; // key from glfw (e.g. KEY_ESCAPE)
     int state; // status from glfw (e.g. PRESS)
     int currentState; // the last-reported state of this input
+}
+struct InputButton
+{
+    inline InputKey key;
+    String name;
 }
 fn bool InputButton.activated(&self)
 {
@@ -60,6 +64,6 @@ fn void InputHandler.processInput(&self, window::Window* window)
 {
     foreach (&input : self.inputs)
     {
-        input.currentState = glfw::getKey(window.glfwWin, input.key);
+        input.currentState = glfw::getKey(window.glfwWin, input.keycode);
     }
 }
