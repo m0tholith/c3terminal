@@ -12,6 +12,7 @@ import std::thread;
 import std::core::mem;
 import std::math;
 import std::collections::map;
+import std::collections::range;
 
 def Vec2ui = uint[<2>];
 
@@ -67,16 +68,20 @@ fn int main(String[] args)
     while (!terminal.window.shouldClose)
     {
         terminal.preRender();
-        for (int i = 0; i < terminal.grid.width; i++)
+
+        foreach (key : input_manager.pressedKeys)
         {
-            $typeof(terminal.cursor)* cursor = &terminal.cursor;
-            cursor.x = rand(terminal.grid.width);
-            cursor.y = rand(terminal.grid.height);
-            terminal.cursor = *cursor;
-            terminal.assignChar((char)rand_in_range(33, 126));
-            terminal.assignCharFg(COLORS[rand(COLORS.len)]);
-            terminal.assignCharBg(COLORS[rand(COLORS.len)]);
+            if (((Range{int}){glfw::KEY_0, glfw::KEY_9}.contains(key.keycode) ||
+                (Range{int}){glfw::KEY_A, glfw::KEY_Z}.contains(key.keycode)) &&
+                (key.pressTime == glfw::getTime() ||
+                glfw::getTime() - key.pressTime > 1))
+            {
+                terminal.assignChar(key.keycode);
+                terminal.cursor.x++;
+            }
         }
+        terminal.assignCharFg(COLORS[rand(COLORS.len)]);
+        terminal.assignCharBg(COLORS[rand(COLORS.len)]);
         
         terminal.render()!!;
     }
