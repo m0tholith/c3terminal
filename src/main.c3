@@ -64,21 +64,11 @@ fn int main(String[] args)
     input_manager.add_map("default", map);
     defer input_manager.free();
 
+    input_manager.add_key_press_callback(&key_press_callback);
+
     while (!terminal.window.shouldClose)
     {
         terminal.preRender();
-
-        foreach (key : input_manager.pressedKeys)
-        {
-            int keycode = translate_keycode(key);
-            if (keycode != -1 &&
-                (key.pressTime == window::time ||
-                window::time - key.pressTime > 1))
-            {
-                terminal.assignChar(keycode);
-                terminal.cursor.x++;
-            }
-        }
 
         terminal.assignChar('_');
         
@@ -88,49 +78,24 @@ fn int main(String[] args)
 	return 0;
 }
 
-macro bool check_modifier(input::PressedKey key, int modifier) => key.modifier ^ modifier == 0;
-fn int translate_keycode(input::PressedKey key)
+fn void key_press_callback(uint codepoint)
 {
-    if ((Range{int}){ glfw::KEY_0, glfw::KEY_9 }.contains(key.keycode))
+    io::printfn("codepoint: |'%c'|", codepoint);
+    switch (codepoint)
     {
-        if (check_modifier(key, glfw::MOD_SHIFT))
-        {
-            switch (key.keycode)
-            {
-                case glfw::KEY_1: return '!';
-                case glfw::KEY_2: return '@';
-                case glfw::KEY_3: return '#';
-                case glfw::KEY_4: return '$';
-                case glfw::KEY_5: return '%';
-                case glfw::KEY_6: return '^';
-                case glfw::KEY_7: return '&';
-                case glfw::KEY_8: return '*';
-                case glfw::KEY_9: return '(';
-                case glfw::KEY_0: return ')';
-            }
-        }
-        return key.keycode;
+        case '\n':
+            terminal.cursor.x = 0;
+            terminal.cursor.y++;
+            return;
+        case '\t':
+            terminal.assignChar(' ');
+            terminal.cursor.x += 4;
+            return;
+        case '\b':
+            terminal.assignChar(' ');
+            if (terminal.cursor.x > 0) terminal.cursor.x--;
+            return;
     }
-    if ((Range{int}){ glfw::KEY_A, glfw::KEY_Z }.contains(key.keycode))
-    {
-        return key.keycode + (int)!check_modifier(key, glfw::MOD_SHIFT) * 32;
-    }
-    switch (key.keycode)
-    {
-        case glfw::KEY_SPACE:      return ' ';
-        case glfw::KEY_APOSTROPHE: return check_modifier(key, glfw::MOD_SHIFT) ? '"' : '\'';
-        case glfw::KEY_MINUS:      return check_modifier(key, glfw::MOD_SHIFT) ? '_' : '_';
-        case glfw::KEY_COMMA:      return check_modifier(key, glfw::MOD_SHIFT) ? '<' : ',';
-        case glfw::KEY_PERIOD:     return check_modifier(key, glfw::MOD_SHIFT) ? '>' : '.';
-        case glfw::KEY_SLASH:      return check_modifier(key, glfw::MOD_SHIFT) ? '?' : '/';
-
-        case glfw::KEY_SEMICOLON: return check_modifier(key, glfw::MOD_SHIFT) ? ':' : ';';
-        case glfw::KEY_EQUAL:     return check_modifier(key, glfw::MOD_SHIFT) ? '=' : '+';
-
-        case glfw::KEY_LEFT_BRACKET:   return check_modifier(key, glfw::MOD_SHIFT) ? '{' : '[';
-        case glfw::KEY_BACKSLASH:      return check_modifier(key, glfw::MOD_SHIFT) ? '|' : '\\';
-        case glfw::KEY_RIGHT_BRACKET:  return check_modifier(key, glfw::MOD_SHIFT) ? '}' : ']';
-        case glfw::KEY_GRAVE_ACCENT:   return check_modifier(key, glfw::MOD_SHIFT) ? '~' : '`';
-    }
-    return -1;
+    terminal.assignChar(codepoint);
+    terminal.cursor.x++;
 }

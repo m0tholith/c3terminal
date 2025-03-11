@@ -72,17 +72,12 @@ fn Button*! Map.find(&self, String name)
     return InputError.BUTTON_NAME_NOT_FOUND?;
 }
 
-struct PressedKey
-{
-    int keycode;
-    int modifier;
-    double pressTime;
-}
+def KeyPressCallback = fn void(uint codepoint);
 struct Manager
 {
     HashMap{String, Map} maps;
     String currentMap;
-    List{PressedKey} pressedKeys; // glfw key ints (e.g. KEY_A)
+    List{KeyPressCallback} keyPressCallbacks;
 }
 Manager input_manager @public @builtin;
 <*
@@ -91,11 +86,12 @@ Manager input_manager @public @builtin;
 fn void Manager.init(&self, window::Window* window)
 {
     self.maps.init(mem);
-    self.pressedKeys.init(mem);
+    self.keyPressCallbacks.init(mem);
 
     glfw::setKeyCallback(window.glfwWin, &key_callback);
+    glfw::setCharCallback(window.glfwWin, &char_callback);
 }
-fn bool Manager.is_initialized(&self) @inline => self.maps.is_initialized() && self.pressedKeys.is_initialized();
+fn bool Manager.is_initialized(&self) @inline => self.maps.is_initialized() && self.keyPressCallbacks.is_initialized();
 <*
  @require map_name.len != 0
  *>
@@ -104,6 +100,11 @@ fn void Manager.add_map(&self, String map_name, Map map, bool activate = true)
     if (!self.maps.is_initialized()) self.maps.init(mem);
     self.maps[map_name] = map;
     if (activate) self.currentMap = map_name;
+}
+fn void Manager.add_key_press_callback(&self, KeyPressCallback callback)
+{
+    if (!self.keyPressCallbacks.is_initialized()) self.keyPressCallbacks.init(mem);
+    self.keyPressCallbacks.push(callback);
 }
 <*
  @require map_name.len != 0
@@ -125,7 +126,7 @@ fn void Manager.free(&self)
         self.maps.get_ref(map_name).free()!!;
     };
     self.maps.free();
-    self.pressedKeys.free();
+    self.keyPressCallbacks.free();
 }
 <*
  @param [&in] window
@@ -144,22 +145,12 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             }
         }
     }
-    foreach (idx, inputKey : input_manager.pressedKeys)
-    {
-        if (inputKey.keycode == key)
-        {
-            switch (action)
-            {
-                case glfw::PRESS:
-                case glfw::REPEAT:
-                    break;
-
-                case glfw::RELEASE:
-                default:
-                    input_manager.pressedKeys.remove_at(idx);
-            }
-            return;
-        }
-    }
-    input_manager.pressedKeys.push({ key, mods, window::time });
+    if (action == glfw::RELEASE) return;
+    if (key == glfw::KEY_ENTER) foreach (callback : input_manager.keyPressCallbacks) callback('\n');
+    if (key == glfw::KEY_TAB) foreach (callback : input_manager.keyPressCallbacks) callback('\t');
+    if (key == glfw::KEY_BACKSPACE) foreach (callback : input_manager.keyPressCallbacks) callback('\b');
+}
+fn void char_callback(glfw::Window* window, uint codepoint) @private
+{
+    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint);
 }
