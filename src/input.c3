@@ -22,7 +22,7 @@ struct Key
 const INPUT_MODIFIERS @private = glfw::MOD_SHIFT | glfw::MOD_CONTROL | glfw::MOD_ALT | glfw::MOD_SUPER | glfw::MOD_CAPS_LOCK | glfw::MOD_NUM_LOCK;
 fn bool Key.compare(self, int keycode, int modifiers, int state)
 {
-    return self.keycode == keycode && (((self.modifiers & modifiers) | (~self.modifiers & ~modifiers)) & INPUT_MODIFIERS) && self.state & state;
+    return self.keycode == keycode && !(self.modifiers ^ modifiers) && self.state & state;
 }
 def ButtonCallback = fn void();
 struct Button (Printable)
