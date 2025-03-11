@@ -103,6 +103,7 @@ fn void Terminal.preRender(&self)
         }
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
         self.grid.height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
+        self.cursor = { 0, 0 };
     }
 }
 fn void! Terminal.render(&self)
