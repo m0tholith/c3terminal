@@ -146,6 +146,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         }
     }
     if (action == glfw::RELEASE) return;
+    if (key == glfw::KEY_ESCAPE) foreach (callback : input_manager.keyPressCallbacks) callback('\e');
     if (key == glfw::KEY_ENTER) foreach (callback : input_manager.keyPressCallbacks) callback('\n');
     if (key == glfw::KEY_TAB) foreach (callback : input_manager.keyPressCallbacks) callback('\t');
     if (key == glfw::KEY_BACKSPACE) foreach (callback : input_manager.keyPressCallbacks) callback('\b');

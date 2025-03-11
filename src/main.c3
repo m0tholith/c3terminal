@@ -84,6 +84,7 @@ fn void key_press_callback(uint codepoint)
     switch (codepoint)
     {
         case '\n':
+            terminal.assignChar(' ');
             terminal.cursor.x = 0;
             terminal.cursor.y++;
             return;
@@ -94,6 +95,8 @@ fn void key_press_callback(uint codepoint)
         case '\b':
             terminal.assignChar(' ');
             if (terminal.cursor.x > 0) terminal.cursor.x--;
+            return;
+        case '\e':
             return;
     }
     terminal.assignChar(codepoint);
