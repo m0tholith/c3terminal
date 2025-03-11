@@ -2,6 +2,7 @@ module main;
 
 import terminal;
 import input;
+import window;
 import glfw;
 import opengl;
 
@@ -64,7 +65,6 @@ fn int main(String[] args)
     input_manager.add_map("default", map);
     defer input_manager.free();
 
-    double time;
     while (!terminal.window.shouldClose)
     {
         terminal.preRender();
@@ -73,15 +73,13 @@ fn int main(String[] args)
         {
             if (((Range{int}){glfw::KEY_0, glfw::KEY_9}.contains(key.keycode) ||
                 (Range{int}){glfw::KEY_A, glfw::KEY_Z}.contains(key.keycode)) &&
-                (key.pressTime == glfw::getTime() ||
-                glfw::getTime() - key.pressTime > 1))
+                (key.pressTime == window::time ||
+                window::time - key.pressTime > 1))
             {
                 terminal.assignChar(key.keycode);
                 terminal.cursor.x++;
             }
         }
-        terminal.assignCharFg(COLORS[rand(COLORS.len)]);
-        terminal.assignCharBg(COLORS[rand(COLORS.len)]);
         
         terminal.render()!!;
     }

@@ -160,5 +160,5 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             return;
         }
     }
-    input_manager.pressedKeys.push({ key, glfw::getTime() });
+    input_manager.pressedKeys.push({ key, window::time });
 }

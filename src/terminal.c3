@@ -25,8 +25,6 @@ struct Terminal
     Grid grid;
     float[<3>] bg;
     float[<3>] fg;
-    // default value of 0 means as much as refresh rate
-    double time;
 }
 
 <*
@@ -114,8 +112,6 @@ fn void! Terminal.render(&self)
 
     self.window.clearColor(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
-
-    self.time = glfw::getTime();
 }
 fn void Grid.free(&self) @local
 {

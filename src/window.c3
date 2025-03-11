@@ -92,6 +92,8 @@ fn void Window.clearColor(&self, float red, float green, float blue)
  *>
 fn void Window.refresh(&self)
 {
+    update_time();
+
     self.sizeChanged = false;
 
     glfw::makeContextCurrent(self.glfwWin);
@@ -122,3 +124,6 @@ fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height) @privat
         }
     }
 }
+
+double time;
+fn void update_time() @inline => time = glfw::getTime();
