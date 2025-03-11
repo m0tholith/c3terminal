@@ -67,6 +67,7 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     gl::enable(gl::GL_MULTISAMPLE);
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
+    glfw::setInputMode(glfwWin, glfw::LOCK_KEY_MODS, glfw::TRUE);
 
     self.glfwWin = glfwWin;
     self.width = width;

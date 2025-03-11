@@ -20,7 +20,6 @@ struct Grid @local
 struct Terminal
 {
     window::Window window;
-    input::InputMap inputMap;
     font_atlas::FontAtlas fontAtlas;
     uint[<2>] cursor;
     Grid grid;
@@ -46,9 +45,6 @@ fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String 
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debugMessageCallback, null);
-
-    self.inputMap.init({});
-    defer catch { self.inputMap.free(); }
     
     self.fontAtlas.init(fontName, fontSize)!;
     defer catch { self.fontAtlas.free(); }
@@ -110,7 +106,6 @@ fn void Terminal.preRender(&self)
         self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
         self.grid.height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
     }
-    self.inputMap.processInput(&self.window);
 }
 fn void! Terminal.render(&self)
 {
@@ -131,7 +126,6 @@ fn void Terminal.free(&self)
 {
     self.grid.free();
     self.fontAtlas.free();
-    self.inputMap.free();
     window::terminateSystem();
 }
 
