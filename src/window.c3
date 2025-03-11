@@ -47,6 +47,10 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
 {
     Monitor* monitor = null;
     if (width == 0 || height == 0) monitor = glfw::getPrimaryMonitor();
+    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 4);
+    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
+    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
+    glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
     glfw::Window* glfwWin = glfw::createWindow(width, height, name, monitor, null);
     if (glfwWin == null)
     {
@@ -57,10 +61,6 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     glfw::setWindowSizeCallback(glfwWin, &windowSizeCallback);
     glfw::makeContextCurrent(glfwWin);
     glfw::swapInterval(0);
-    glfw::windowHint(glfw::CONTEXT_VERSION_MAJOR, 4);
-    glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
-    glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
-    glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
     glfw::windowHint(glfw::RESIZABLE, 1);
     glfw::windowHint(glfw::SAMPLES, 2);
     gl::viewport(0, 0, width, height);
