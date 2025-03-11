@@ -35,26 +35,28 @@ fault FontAtlasError
  @require filename.ptr != null
  @require fontSize > 0
  *>
-fn void! FontAtlas.init(&self, String filename, float fontSize, int startCodepoint = 32, int endCodepoint = 127)
+fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepoint = 0, uint endCodepoint = uint.max)
 {
-    self.startCodepoint = startCodepoint; self.endCodepoint = endCodepoint ;
-    self.width = 128; self.height = 128;
+    self.startCodepoint = startCodepoint; self.endCodepoint = endCodepoint;
+    self.width = 1024; self.height = 1024;
     self.fontSize = fontSize;
     self.renderer.init()!;
 
-    self.chars = mem::new_array(stb_truetype::PackedChar, self.endCodepoint);
+    char[] fontFileData = mem::new_array(char, io::file::get_size(filename))!!;
+    defer mem::free(fontFileData);
+    readFile(filename, fontFileData)!;
+
+    stb_truetype::FontInfo fontInfo;
+    stb_truetype::initFont(&fontInfo, fontFileData.ptr, 0);
+
+    self.chars = mem::new_array(stb_truetype::PackedChar, fontInfo.numGlyphs);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
 
-    char[] contents = mem::new_array(char, io::file::get_size(filename))!!;
-    defer mem::free(contents);
-    readFile(filename, contents)!;
+    stb_truetype::PackContext ctx;
 
-    stb_truetype::PackContext* ctx = mem::new(stb_truetype::PackContext);
-
-    if (stb_truetype::packBegin(ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
-    stb_truetype::packFontRange(ctx, contents, 0, fontSize, self.startCodepoint, self.endCodepoint, self.chars.ptr);
-    stb_truetype::packEnd(ctx);
-    mem::free(ctx);
+    if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
+    stb_truetype::packFontRange(&ctx, fontFileData, 0, fontSize, self.startCodepoint, fontInfo.numGlyphs, self.chars.ptr);
+    stb_truetype::packEnd(&ctx);
 
     // flip image
     {
