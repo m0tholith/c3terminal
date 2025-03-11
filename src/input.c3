@@ -75,6 +75,7 @@ fn Button*! Map.find(&self, String name)
 struct PressedKey
 {
     int keycode;
+    int modifier;
     double pressTime;
 }
 struct Manager
@@ -160,5 +161,5 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             return;
         }
     }
-    input_manager.pressedKeys.push({ key, window::time });
+    input_manager.pressedKeys.push({ key, mods, window::time });
 }

@@ -4,7 +4,6 @@ import terminal;
 import input;
 import window;
 import glfw;
-import opengl;
 
 import libc;
 import std::io;
@@ -71,18 +70,67 @@ fn int main(String[] args)
 
         foreach (key : input_manager.pressedKeys)
         {
-            if (((Range{int}){glfw::KEY_0, glfw::KEY_9}.contains(key.keycode) ||
-                (Range{int}){glfw::KEY_A, glfw::KEY_Z}.contains(key.keycode)) &&
+            int keycode = translate_keycode(key);
+            if (keycode != -1 &&
                 (key.pressTime == window::time ||
                 window::time - key.pressTime > 1))
             {
-                terminal.assignChar(key.keycode);
+                terminal.assignChar(keycode);
                 terminal.cursor.x++;
             }
         }
+
+        terminal.assignChar('_');
         
         terminal.render()!!;
     }
 
 	return 0;
+}
+
+macro bool check_modifier(input::PressedKey key, int modifier) => key.modifier ^ modifier == 0;
+fn int translate_keycode(input::PressedKey key)
+{
+    if ((Range{int}){ glfw::KEY_0, glfw::KEY_9 }.contains(key.keycode))
+    {
+        if (check_modifier(key, glfw::MOD_SHIFT))
+        {
+            switch (key.keycode)
+            {
+                case glfw::KEY_1: return '!';
+                case glfw::KEY_2: return '@';
+                case glfw::KEY_3: return '#';
+                case glfw::KEY_4: return '$';
+                case glfw::KEY_5: return '%';
+                case glfw::KEY_6: return '^';
+                case glfw::KEY_7: return '&';
+                case glfw::KEY_8: return '*';
+                case glfw::KEY_9: return '(';
+                case glfw::KEY_0: return ')';
+            }
+        }
+        return key.keycode;
+    }
+    if ((Range{int}){ glfw::KEY_A, glfw::KEY_Z }.contains(key.keycode))
+    {
+        return key.keycode + (int)!check_modifier(key, glfw::MOD_SHIFT) * 32;
+    }
+    switch (key.keycode)
+    {
+        case glfw::KEY_SPACE:      return ' ';
+        case glfw::KEY_APOSTROPHE: return check_modifier(key, glfw::MOD_SHIFT) ? '"' : '\'';
+        case glfw::KEY_MINUS:      return check_modifier(key, glfw::MOD_SHIFT) ? '_' : '_';
+        case glfw::KEY_COMMA:      return check_modifier(key, glfw::MOD_SHIFT) ? '<' : ',';
+        case glfw::KEY_PERIOD:     return check_modifier(key, glfw::MOD_SHIFT) ? '>' : '.';
+        case glfw::KEY_SLASH:      return check_modifier(key, glfw::MOD_SHIFT) ? '?' : '/';
+
+        case glfw::KEY_SEMICOLON: return check_modifier(key, glfw::MOD_SHIFT) ? ':' : ';';
+        case glfw::KEY_EQUAL:     return check_modifier(key, glfw::MOD_SHIFT) ? '=' : '+';
+
+        case glfw::KEY_LEFT_BRACKET:   return check_modifier(key, glfw::MOD_SHIFT) ? '{' : '[';
+        case glfw::KEY_BACKSLASH:      return check_modifier(key, glfw::MOD_SHIFT) ? '|' : '\\';
+        case glfw::KEY_RIGHT_BRACKET:  return check_modifier(key, glfw::MOD_SHIFT) ? '}' : ']';
+        case glfw::KEY_GRAVE_ACCENT:   return check_modifier(key, glfw::MOD_SHIFT) ? '~' : '`';
+    }
+    return -1;
 }
