@@ -577,6 +577,7 @@ typedef struct
    unsigned short x0,y0,x1,y1; // coordinates of bbox in bitmap
    float xoff,yoff,xadvance;
    float xoff2,yoff2;
+   int codepoint;
 } stbtt_packedchar;
 
 typedef struct stbtt_pack_context stbtt_pack_context;
@@ -4263,15 +4264,16 @@ STBTT_DEF int stbtt_PackFontRangesRenderIntoRects(stbtt_pack_context *spc, const
                                   r->w, r->h, spc->stride_in_bytes,
                                   spc->v_oversample);
 
-            bc->x0       = (stbtt_int16)  r->x;
-            bc->y0       = (stbtt_int16)  r->y;
-            bc->x1       = (stbtt_int16) (r->x + r->w);
-            bc->y1       = (stbtt_int16) (r->y + r->h);
-            bc->xadvance =                scale * advance;
-            bc->xoff     =       (float)  x0 * recip_h + sub_x;
-            bc->yoff     =       (float)  y0 * recip_v + sub_y;
-            bc->xoff2    =                (x0 + r->w) * recip_h + sub_x;
-            bc->yoff2    =                (y0 + r->h) * recip_v + sub_y;
+            bc->x0        = (stbtt_int16)  r->x;
+            bc->y0        = (stbtt_int16)  r->y;
+            bc->x1        = (stbtt_int16) (r->x + r->w);
+            bc->y1        = (stbtt_int16) (r->y + r->h);
+            bc->xadvance  =                scale * advance;
+            bc->xoff      =       (float)  x0 * recip_h + sub_x;
+            bc->yoff      =       (float)  y0 * recip_v + sub_y;
+            bc->xoff2     =                (x0 + r->w) * recip_h + sub_x;
+            bc->yoff2     =                (y0 + r->h) * recip_v + sub_y;
+            bc->codepoint = codepoint;
 
             if (glyph == 0)
                missing_glyph = j;

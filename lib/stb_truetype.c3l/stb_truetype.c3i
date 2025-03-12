@@ -56,6 +56,7 @@ struct PackedChar
    ushort x0; ushort y0; ushort x1; ushort y1; // coordinates of bbox in bitmap
    float xoff; float yoff; float xadvance;
    float xoff2; float yoff2;
+   int codepoint;
 }
 
 // Initializes a packing context stored in the passed-in stbtt_Pack_context.
