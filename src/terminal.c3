@@ -34,26 +34,32 @@ struct Terminal
  - Input system
  - Font atlas
  - Grid of characters
+
+ @require window_width > 0 && window_height > 0
+ @require font_name.ptr != null && font_name.len > 0
+ @require window_name != null
+ @require font_size > 0
+ @require grid_size > 0
  *>
-fn void! Terminal.init(&self, int windowWidth = 0, int windowHeight = 0, String fontName, ZString windowName = "terminal", float fontSize = 20.0f, usz gridSize = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
+fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
     window::initSystem();
-    self.window.init(windowWidth, windowHeight, windowName)!;
+    self.window.init(window_width, window_height, window_name)!;
     defer catch { window::terminateSystem(); }
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debugMessageCallback, null);
     
-    self.fontAtlas.init(fontName, fontSize)!;
+    self.fontAtlas.init(font_name, font_size)!;
     defer catch { self.fontAtlas.free(); }
 
-    self.grid = { mem::new_array(font_atlas::GridCharFg, gridSize),
-                  mem::new_array(font_atlas::GridCharBg, gridSize),
-                  (uint)((float)windowWidth  / self.fontAtlas.charMaxX),
-                  (uint)((float)windowHeight / self.fontAtlas.charMaxY),
-                  fontSize };
+    self.grid = { mem::new_array(font_atlas::GridCharFg, grid_size),
+                  mem::new_array(font_atlas::GridCharBg, grid_size),
+                  (uint)((float)window_width  / self.fontAtlas.charMaxX),
+                  (uint)((float)window_height / self.fontAtlas.charMaxY),
+                  font_size };
     defer catch { self.grid.free(); }
-    for (usz i = 0; i < gridSize; i++)
+    for (usz i = 0; i < grid_size; i++)
     {
         self.grid.fg[i] = { ' ', fg };
         self.grid.bg[i].color = self.bg;
@@ -132,7 +138,7 @@ fn void debugMessageCallback(GLenum source,
                              GLenum severity,
                              usz length,
                              ZString message,
-                             void* userParam) @private
+                             void* user_param) @private
 {
     io::eprintfn("GL CALLBACK: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
 }

@@ -48,7 +48,7 @@ const float[<3>][] COLORS = {
 terminal::Terminal terminal;
 fn int main(String[] args)
 {
-    terminal.init(900, 600, "test.ttf", windowName: "m0tty", fontSize: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;
+    terminal.init(900, 600, "test.ttf", window_name: "m0tty", font_size: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;
     defer terminal.free();
 
     input::Map map;
@@ -80,7 +80,7 @@ fn int main(String[] args)
         terminal.render()!!;
     }
 
-	return 0;
+    return 0;
 }
 
 fn void key_press_callback(uint codepoint)

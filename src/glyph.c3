@@ -34,18 +34,18 @@ fault FontAtlasError
     CHAR_NOT_FOUND,
 }
 <*
- @require filename.ptr != null
- @require fontSize > 0
+ @require file_name.ptr != null
+ @require font_size > 0
  *>
-fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepoint = 0, uint endCodepoint = uint.max)
+fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_codepoint = 0, uint end_codepoint = uint.max)
 {
-    self.startCodepoint = startCodepoint; self.endCodepoint = endCodepoint;
+    self.startCodepoint = start_codepoint; self.endCodepoint = end_codepoint;
     self.width = 1024; self.height = 1024;
-    self.fontSize = fontSize;
+    self.fontSize = font_size;
     self.renderer.init()!;
 
-    self.fontFile = mem::new_array(char, io::file::get_size(filename))!!;
-    readFile(filename, self.fontFile)!;
+    self.fontFile = mem::new_array(char, io::file::get_size(file_name))!!;
+    readFile(file_name, self.fontFile)!;
 
     stb_truetype::initFont(&self.fontInfo, self.fontFile.ptr, 0);
 
@@ -55,7 +55,7 @@ fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepo
     stb_truetype::PackContext ctx;
 
     if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
-    stb_truetype::packFontRange(&ctx, self.fontFile, 0, fontSize, self.startCodepoint, self.fontInfo.numGlyphs, self.chars.ptr);
+    stb_truetype::packFontRange(&ctx, self.fontFile, 0, font_size, self.startCodepoint, self.fontInfo.numGlyphs, self.chars.ptr);
     stb_truetype::packEnd(&ctx);
 
     // flip image
@@ -81,7 +81,7 @@ fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepo
     }
 
     self.charMaxX = self.getChar('#')!!.xadvance;
-    self.charMaxY = fontSize;
+    self.charMaxY = self.fontSize;
 
     uint texture;
     gl::genTextures(1, &texture);
@@ -137,25 +137,25 @@ struct GridCharFg
     float[<3>] color;
 }
 <*
- @require gridW * gridH < grid.len
- @require fontSize > 0
+ @require grid_w * grid_h < grid.len
+ @require font_size > 0
  *>
-fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height, int gridW, int gridH, float fontSize)
+fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
 {
-    int uniformIdx = 0;
-    for (int xIdx = 0; xIdx < gridW; xIdx++)
+    int uniform_idx = 0;
+    for (int x_idx = 0; x_idx < grid_w; x_idx++)
     {
-        for (int yIdx = 0; yIdx < gridH; yIdx++)
+        for (int y_idx = 0; y_idx < grid_h; y_idx++)
         {
-            int idx = xIdx + gridW * yIdx;
+            int idx = x_idx + grid_w * y_idx;
             GridCharFg c = grid[idx];
 
-            float x = (float)(int)(xIdx * width / gridW);
-            float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
+            float x = (float)(int)(x_idx * width / grid_w);
+            float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
             stb_truetype::PackedChar* pChar = self.getChar(c.codepoint)!;
 
-            float s = fontSize / self.fontSize;
+            float s = font_size / self.fontSize;
 
             float w = (float)(pChar.x1 - pChar.x0) * s;
             float h = (float)(pChar.y1 - pChar.y0) * s;
@@ -176,71 +176,71 @@ fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height,
             float texSizeX = (float)(pChar.x1 - pChar.x0) / self.width;
             float texSizeY = (float)(pChar.y1 - pChar.y0) / self.height;
 
-            if (uniformIdx >= renderer::ARRAY_MAX)
+            if (uniform_idx >= renderer::ARRAY_MAX)
             {
-                uniformIdx = 0;
+                uniform_idx = 0;
                 self.renderer.renderFg();
             }
 
-            self.renderer.instanceData[uniformIdx].quadPos  = { x, y };
-            self.renderer.instanceData[uniformIdx].quadSize = { w, h };
-            self.renderer.instanceData[uniformIdx].texPos   = { texPosX, texPosY };
-            self.renderer.instanceData[uniformIdx].texSize  = { texSizeX, texSizeY };
-            self.renderer.instanceData[uniformIdx].color    = c.color;
+            self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
+            self.renderer.instanceData[uniform_idx].quadSize = { w, h };
+            self.renderer.instanceData[uniform_idx].texPos   = { texPosX, texPosY };
+            self.renderer.instanceData[uniform_idx].texSize  = { texSizeX, texSizeY };
+            self.renderer.instanceData[uniform_idx].color    = c.color;
 
-            uniformIdx++;
+            uniform_idx++;
         }
     }
-    self.renderer.renderFg(uniformIdx);
+    self.renderer.renderFg(uniform_idx);
 }
 struct GridCharBg
 {
     inline float[<3>] color;
 }
 <*
- @require gridW * gridH < grid.len
- @require fontSize > 0
+ @require grid_w * grid_h < grid.len
+ @require font_size > 0
  *>
-fn void! FontAtlas.renderGridBg(&self, GridCharBg[] grid, int width, int height, int gridW, int gridH, float fontSize)
+fn void! FontAtlas.renderGridBg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
 {
-    int uniformIdx = 0;
+    int uniform_idx = 0;
     int gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
-    for (int xIdx = 0; xIdx < gridW; xIdx++)
+    for (int x_idx = 0; x_idx < grid_w; x_idx++)
     {
-        for (int yIdx = 0; yIdx < gridH; yIdx++)
+        for (int y_idx = 0; y_idx < grid_h; y_idx++)
         {
-            int idx = xIdx + gridW * yIdx;
+            int idx = x_idx + grid_w * y_idx;
             GridCharBg c = grid[idx];
 
-            float x = (float)(int)(xIdx * width / gridW);
-            float y = (float)(int)((gridH - yIdx - 1) * height / gridH);
+            float x = (float)(int)(x_idx * width / grid_w);
+            float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
-            float s = fontSize / self.fontSize;
+            float s = font_size / self.fontSize;
 
-            float w = (float)(int)(width / gridW) * s;
-            float h = (float)(int)(height / gridH) * s;
+            float w = (float)(int)(width / grid_w) * s;
+            float h = (float)(int)(height / grid_h) * s;
 
             x = x / width  * 2 - 1;
             y = y / height * 2 - 1;
             w = w / width  * 2;
             h = h / height * 2;
 
-            if (uniformIdx >= renderer::ARRAY_MAX)
+            if (uniform_idx >= renderer::ARRAY_MAX)
             {
-                uniformIdx = 0;
+                uniform_idx = 0;
                 self.renderer.renderFg();
             }
 
-            self.renderer.instanceData[uniformIdx].quadPos  = { x, y };
-            self.renderer.instanceData[uniformIdx].quadSize = { w, h };
-            self.renderer.instanceData[uniformIdx].texPos   = { 0, 0 };
-            self.renderer.instanceData[uniformIdx].texSize  = { 0, 0 };
-            self.renderer.instanceData[uniformIdx].color    = c.color;
+            self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
+            self.renderer.instanceData[uniform_idx].quadSize = { w, h };
+            self.renderer.instanceData[uniform_idx].texPos   = { 0, 0 };
+            self.renderer.instanceData[uniform_idx].texSize  = { 0, 0 };
+            self.renderer.instanceData[uniform_idx].color    = c.color;
 
-            uniformIdx++;
+            uniform_idx++;
         }
     }
-    self.renderer.renderBg(uniformIdx);
+    self.renderer.renderBg(uniform_idx);
 }
 fn void FontAtlas.free(&self)
 {
@@ -252,12 +252,12 @@ fn void FontAtlas.free(&self)
 }
 
 <*
- @require filename.ptr != null
+ @require file_name.ptr != null
  @require buffer.ptr != null
  *>
-fn char[]! readFile(String filename, char[] buffer) @local
+fn char[]! readFile(String file_name, char[] buffer) @local
 {
-    File file = file::open(filename, "r")!;
+    File file = file::open(file_name, "r")!;
     defer (void)file.close();
     file.read(buffer)!;
     return buffer; 
@@ -357,7 +357,7 @@ fn void! Renderer.init(&self)
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
-    self.shader = loadShader(&vertexShaderSource, &fragmentShaderSource)!;
+    self.shader = loadShader(&vert_shader_source, &frag_shader_source)!;
     self.uniformUseTexture = gl::getUniformLocation(self.shader, "useTexture");
     gl::useProgram(self.shader);
 }
@@ -404,26 +404,26 @@ fn uint! loadShader(ZString* vert, ZString* frag) @private
     bool success;
     char[512] infoLog;
 
-    uint vertexShader = gl::createShader(gl::GL_VERTEX_SHADER);
-    gl::shaderSource(vertexShader, 1, vert, null);
-    gl::compileShader(vertexShader);
-    defer gl::deleteShader(vertexShader);
+    uint vert_shader = gl::createShader(gl::GL_VERTEX_SHADER);
+    gl::shaderSource(vert_shader, 1, vert, null);
+    gl::compileShader(vert_shader);
+    defer gl::deleteShader(vert_shader);
 
-    uint fragmentShader = gl::createShader(gl::GL_FRAGMENT_SHADER);
-    gl::shaderSource(fragmentShader, 1, frag, null);
-    gl::compileShader(fragmentShader);
-    defer gl::deleteShader(fragmentShader);
+    uint frag_shader = gl::createShader(gl::GL_FRAGMENT_SHADER);
+    gl::shaderSource(frag_shader, 1, frag, null);
+    gl::compileShader(frag_shader);
+    defer gl::deleteShader(frag_shader);
 
     uint shader = gl::createProgram();
-    gl::attachShader(shader, vertexShader);
-    gl::attachShader(shader, fragmentShader);
+    gl::attachShader(shader, vert_shader);
+    gl::attachShader(shader, frag_shader);
     gl::linkProgram(shader);
 
     return shader;
 }
 
 
-ZString vertexShaderSource @private = `
+ZString vert_shader_source @private = `
 #version 330 core
 
 layout (location = 0) in vec2 vertPos;
@@ -454,7 +454,7 @@ void main() {
     vs_out.color   = color;
 }
 `;
-ZString fragmentShaderSource @private = `
+ZString frag_shader_source @private = `
 #version 330 core
 
 in VS_OUT {

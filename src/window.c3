@@ -51,15 +51,15 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     glfw::windowHint(glfw::CONTEXT_VERSION_MINOR, 6);
     glfw::windowHint(glfw::OPENGL_PROFILE, glfw::OPENGL_CORE_PROFILE);
     glfw::windowHint(glfw::OPENGL_FORWARD_COMPAT, 1);
-    glfw::Window* glfwWin = glfw::createWindow(width, height, name, monitor, null);
-    if (glfwWin == null)
+    glfw::Window* glfw_win = glfw::createWindow(width, height, name, monitor, null);
+    if (glfw_win == null)
     {
         io::eprintf("could not initialize glfw window");
         glfw::terminate();
         return WindowError.WINDOW_FAILED_INIT?;
     }
-    glfw::setWindowSizeCallback(glfwWin, &windowSizeCallback);
-    glfw::makeContextCurrent(glfwWin);
+    glfw::setWindowSizeCallback(glfw_win, &windowSizeCallback);
+    glfw::makeContextCurrent(glfw_win);
     glfw::swapInterval(0);
     glfw::windowHint(glfw::RESIZABLE, 1);
     glfw::windowHint(glfw::SAMPLES, 2);
@@ -67,9 +67,9 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     gl::enable(gl::GL_MULTISAMPLE);
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
-    glfw::setInputMode(glfwWin, glfw::LOCK_KEY_MODS, glfw::TRUE);
+    glfw::setInputMode(glfw_win, glfw::LOCK_KEY_MODS, glfw::TRUE);
 
-    self.glfwWin = glfwWin;
+    self.glfwWin = glfw_win;
     self.width = width;
     self.height = height;
 
@@ -110,11 +110,11 @@ fn void Window.refresh(&self)
     gl::viewport(0, 0, self.width, self.height);
 }
 
-fn void windowSizeCallback(glfw::Window* glfwWin, int width, int height) @private
+fn void windowSizeCallback(glfw::Window* glfw_win, int width, int height) @private
 {
     foreach (window : windows)
     {
-        if (window.glfwWin == glfwWin)
+        if (window.glfwWin == glfw_win)
         {
             window.width = width;
             window.height = height;
