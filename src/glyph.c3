@@ -20,6 +20,8 @@ struct FontAtlas
 
     uint startCodepoint; uint endCodepoint;
     stb_truetype::PackedChar[] chars;
+    stb_truetype::FontInfo fontInfo;
+    char[] fontFile;
     char[] pixels;
     uint textureId;
     float charMaxX; float charMaxY;
@@ -42,20 +44,18 @@ fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepo
     self.fontSize = fontSize;
     self.renderer.init()!;
 
-    char[] fontFileData = mem::new_array(char, io::file::get_size(filename))!!;
-    defer mem::free(fontFileData);
-    readFile(filename, fontFileData)!;
+    self.fontFile = mem::new_array(char, io::file::get_size(filename))!!;
+    readFile(filename, self.fontFile)!;
 
-    stb_truetype::FontInfo fontInfo;
-    stb_truetype::initFont(&fontInfo, fontFileData.ptr, 0);
+    stb_truetype::initFont(&self.fontInfo, self.fontFile.ptr, 0);
 
-    self.chars = mem::new_array(stb_truetype::PackedChar, fontInfo.numGlyphs);
+    self.chars = mem::new_array(stb_truetype::PackedChar, self.fontInfo.numGlyphs);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
 
     stb_truetype::PackContext ctx;
 
     if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
-    stb_truetype::packFontRange(&ctx, fontFileData, 0, fontSize, self.startCodepoint, fontInfo.numGlyphs, self.chars.ptr);
+    stb_truetype::packFontRange(&ctx, self.fontFile, 0, fontSize, self.startCodepoint, self.fontInfo.numGlyphs, self.chars.ptr);
     stb_truetype::packEnd(&ctx);
 
     // flip image
@@ -101,15 +101,15 @@ fn void! FontAtlas.init(&self, String filename, float fontSize, uint startCodepo
  *>
 fn stb_truetype::PackedChar*! FontAtlas.getChar(&self, uint codepoint)
 {
-    long l = self.startCodepoint; long r = self.endCodepoint;
+    long l = 0; long r = self.chars.len - 1;
     long m;
 
     while (l >= 0 && l <= r)
     {
         m = (l + r) / 2;
-        if (m == codepoint)
+        if (self.chars[m].codepoint == codepoint)
         {
-            return &self.chars[m - self.startCodepoint];
+            return &self.chars[m];
         }
         else if (m < codepoint)
         {
@@ -244,6 +244,7 @@ fn void! FontAtlas.renderGridBg(&self, GridCharBg[] grid, int width, int height,
 }
 fn void FontAtlas.free(&self)
 {
+    mem::free(self.fontFile);
     mem::free(self.chars);
     mem::free(self.pixels);
     gl::deleteTextures(1, &self.textureId);
