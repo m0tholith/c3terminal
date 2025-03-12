@@ -59,7 +59,7 @@ fn int main(String[] args)
             fn () => (void)(terminal.window.shouldClose = true)
         },
         {
-            { glfw::KEY_V, glfw::MOD_CONTROL, glfw::PRESS },
+            { glfw::KEY_V, glfw::MOD_CONTROL, glfw::PRESS | glfw::REPEAT },
             "paste",
             &paste_clipboard
         },
