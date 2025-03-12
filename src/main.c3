@@ -73,9 +73,9 @@ fn int main(String[] args)
 
     while (!terminal.window.shouldClose)
     {
-        terminal.preRender();
+        terminal.pre_render();
 
-        terminal.assignChar('_');
+        terminal.assign_char('_');
         
         terminal.render()!!;
     }
@@ -89,22 +89,22 @@ fn void key_press_callback(uint codepoint)
     switch (codepoint)
     {
         case '\n':
-            terminal.assignChar(' ');
+            terminal.assign_char(' ');
             terminal.cursor.x = 0;
             terminal.cursor.y++;
             return;
         case '\t':
-            terminal.assignChar(' ');
+            terminal.assign_char(' ');
             terminal.cursor.x += 4;
             return;
         case '\b':
-            terminal.assignChar(' ');
+            terminal.assign_char(' ');
             if (terminal.cursor.x > 0) terminal.cursor.x--;
             return;
         case '\e':
             return;
     }
-    terminal.assignChar(codepoint);
+    terminal.assign_char(codepoint);
     terminal.cursor.x++;
 }
 fn void paste_clipboard()

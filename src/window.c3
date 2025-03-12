@@ -22,13 +22,13 @@ struct Window
 }
 List{Window*} windows @local;
 
-fn void initSystem()
+fn void init_system()
 {
     glfw::initHint(0x00050003, 0x00060004);
     glfw::init();
     windows.init(mem);
 }
-fn void terminateSystem()
+fn void terminate_system()
 {
     glfw::terminate();
     foreach (window : windows)
@@ -58,7 +58,7 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
         glfw::terminate();
         return WindowError.WINDOW_FAILED_INIT?;
     }
-    glfw::setWindowSizeCallback(glfw_win, &windowSizeCallback);
+    glfw::setWindowSizeCallback(glfw_win, &window_size_callback);
     glfw::makeContextCurrent(glfw_win);
     glfw::swapInterval(0);
     glfw::windowHint(glfw::RESIZABLE, 1);
@@ -83,7 +83,7 @@ fn void Window.free(&self) @local
     glfw::destroyWindow(self.glfwWin);
 }
 
-fn void Window.clearColor(&self, float red, float green, float blue)
+fn void Window.clear_color(&self, float red, float green, float blue)
 {
     gl::clearColor(red, green, blue, 1.0f);
 }
@@ -110,7 +110,7 @@ fn void Window.refresh(&self)
     gl::viewport(0, 0, self.width, self.height);
 }
 
-fn void windowSizeCallback(glfw::Window* glfw_win, int width, int height) @private
+fn void window_size_callback(glfw::Window* glfw_win, int width, int height) @private
 {
     foreach (window : windows)
     {

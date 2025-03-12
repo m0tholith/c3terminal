@@ -45,7 +45,7 @@ fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_cod
     self.renderer.init()!;
 
     self.fontFile = mem::new_array(char, io::file::get_size(file_name))!!;
-    readFile(file_name, self.fontFile)!;
+    read_file(file_name, self.fontFile)!;
 
     stb_truetype::initFont(&self.fontInfo, self.fontFile.ptr, 0);
 
@@ -80,7 +80,7 @@ fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_cod
         @swap(self.chars[i].y0, self.chars[i].y1);
     }
 
-    self.charMaxX = self.getChar('#')!!.xadvance;
+    self.charMaxX = self.get_char('#')!!.xadvance;
     self.charMaxY = self.fontSize;
 
     uint texture;
@@ -94,12 +94,12 @@ fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_cod
     // load and generate the texture
     gl::texImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_R8, self.width, self.height, 0, gl::GL_RED, gl::GL_UNSIGNED_BYTE, self.pixels.ptr);
     self.textureId = texture;
-    self.bindTexture();
+    self.bind_texture();
 }
 <*
  @require self.chars.ptr != null
  *>
-fn stb_truetype::PackedChar*! FontAtlas.getChar(&self, uint codepoint)
+fn stb_truetype::PackedChar*! FontAtlas.get_char(&self, uint codepoint)
 {
     long l = 0; long r = self.chars.len - 1;
     long m;
@@ -127,7 +127,7 @@ fn stb_truetype::PackedChar*! FontAtlas.getChar(&self, uint codepoint)
 <*
  @require gl::isTexture(self.textureId)
  *>
-fn void FontAtlas.bindTexture(&self)
+fn void FontAtlas.bind_texture(&self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
 }
@@ -140,7 +140,7 @@ struct GridCharFg
  @require grid_w * grid_h < grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
+fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
 {
     int uniform_idx = 0;
     for (int x_idx = 0; x_idx < grid_w; x_idx++)
@@ -153,7 +153,7 @@ fn void! FontAtlas.renderGridFg(&self, GridCharFg[] grid, int width, int height,
             float x = (float)(int)(x_idx * width / grid_w);
             float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
-            stb_truetype::PackedChar* pChar = self.getChar(c.codepoint)!;
+            stb_truetype::PackedChar* pChar = self.get_char(c.codepoint)!;
 
             float s = font_size / self.fontSize;
 
@@ -201,7 +201,7 @@ struct GridCharBg
  @require grid_w * grid_h < grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.renderGridBg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
+fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size)
 {
     int uniform_idx = 0;
     int gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
@@ -255,7 +255,7 @@ fn void FontAtlas.free(&self)
  @require file_name.ptr != null
  @require buffer.ptr != null
  *>
-fn char[]! readFile(String file_name, char[] buffer) @local
+fn char[]! read_file(String file_name, char[] buffer) @local
 {
     File file = file::open(file_name, "r")!;
     defer (void)file.close();

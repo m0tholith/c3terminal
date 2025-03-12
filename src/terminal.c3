@@ -43,12 +43,12 @@ struct Terminal
  *>
 fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
-    window::initSystem();
+    window::init_system();
     self.window.init(window_width, window_height, window_name)!;
-    defer catch { window::terminateSystem(); }
+    defer catch { window::terminate_system(); }
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
-    gl::debugMessageCallback(&debugMessageCallback, null);
+    gl::debugMessageCallback(&debug_message_callback, null);
     
     self.fontAtlas.init(font_name, font_size)!;
     defer catch { self.fontAtlas.free(); }
@@ -73,7 +73,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
 
  @require self.grid.fg.ptr != null
  *>
-fn void Terminal.assignChar(&self, uint codepoint)
+fn void Terminal.assign_char(&self, uint codepoint)
 {
     self.grid.fg[self.cursor.x + self.grid.width * self.cursor.y].codepoint = codepoint;
 }
@@ -82,7 +82,7 @@ fn void Terminal.assignChar(&self, uint codepoint)
 
  @require self.grid.bg.ptr != null
  *>
-fn void Terminal.assignCharBg(&self, float[<3>] bg)
+fn void Terminal.assign_char_bg(&self, float[<3>] bg)
 {
     self.grid.bg[self.cursor.x + self.grid.width * self.cursor.y].color = bg;
 }
@@ -91,11 +91,11 @@ fn void Terminal.assignCharBg(&self, float[<3>] bg)
 
  @require self.grid.fg.ptr != null
  *>
-fn void Terminal.assignCharFg(&self, float[<3>] fg)
+fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 {
     self.grid.fg[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
 }
-fn void Terminal.preRender(&self)
+fn void Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
     {
@@ -114,10 +114,10 @@ fn void Terminal.preRender(&self)
 }
 fn void! Terminal.render(&self)
 {
-    self.fontAtlas.renderGridBg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
-    self.fontAtlas.renderGridFg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.render_grid_fg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
 
-    self.window.clearColor(self.bg.r, self.bg.g, self.bg.b);
+    self.window.clear_color(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
 }
 fn void Grid.free(&self) @local
@@ -129,10 +129,10 @@ fn void Terminal.free(&self)
 {
     self.grid.free();
     self.fontAtlas.free();
-    window::terminateSystem();
+    window::terminate_system();
 }
 
-fn void debugMessageCallback(GLenum source,
+fn void debug_message_callback(GLenum source,
                              GLenum type,
                              uint id,
                              GLenum severity,
