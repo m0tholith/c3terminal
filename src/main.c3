@@ -53,11 +53,16 @@ fn int main(String[] args)
 
     input::Map map;
     map.init({
-        (input::Button){
+        {
             { glfw::KEY_ESCAPE, glfw::MOD_ALT, glfw::PRESS },
             "quit",
             fn () => (void)(terminal.window.shouldClose = true)
-        }
+        },
+        {
+            { glfw::KEY_V, glfw::MOD_CONTROL, glfw::PRESS },
+            "paste",
+            &paste_clipboard
+        },
     });
 
     input_manager.init(&terminal.window);
@@ -101,4 +106,28 @@ fn void key_press_callback(uint codepoint)
     }
     terminal.assignChar(codepoint);
     terminal.cursor.x++;
+}
+fn void paste_clipboard()
+{
+    ZString clipboard = glfw::getClipboardString(null);
+    io::printfn("got string from clipboard: %s", clipboard);
+    if (clipboard == null) return;
+    uint[] clipboard_string = mem::temp_array(uint, clipboard.len());
+    if (catch excuse = conv::utf8to32(clipboard.str_view(), clipboard_string))
+    {
+        io::printfn("could not convert string to utf32: %s", excuse);
+        return;
+    }
+    usz clipboard_len = get_len(clipboard_string);
+    io::printfn("converted string to utf32: %s", clipboard_string);
+    for (int i = 0; i < clipboard_len; i++)
+    {
+        uint codepoint = clipboard_string[i];
+        foreach (callback : input_manager.keyPressCallbacks) callback(codepoint);
+    }
+}
+macro usz get_len(uint[] arr)
+{
+    for (usz result = 0; result < arr.len; result++) if (arr[result] == 0) return result;
+    return arr.len;
 }
