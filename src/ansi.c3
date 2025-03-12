@@ -5,6 +5,7 @@ import terminal;
 import std::core::mem;
 import std::collections::list;
 import std::collections::range;
+import std::collections::tuple;
 import std::ascii;
 import std::io;
 
@@ -59,6 +60,34 @@ fn void parse_ansi_func(Terminal* terminal, String ansi_func)
                 break;
             }
         }
+        io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args);
+        for (int i = 0; i < ansi_map.len; i++)
+        {
+            if (command == ansi_map[i].first)
+            {
+                ansi_map[i].second(terminal, args);
+                break;
+            }
+        }
     };
-    io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args);
+}
+
+def AnsiCallback = fn void(Terminal* terminal, List{int} args) @local;
+Tuple{char, AnsiCallback}[] ansi_map @local = {
+    { 'H', &change_cursor_pos },
+    { 'f', &change_cursor_pos },
+};
+<*
+ @require terminal != null
+ *>
+fn void change_cursor_pos(Terminal* terminal, List{int} args)
+{
+    if (args.len() == 0)
+    {
+        terminal.cursor = { 0, 0 };
+    }
+    else if (args.len() >= 2)
+    {
+        terminal.cursor = { args[0], args[1] };
+    }
 }
