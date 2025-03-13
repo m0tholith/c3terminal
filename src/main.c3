@@ -86,6 +86,12 @@ fn int main(String[] args)
 fn void key_press_callback(uint codepoint, int mods = 0)
 {
     io::printfn("codepoint: |'%c'| (mods %d)", codepoint, mods);
+    if (mods & glfw::MOD_CONTROL) switch (codepoint)
+    {
+        case 'G':
+            io::printfn("bell");
+            return;
+    }
     switch (codepoint)
     {
         case '\n':
