@@ -95,6 +95,18 @@ fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 {
     self.grid.fg[self.cursor.x + self.grid.width * self.cursor.y].color = fg;
 }
+fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
+{
+    self.cursor = position % { self.grid.width, self.grid.height };
+}
+fn void Terminal.move_cursor(&self, long[<2>] translation) @inline
+{
+    self.cursor = ((uint[<2>])((long[<2>])self.cursor + translation) % { self.grid.width, self.grid.height } + { self.grid.width, self.grid.height }) % { self.grid.width, self.grid.height };
+}
+macro Terminal.newline(&self, long row_translation = 1)
+{
+    self.set_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
+}
 fn void Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
