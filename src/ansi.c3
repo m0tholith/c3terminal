@@ -59,12 +59,13 @@ fn void parse_ansi_func(Terminal* terminal, String ansi_func)
                 break;
             }
         }
-        io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args);
+        int[] args_array = args.array_view();
+        io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args_array);
         for (int i = 0; i < ansi_map.len; i++)
         {
             if (command == ansi_map[i].first)
             {
-                ansi_map[i].second(terminal, args);
+                ansi_map[i].second(terminal, args_array);
                 break;
             }
         }
@@ -72,10 +73,9 @@ fn void parse_ansi_func(Terminal* terminal, String ansi_func)
 }
 
 module terminal::ansi @private;
-import std::collections::list;
 import std::collections::tuple;
 
-def AnsiCallback = fn void(Terminal* terminal, List{int} args);
+def AnsiCallback = fn void(Terminal* terminal, int[] args);
 Tuple{char, AnsiCallback}[] ansi_map = {
     { 'H', &set_cursor_pos },
     { 'f', &set_cursor_pos },
@@ -83,13 +83,13 @@ Tuple{char, AnsiCallback}[] ansi_map = {
 <*
  @require terminal != null
  *>
-fn void set_cursor_pos(Terminal* terminal, List{int} args)
+fn void set_cursor_pos(Terminal* terminal, int[] args)
 {
-    if (args.len() == 0)
+    if (args.len == 0)
     {
         terminal.cursor = { 0, 0 };
     }
-    else if (args.len() >= 2)
+    else if (args.len >= 2)
     {
         terminal.cursor = { args[0], args[1] };
     }
