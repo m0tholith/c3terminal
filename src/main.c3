@@ -91,6 +91,18 @@ fn void key_press_callback(uint codepoint, int mods = 0)
         case 'G':
             io::printfn("bell");
             return;
+        case 'H':
+            codepoint = '\b';
+        case 'I':
+            codepoint = '\t';
+        case 'J':
+            codepoint = '\n';
+        case 'K':
+            codepoint = '\v';
+        case 'L':
+            codepoint = '\f';
+        case 'M':
+            codepoint = '\r';
     }
     switch (codepoint)
     {
