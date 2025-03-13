@@ -59,6 +59,7 @@ fn void parse_ansi_func(Terminal* terminal, String ansi_func)
                 break;
             }
         }
+        if (command == 0) return;
         int[] args_array = args.array_view();
         io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args_array);
         for (int i = 0; i < ansi_map.len; i++)
@@ -77,20 +78,10 @@ import std::collections::tuple;
 
 def AnsiCallback = fn void(Terminal* terminal, int[] args);
 Tuple{char, AnsiCallback}[] ansi_map = {
-    { 'H', &set_cursor_pos },
-    { 'f', &set_cursor_pos },
+    { 'H', fn (Terminal* term, args) => term.set_cursor_pos(args.len == 0 ? { 0, 0 } : args) },
+    { 'f', fn (Terminal* term, args) => term.set_cursor_pos(args) },
 };
 <*
- @require terminal != null
+ @require position.len >= 2
  *>
-fn void set_cursor_pos(Terminal* terminal, int[] args)
-{
-    if (args.len == 0)
-    {
-        terminal.cursor = { 0, 0 };
-    }
-    else if (args.len >= 2)
-    {
-        terminal.cursor = { args[0], args[1] };
-    }
-}
+fn void Terminal.set_cursor_pos(&self, int[] position = { 0, 0 }) @inline => self.cursor = { position[0], position[1] };
