@@ -126,6 +126,9 @@ fn void key_press_callback(uint codepoint, int mods = 0)
             terminal.assign_char(' ');
             if (terminal.cursor.x > 0) terminal.cursor.x--;
             return;
+        case '\f':
+            terminal.clear();
+            return;
         case '\e':
             return;
     }

@@ -86,6 +86,14 @@ fn void Terminal.assign_char_bg(&self, float[<3>] bg)
 {
     self.grid.bg[self.cursor.x + self.grid.width * self.cursor.y].color = bg;
 }
+fn void Terminal.clear(&self)
+{
+    for (usz i = 0; i < self.grid.fg.len; i++)
+    {
+        self.grid.fg[i].codepoint = ' ';
+        self.grid.bg[i].color = self.bg;
+    }
+}
 <*
  Assigns foreground color to terminal's current cursor position
 
