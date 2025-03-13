@@ -83,9 +83,9 @@ fn int main(String[] args)
     return 0;
 }
 
-fn void key_press_callback(uint codepoint)
+fn void key_press_callback(uint codepoint, int mods = 0)
 {
-    io::printfn("codepoint: |'%c'|", codepoint);
+    io::printfn("codepoint: |'%c'| (mods %d)", codepoint, mods);
     switch (codepoint)
     {
         case '\n':

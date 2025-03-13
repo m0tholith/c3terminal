@@ -72,7 +72,7 @@ fn Button*! Map.find(&self, String name)
     return InputError.BUTTON_NAME_NOT_FOUND?;
 }
 
-def KeyPressCallback = fn void(uint codepoint);
+def KeyPressCallback = fn void(uint codepoint, int mods = 0);
 struct Manager
 {
     HashMap{String, Map} maps;
@@ -146,10 +146,30 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         }
     }
     if (action == glfw::RELEASE) return;
-    if (key == glfw::KEY_ESCAPE) foreach (callback : input_manager.keyPressCallbacks) callback('\e');
-    if (key == glfw::KEY_ENTER) foreach (callback : input_manager.keyPressCallbacks) callback('\n');
-    if (key == glfw::KEY_TAB) foreach (callback : input_manager.keyPressCallbacks) callback('\t');
-    if (key == glfw::KEY_BACKSPACE) foreach (callback : input_manager.keyPressCallbacks) callback('\b');
+    uint codepoint;
+    switch (key)
+    {
+        case glfw::KEY_ESCAPE:
+            codepoint = '\e';
+            foreach (callback : input_manager.keyPressCallbacks) callback('\e', mods);
+            return;
+        case glfw::KEY_ENTER:
+            codepoint = '\n';
+            foreach (callback : input_manager.keyPressCallbacks) callback('\n', mods);
+            return;
+        case glfw::KEY_TAB:
+            codepoint = '\t';
+            foreach (callback : input_manager.keyPressCallbacks) callback('\t', mods);
+            return;
+        case glfw::KEY_BACKSPACE:
+            codepoint = '\b';
+            foreach (callback : input_manager.keyPressCallbacks) callback('\b', mods);
+            return;
+    }
+    mods &= ~glfw::MOD_CAPS_LOCK;
+    if (mods == 0 || mods == glfw::MOD_SHIFT) return;
+
+    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
 }
 fn void char_callback(glfw::Window* window, uint codepoint) @private
 {
