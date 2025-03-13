@@ -155,7 +155,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         }
     }
     if (action == glfw::RELEASE) return;
-    uint codepoint;
+    uint codepoint = key;
     switch (key)
     {
         case glfw::KEY_ESCAPE:
