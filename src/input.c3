@@ -1,7 +1,8 @@
 module input;
 
 import std::core::mem;
-import std::collections;
+import std::collections::list;
+import std::collections::map;
 import std::io;
 
 import window;
@@ -128,11 +129,19 @@ fn void Manager.free(&self)
     self.maps.free();
     self.keyPressCallbacks.free();
 }
+
+module input @private;
+
+import glfw;
+
+import std::io;
+import std::collections::range;
+
 <*
  @param [&in] window
  @require input_manager.is_initialized()
  *>
-fn void key_callback(glfw::Window* window, int key, int scancode, int action, int mods) @private
+fn void key_callback(glfw::Window* window, int key, int scancode, int action, int mods)
 {
     if (try map = input_manager.maps[input_manager.currentMap])
     {
@@ -171,7 +180,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
 
     foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
 }
-fn void char_callback(glfw::Window* window, uint codepoint) @private
+fn void char_callback(glfw::Window* window, uint codepoint)
 {
     foreach (callback : input_manager.keyPressCallbacks) callback(codepoint);
 }
