@@ -78,10 +78,14 @@ import std::collections::tuple;
 
 def AnsiCallback = fn void(Terminal* terminal, int[] args);
 Tuple{char, AnsiCallback}[] ansi_map = {
-    { 'H', fn (Terminal* term, args) => term.set_cursor_pos(args.len == 0 ? { 0, 0 } : args) },
-    { 'f', fn (Terminal* term, args) => term.set_cursor_pos(args) },
+    { 'H', fn (Terminal* term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0], args[1] }) },
+    { 'f', fn (Terminal* term, args) => term.set_cursor({ args[0], args[1] })                            },
+    { 'G', fn (Terminal* term, args) => term.set_cursor({ args[0],  term.cursor.y })                     },
+
+    { 'A', fn (Terminal* term, args) => term.move_cursor({  0, (long)-args[0] }) },
+    { 'B', fn (Terminal* term, args) => term.move_cursor({  0, (long) args[0] }) },
+    { 'C', fn (Terminal* term, args) => term.move_cursor({ (long) args[0],  0 }) },
+    { 'D', fn (Terminal* term, args) => term.move_cursor({ (long)-args[0],  0 }) },
+    { 'E', fn (Terminal* term, args) => term.newline((long)-args[0])             },
+    { 'F', fn (Terminal* term, args) => term.newline((long) args[0])             },
 };
-<*
- @require position.len >= 2
- *>
-fn void Terminal.set_cursor_pos(&self, int[] position = { 0, 0 }) @inline => self.cursor = { position[0], position[1] };
