@@ -103,6 +103,10 @@ fn void key_press_callback(uint codepoint, int mods = 0)
             terminal.assign_char(' ');
             terminal.cursor.x += 4;
             return;
+        case '\v':
+            terminal.assign_char(' ');
+            terminal.cursor.y += 1;
+            return;
         case '\b':
             terminal.assign_char(' ');
             if (terminal.cursor.x > 0) terminal.cursor.x--;
