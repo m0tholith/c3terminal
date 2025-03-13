@@ -94,9 +94,12 @@ fn void key_press_callback(uint codepoint, int mods = 0)
     }
     switch (codepoint)
     {
-        case '\n':
+        case '\r':
             terminal.assign_char(' ');
             terminal.cursor.x = 0;
+            return;
+        case '\n':
+            terminal.assign_char(' ');
             terminal.cursor.y++;
             return;
         case '\t':

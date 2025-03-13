@@ -164,7 +164,11 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             return;
         case glfw::KEY_ENTER:
             codepoint = '\n';
-            foreach (callback : input_manager.keyPressCallbacks) callback('\n', mods);
+            foreach (callback : input_manager.keyPressCallbacks)
+            {
+                callback('\r', mods);
+                callback('\n', mods);
+            }
             return;
         case glfw::KEY_TAB:
             codepoint = '\t';
