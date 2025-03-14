@@ -8,11 +8,11 @@ import std::collections::range;
 import std::ascii;
 import std::io;
 
-fn void Terminal.interpret(&self, String buffer)
+fn void Terminal.interpret(&self, Char32[] buffer)
 {
     for (int i = 0; i < buffer.len; i++)
     {
-        char c = buffer[i];
+        uint c = buffer[i];
         switch (c)
         {
             case '\e':
@@ -73,11 +73,11 @@ fn void Terminal.interpret(&self, String buffer)
     }
 }
 
-macro int parse_esc(Terminal* terminal, String ansi_func) => parse_ansi(terminal, ansi_func, esc_map);
-macro int parse_csi(Terminal* terminal, String ansi_func) => parse_ansi(terminal, ansi_func, csi_map);
-macro int parse_dcs(Terminal* terminal, String ansi_func) => parse_ansi(terminal, ansi_func, dcs_map);
-macro int parse_osc(Terminal* terminal, String ansi_func) => parse_ansi(terminal, ansi_func, osc_map);
-fn int parse_ansi(Terminal* terminal, String ansi_func, AnsiMap map)
+macro int parse_esc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, esc_map);
+macro int parse_csi(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, csi_map);
+macro int parse_dcs(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, dcs_map);
+macro int parse_osc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, osc_map);
+fn int parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
 {
     List{int} args;
     char command;
@@ -91,7 +91,7 @@ fn int parse_ansi(Terminal* terminal, String ansi_func, AnsiMap map)
         int new_idx;
         for (new_idx = 0; new_idx < ansi_func.len; new_idx++)
         {
-            char c = ansi_func[new_idx];
+            char c = (char)ansi_func[new_idx];
             if (ascii::is_digit(c))
             {
                 if (current_arg == -1)

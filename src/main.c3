@@ -101,7 +101,7 @@ fn int main(String[] args)
         }
         else
         {
-            terminal.interpret(pty_read);
+            if (try buffer = pty_read.to_utf32(allocator::temp())) terminal.interpret(buffer);
         }
         
         terminal.pre_render();
