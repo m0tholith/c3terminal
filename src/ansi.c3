@@ -64,13 +64,13 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
                     self.move_cursor({ 1, 0 });
                 }
             case '\n':
-                self.newline();
+                self.move_cursor({ 0, 1 });
             case '\v':
                 self.move_cursor({0, 1});
             case '\f':
                 self.clear();
             case '\r':
-                self.newline();
+                self.set_cursor({ 0, self.cursor.y });
             default:
                 self.assign_char(c);
                 self.move_cursor({ 1, 0 });
