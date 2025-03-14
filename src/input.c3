@@ -160,23 +160,16 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
     {
         case glfw::KEY_ESCAPE:
             codepoint = '\e';
-            foreach (callback : input_manager.keyPressCallbacks) callback('\e', mods);
-            return;
+            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
         case glfw::KEY_ENTER:
             codepoint = '\n';
-            foreach (callback : input_manager.keyPressCallbacks)
-            {
-                callback('\n', mods);
-            }
-            return;
+            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
         case glfw::KEY_TAB:
             codepoint = '\t';
-            foreach (callback : input_manager.keyPressCallbacks) callback('\t', mods);
-            return;
+            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
         case glfw::KEY_BACKSPACE:
             codepoint = '\b';
-            foreach (callback : input_manager.keyPressCallbacks) callback('\b', mods);
-            return;
+            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
     }
     mods &= ~glfw::MOD_CAPS_LOCK;
     if (mods == 0 || mods == glfw::MOD_SHIFT) return;
