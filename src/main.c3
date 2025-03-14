@@ -79,7 +79,7 @@ fn int main(String[] args)
         return -1;
     }
 
-    while (!terminal.window.shouldClose)
+    while READ: (!terminal.window.shouldClose)
     {
         if (!pty.is_alive())
         {
@@ -90,8 +90,14 @@ fn int main(String[] args)
         String! pty_read = pty.read();
         if (catch excuse = pty_read)
         {
-            io::eprintfn("failed to read from pty: %s", excuse);
-            break;
+            switch (excuse)
+            {
+                case PtyError.PTY_NOT_READY:
+                    break;
+                default:
+                    io::eprintfn("failed to read from pty: %s", excuse);
+                    break READ;
+            }
         }
         else
         {

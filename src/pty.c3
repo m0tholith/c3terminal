@@ -19,6 +19,9 @@ fault PtyError
     READ_ERROR,
     PROCESS_DEAD,
     POLL_FAILED,
+    PTY_NOT_READY,
+    GET_FLAGS_ERROR,
+    SET_FLAGS_ERROR,
 }
 
 struct Pty
@@ -44,6 +47,20 @@ fn void! Pty.init(&self)
     else if (self.pid == 0)
     {
         if (catch excuse = child_process()) return excuse?;
+    }
+
+    int flags = fcntl(self.master, os::F_GETFL, 0);
+    if (flags == -1)
+    {
+        io::eprintfn("can't get master fd flags: %s", libc::errno());
+        return PtyError.GET_FLAGS_ERROR?;
+    }
+
+    int a = fcntl(self.master, os::F_SETFL, flags | os::O_NONBLOCK);
+    if (a == -1)
+    {
+        io::eprintfn("can't set master fd flags: %s", libc::errno());
+        return PtyError.SET_FLAGS_ERROR?;
     }
 }
 
@@ -77,10 +94,7 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
         io::eprintfn("read poll failed: %s", excuse);
         return PtyError.POLL_FAILED?;
     }
-    if (polls[0].revents != net::POLL_EVENT_READ)
-    {
-        return (String)allocator::alloc_array(allocator, char, 0);
-    }
+    if (polls[0].revents != net::POLL_EVENT_READ) return PtyError.PTY_NOT_READY?;
 
     const usz BUF_SIZE = 32400;
     String buf = (String)allocator::alloc_array(allocator, char, BUF_SIZE);
@@ -100,6 +114,19 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
 fn void! Pty.write(&self, String buffer)
 {
     if (!self.is_alive()) return PtyError.PROCESS_DEAD?;
+
+    net::Poll[] polls = {
+        {
+            .socket = (os::NativeSocket)self.master,
+            .events = net::SUBSCRIBE_WRITE,
+        }
+    };
+    if (catch excuse = net::poll(polls, 0))
+    {
+        io::eprintfn("write poll failed: %s", excuse);
+        return PtyError.POLL_FAILED?;
+    }
+    if (polls[0].revents != net::POLL_EVENT_WRITE) return PtyError.PTY_NOT_READY?;
     
     libc::write(self.master, buffer.ptr, buffer.len);
 }
@@ -127,3 +154,4 @@ extern fn CInt kill(libc::Pid_t pid, int sig);
 extern fn CInt execvp(ZString file, ZString* argv);
 extern fn libc::Pid_t waitpid(libc::Pid_t pid, int* wstatus, int options);
 extern fn libc::Pid_t getppid();
+extern fn int fcntl(CInt socket, int cmd, ...);
