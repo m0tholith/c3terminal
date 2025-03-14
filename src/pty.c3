@@ -109,7 +109,7 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
         io::printfn("read was 0");
     }
 
-    return buf;
+    return buf[:s];
 }
 fn void! Pty.write(&self, String buffer)
 {
