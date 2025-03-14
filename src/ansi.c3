@@ -140,6 +140,10 @@ import std::collections::tuple;
 def AnsiCallback = fn void(Terminal* terminal, int[] args);
 def AnsiMap = Tuple{char, AnsiCallback}[];
 AnsiMap esc_map = {
+    { 'M', fn (Terminal* term, args) => term.move_cursor({ 0, (long)args[0] }) },
+
+    { '7', fn (Terminal* term, args) => term.save_cursor_dec()    },
+    { '8', fn (Terminal* term, args) => term.restore_cursor_dec() },
 };
 AnsiMap csi_map = {
     { 'H', fn (Terminal* term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0], args[1] }) },
@@ -152,6 +156,9 @@ AnsiMap csi_map = {
     { 'D', fn (Terminal* term, args) => term.move_cursor({ (long)-args[0],  0 }) },
     { 'E', fn (Terminal* term, args) => term.newline((long)-args[0])             },
     { 'F', fn (Terminal* term, args) => term.newline((long) args[0])             },
+
+    { 's', fn (Terminal* term, args) => term.save_cursor_sco()    },
+    { 'u', fn (Terminal* term, args) => term.restore_cursor_sco() },
 };
 AnsiMap dcs_map = {
 };

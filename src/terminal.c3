@@ -25,6 +25,8 @@ struct Terminal
     Grid grid;
     float[<3>] bg;
     float[<3>] fg;
+    uint[<2>] sco;
+    uint[<2>] dec;
 }
 
 <*
@@ -111,6 +113,10 @@ fn void Terminal.move_cursor(&self, long[<2>] translation) @inline
 {
     self.cursor = ((uint[<2>])((long[<2>])self.cursor + translation) % { self.grid.width, self.grid.height } + { self.grid.width, self.grid.height }) % { self.grid.width, self.grid.height };
 }
+macro void Terminal.save_cursor_sco(&self) => self.sco = self.cursor;
+macro void Terminal.save_cursor_dec(&self) => self.dec = self.cursor;
+macro void Terminal.restore_cursor_sco(&self) => self.cursor = self.sco;
+macro void Terminal.restore_cursor_dec(&self) => self.cursor = self.dec;
 macro Terminal.newline(&self, long row_translation = 1)
 {
     self.set_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
