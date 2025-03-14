@@ -101,7 +101,10 @@ fn int main(String[] args)
         }
         else
         {
-            if (try buffer = pty_read.to_utf32(allocator::temp())) terminal.interpret(buffer);
+            if (try buffer = pty_read.to_utf32(allocator::temp())) if (catch interpret_excuse = terminal.interpret(buffer))
+            {
+                io::eprintfn("couldnt interpret buffer: %s", interpret_excuse);
+            }
         }
         
         terminal.pre_render();

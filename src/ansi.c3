@@ -8,7 +8,12 @@ import std::collections::range;
 import std::ascii;
 import std::io;
 
-fn void Terminal.interpret(&self, Char32[] buffer)
+fault AnsiError
+{
+    ANSI_FUNCTION_NOT_FOUND,
+}
+
+fn void! Terminal.interpret(&self, Char32[] buffer)
 {
     for (int i = 0; i < buffer.len; i++)
     {
@@ -20,32 +25,32 @@ fn void Terminal.interpret(&self, Char32[] buffer)
                 {
                     if (buffer[i + 1] == '[')
                     {
-                        i += parse_csi(self, buffer[i + 2..]);
+                        i += parse_csi(self, buffer[i + 2..])!;
                     }
                     else if (buffer[i + 1] == 'P')
                     {
-                        i += parse_dcs(self, buffer[i + 2..]);
+                        i += parse_dcs(self, buffer[i + 2..])!;
                     }
                     else if (buffer[i + 1] == ']')
                     {
-                        i += parse_osc(self, buffer[i + 2..]);
+                        i += parse_osc(self, buffer[i + 2..])!;
                     }
                     else
                     {
-                        i += parse_esc(self, buffer[i + 1..]);
+                        i += parse_esc(self, buffer[i + 1..])!;
                     }
                 }
                 else
                 {
-                    i += parse_esc(self, buffer[i + 1..]);
+                    i += parse_esc(self, buffer[i + 1..])!;
                 }
                 break;
             case '\x9B':
-                i += parse_csi(self, buffer[i + 1 ..]);
+                i += parse_csi(self, buffer[i + 1 ..])!;
             case '\x90':
-                i += parse_dcs(self, buffer[i + 1 ..]);
+                i += parse_dcs(self, buffer[i + 1 ..])!;
             case '\x9D':
-                i += parse_osc(self, buffer[i + 1 ..]);
+                i += parse_osc(self, buffer[i + 1 ..])!;
             case '\a':
                 // io::printn("bell");
                 break;
@@ -73,11 +78,18 @@ fn void Terminal.interpret(&self, Char32[] buffer)
     }
 }
 
-macro int parse_esc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, esc_map);
-macro int parse_csi(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, csi_map);
-macro int parse_dcs(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, dcs_map);
-macro int parse_osc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, osc_map);
-fn int parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
+module terminal::ansi @private;
+
+import std::collections::tuple;
+import std::collections::list;
+import std::ascii;
+import std::io;
+
+macro int! parse_esc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, esc_map);
+macro int! parse_csi(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, csi_map);
+macro int! parse_dcs(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, dcs_map);
+macro int! parse_osc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, osc_map);
+fn int! parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
 {
     List{int} args;
     char command;
@@ -122,23 +134,18 @@ fn int parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
         if (command == 0) return 0;
         int[] args_array = args.array_view();
         io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args_array);
-        for (int i = 0; i < map.len; i++)
-        {
-            if (command == map[i].first)
-            {
-                map[i].second(terminal, args_array);
-                break;
-            }
-        }
+        map.search(command)!(terminal, args_array);
         return new_idx;
     };
 }
 
-module terminal::ansi @private;
-import std::collections::tuple;
-
 def AnsiCallback = fn void(Terminal* terminal, int[] args);
 def AnsiMap = Tuple{char, AnsiCallback}[];
+fn AnsiCallback! AnsiMap.search(&self, char key)
+{
+    foreach (command : self) if (command.first == key) return command.second;
+    return AnsiError.ANSI_FUNCTION_NOT_FOUND?;
+}
 AnsiMap esc_map = {
     { 'M', fn (Terminal* term, args) => term.move_cursor({ 0, (long)args[0] }) },
 
