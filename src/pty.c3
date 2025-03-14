@@ -36,7 +36,6 @@ fn void! Pty.init(&self)
     termios.getAttr(libc::STDIN_FD);
     termios.c_cc[(int)termios::VMIN] = 0;
     termios.c_cc[(int)termios::VTIME] = 1;
-    termios.c_lflag &= ~termios::ECHO;
     termios.setAttr(libc::STDIN_FD, 0);
     self.pid = forkpty(&self.master, null, &termios, &&(Winsize){});
     if (self.pid == -1)
