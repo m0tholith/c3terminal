@@ -9,6 +9,7 @@ import input;
 import std::core::mem;
 import std::thread;
 import std::io;
+import std::math;
 
 struct Grid @local
 {
@@ -109,11 +110,12 @@ fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 }
 fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
 {
-    self.cursor = position % { self.grid.width, self.grid.height };
+    self.cursor = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
 }
 fn void Terminal.move_cursor(&self, long[<2>] translation) @inline
 {
-    self.cursor = ((uint[<2>])((long[<2>])self.cursor + translation) % { self.grid.width, self.grid.height } + { self.grid.width, self.grid.height }) % { self.grid.width, self.grid.height };
+    long[<2>] new_cursor = (long[<2>])self.cursor + translation;
+    self.cursor = { (uint)math::clamp(new_cursor.x, 0, self.grid.width - 1), (uint)math::clamp(new_cursor.y, 0, self.grid.height - 1) };
 }
 macro void Terminal.save_cursor_sco(&self) => self.sco = self.cursor;
 macro void Terminal.save_cursor_dec(&self) => self.dec = self.cursor;
