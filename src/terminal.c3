@@ -112,10 +112,29 @@ fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
 {
     self.cursor = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
 }
-fn void Terminal.move_cursor(&self, long[<2>] translation) @inline
+fn void Terminal.move_cursor_clamp(&self, long[<2>] translation) @inline
 {
     long[<2>] new_cursor = (long[<2>])self.cursor + translation;
     self.cursor = { (uint)math::clamp(new_cursor.x, 0, self.grid.width - 1), (uint)math::clamp(new_cursor.y, 0, self.grid.height - 1) };
+}
+fn void Terminal.move_cursor(&self, long[<2>] translation)
+{
+    long[<2>] new_cursor = (long[<2>])self.cursor + translation;
+    if (new_cursor.x < 0)
+    {
+        new_cursor.x = (long)self.grid.width - 1;
+        new_cursor.y = new_cursor.y <= 0 ? 0 : new_cursor.y - 1;
+    }
+    else if (new_cursor.x >= self.grid.width)
+    {
+        new_cursor.x = 0;
+        new_cursor.y = new_cursor.y >= self.grid.height ? (long)self.grid.height - 1 : new_cursor.y + 1;
+    }
+    if (new_cursor.y < 0)
+    {
+        new_cursor.y = 0;
+    }
+    self.cursor = (uint[<2>])new_cursor;
 }
 macro void Terminal.save_cursor_sco(&self) => self.sco = self.cursor;
 macro void Terminal.save_cursor_dec(&self) => self.dec = self.cursor;

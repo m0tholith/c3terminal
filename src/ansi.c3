@@ -10,71 +10,26 @@ import std::io;
 
 fault AnsiError
 {
-    ANSI_FUNCTION_NOT_FOUND,
+    PARSE_FAILED,
+    COMMAND_NOT_FOUND,
 }
 
 fn void! Terminal.interpret(&self, Char32[] buffer)
 {
-    for (int i = 0; i < buffer.len; i++)
+    io::print("parsing buffer: [");
+    foreach (c : buffer) io::printf("%02X, ", c);
+    io::printn("]");
+    for (int char_idx = 0; char_idx < buffer.len;)
     {
-        uint c = buffer[i];
-        switch (c)
+        if (try parse_c0(self, &char_idx, buffer)) continue;
+
+        // render-able
+        if (in_range(buffer[char_idx], 32, 126))
         {
-            case '\e':
-                if (i + 1 < buffer.len)
-                {
-                    if (buffer[i + 1] == '[')
-                    {
-                        i += parse_csi(self, buffer[i + 2..])!;
-                    }
-                    else if (buffer[i + 1] == 'P')
-                    {
-                        i += parse_dcs(self, buffer[i + 2..])!;
-                    }
-                    else if (buffer[i + 1] == ']')
-                    {
-                        i += parse_osc(self, buffer[i + 2..])!;
-                    }
-                    else
-                    {
-                        i += parse_esc(self, buffer[i + 1..])!;
-                    }
-                }
-                else
-                {
-                    i += parse_esc(self, buffer[i + 1..])!;
-                }
-                break;
-            case '\x9B':
-                i += parse_csi(self, buffer[i + 1 ..])!;
-            case '\x90':
-                i += parse_dcs(self, buffer[i + 1 ..])!;
-            case '\x9D':
-                i += parse_osc(self, buffer[i + 1 ..])!;
-            case '\a':
-                // io::printn("bell");
-                break;
-            case '\b':
-                self.move_cursor({ -1, 0 });
-                self.assign_char(' ');
-            case '\t':
-                for (int j = 0; j < 4; j++)
-                {
-                    self.assign_char(' ');
-                    self.move_cursor({ 1, 0 });
-                }
-            case '\n':
-                self.move_cursor({ 0, 1 });
-            case '\v':
-                self.move_cursor({0, 1});
-            case '\f':
-                self.clear();
-            case '\r':
-                self.set_cursor({ 0, self.cursor.y });
-            default:
-                self.assign_char(c);
-                self.move_cursor({ 1, 0 });
+            self.assign_char(buffer[char_idx]);
+            self.move_cursor({ 1, 0 });
         }
+        char_idx++;
     }
 }
 
@@ -82,111 +37,170 @@ module terminal::ansi @private;
 
 import std::collections::tuple;
 import std::collections::list;
-import std::ascii;
+import std::collections::range;
 import std::io;
+import std::math;
 
-macro int! parse_esc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, esc_map);
-macro int! parse_csi(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, csi_map);
-macro int! parse_dcs(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, dcs_map);
-macro int! parse_osc(Terminal* terminal, Char32[] ansi_func) => parse_ansi(terminal, ansi_func, osc_map);
-fn int! parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
+def AnsiCallback = fn void(Terminal* terminal, uint[] args);
+def AnsiMap = Tuple{uint, AnsiCallback}[];
+fn AnsiCallback! AnsiMap.find(&self, uint command)
 {
-    List{int} args;
-    char command;
+    foreach (mapping : self) if (mapping.first == command) return mapping.second;
+    return AnsiError.COMMAND_NOT_FOUND?;
+}
 
-    allocator::Allocator tmem = allocator::temp();
-    @pool(tmem)
+macro in_range(x, a, b) => (Range{$typeof(x)}){ a, b }.contains(x);
+fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
+{
+    io::printfn("c0 buflen %d, char_idx %d", buffer.len, *char_idx);
+    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
+    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+
+    io::printfn("parsing c0 0x%02X", buffer[*char_idx]);
+
+    switch (buffer[*char_idx])
     {
-        args.init(tmem);
-
-        int current_arg = -1;
-        int new_idx;
-        for (new_idx = 0; new_idx < ansi_func.len; new_idx++)
-        {
-            char c = (char)ansi_func[new_idx];
-            if (ascii::is_digit(c))
-            {
-                if (current_arg == -1)
-                {
-                    current_arg = (int)args.len();
-                    args.push(0);
-                }
-                args[current_arg] = args[current_arg] * 10 + (int)(c - '0');
-            }
-            else if (ascii::is_space(c))
-            {
-                continue;
-            }
-            else if (c == ';')
-            {
-                current_arg = -1;
-            }
-            else if (ascii::is_alpha(c))
-            {
-                command = c;
-                break;
-            }
-            else
-            {
-                break;
-            }
-        }
-        new_idx++;
-        if (command == 0) return 0;
-        int[] args_array = args.array_view();
-        io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args_array);
-        map.search(command)!(terminal, args_array);
-        return new_idx + 1;
-    };
+        case 0x07: // bell
+            (*char_idx)++;
+            io::printn("bell");
+        case 0x08: // backspace
+            (*char_idx)++;
+            terminal.move_cursor({ -1, 0 });
+            terminal.assign_char(' ');
+        case 0x09: // horizontal tab
+            (*char_idx)++;
+            usz movement = (usz)math::ceil(++terminal.cursor.x / 8.0);
+            movement *= 8;
+            movement -= terminal.cursor.x;
+            terminal.move_cursor({ movement, 0 });
+        case 0x0A: // line feed
+            (*char_idx)++;
+            terminal.move_cursor({ 0, 1 });
+        case 0x0B: // vertical tab
+            (*char_idx)++;
+            terminal.move_cursor({ 0, 1 });
+        case 0x0C: // form feed
+            (*char_idx)++;
+            terminal.clear();
+        case 0x0D: // carriage return
+            (*char_idx)++;
+            terminal.cursor.x = 0;
+        case 0x1B: // escape
+            (*char_idx)++;
+            parse_fe(terminal, char_idx, buffer)!;
+        default:
+            return AnsiError.PARSE_FAILED?;
+    }
 }
-
-def AnsiCallback = fn void(Terminal* terminal, int[] args);
-def AnsiMap = Tuple{char, AnsiCallback}[];
-fn AnsiCallback! AnsiMap.search(&self, char key)
+fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    foreach (command : self) if (command.first == key) return command.second;
-    return AnsiError.ANSI_FUNCTION_NOT_FOUND?;
+    io::printfn("fe buflen %d, char_idx %d", buffer.len, *char_idx);
+    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
+    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+
+    io::printfn("parsing fe 0x%02X", buffer[*char_idx]);
+
+    switch (buffer[*char_idx])
+    {
+        case 'P':
+            (*char_idx)++;
+            parse_dcs(terminal, char_idx, buffer)!;
+        case '[':
+            (*char_idx)++;
+            parse_csi(terminal, char_idx, buffer)!;
+        case ']':
+            (*char_idx)++;
+            parse_osc(terminal, char_idx, buffer)!;
+        default:
+            return AnsiError.PARSE_FAILED?;
+    }
 }
-AnsiMap esc_map = {
-    { 'M', fn (Terminal* term, args) => term.move_cursor({ 0, (long)args[0] }) },
+fn void! parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
+{
+    io::printfn("dcs buflen %d, char_idx %d", buffer.len, *char_idx);
+    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
+    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+}
+fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
+{
+    io::printfn("csi buflen %d, char_idx %d", buffer.len, *char_idx);
+    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
+    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
 
-    { '7', fn (Terminal* term, args) => term.save_cursor_dec()    },
-    { '8', fn (Terminal* term, args) => term.restore_cursor_dec() },
-};
+    List{uint} parameters;
+    parameters.init(allocator::temp());
+    Range{uint} param_range_normal  = { '0', '9' }; // numbers
+    Range{uint} param_range_sep     = { ';', ';' }; // separator
+    Range{uint} param_range_private = { '<', '?' }; // private function parameters
+
+    uint command;
+    Range{uint} command_range = { 0x40, 0x7E };
+
+    int current_param = 0;
+    for (; *char_idx < buffer.len; (*char_idx)++)
+    {
+        uint c = buffer[*char_idx];
+
+        while (current_param >= parameters.len()) parameters.push(0);
+        if (param_range_normal.contains(c))
+        {
+            parameters[current_param] = parameters[current_param] * 10 + (c - '0');
+        }
+        else if (param_range_sep.contains(c))
+        {
+            current_param++;
+        }
+        else if (param_range_private.contains(c))
+        {
+            parameters[current_param] = c;
+        }
+        else if (command_range.contains(c))
+        {
+            command = c;
+            break;
+        }
+    }
+    (void)parameters.pop();
+    (*char_idx)++;
+
+    io::printfn("parsing csi command: %c, args: %s", command, parameters.array_view());
+
+    csi_map.find(command)(terminal, parameters.array_view())!;
+}
+fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
+{
+    io::printfn("osc buflen %d, char_idx %d", buffer.len, *char_idx);
+    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
+    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+}
+
 AnsiMap csi_map = {
-    { 'H', fn (Terminal* term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0], args[1] }) },
-    { 'f', fn (Terminal* term, args) => term.set_cursor({ args[0], args[1] })                            },
-    { 'G', fn (Terminal* term, args) => term.set_cursor({ args[0],  term.cursor.y })                     },
+    { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 : -(long)args[0] }) },
+    { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 :  (long)args[0] }) },
+    { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 : -(long)args[0], 0 }) },
+    { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 :  (long)args[0], 0 }) },
 
-    { 'A', fn (Terminal* term, args) => term.move_cursor({  0, (long)-args[0] }) },
-    { 'B', fn (Terminal* term, args) => term.move_cursor({  0, (long) args[0] }) },
-    { 'C', fn (Terminal* term, args) => term.move_cursor({ (long) args[0],  0 }) },
-    { 'D', fn (Terminal* term, args) => term.move_cursor({ (long)-args[0],  0 }) },
-    { 'E', fn (Terminal* term, args) => term.newline((long)-args[0])             },
-    { 'F', fn (Terminal* term, args) => term.newline((long) args[0])             },
+    { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0])                       },
+    { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0])                       },
 
-    { 's', fn (Terminal* term, args) => term.save_cursor_sco()    },
-    { 'u', fn (Terminal* term, args) => term.restore_cursor_sco() },
+    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })   },
 
-    { 'J', &j_erase },
-    { 'K', &k_erase },
+    { 'H', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0], args[1] })  },
+
+    { 'J', fn (term, args) => j_erase(term, args)                                               },
+    { 'K', fn (term, args) => k_erase(term, args)                                               },
 };
-AnsiMap dcs_map = {
-};
-AnsiMap osc_map = {
-};
-
-fn void j_erase(Terminal* term, int[] args)
+fn void j_erase(Terminal* term, uint[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor) + 1);
+        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor) + 1);
+            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
         case 1:
             term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.cursor) + 1));
         case 2:
@@ -195,22 +209,22 @@ fn void j_erase(Terminal* term, int[] args)
             break;
     }
 }
-fn void k_erase(Terminal* term, int[] args)
-{
-    if (args.len == 0)
-    {
-        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
-        return;
-    }
-    switch (args[0])
-    {
-        case 0:
-            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
-        case 1:
-            term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
-        case 2:
-            term.erase({ 0, term.cursor.y }, term.grid.width);
-        case 3:
-            break;
-    }
-}
+fn void k_erase(Terminal* term, int[] args)                                       
+{                                                                                 
+    if (args.len == 0)                                                            
+    {                                                                             
+        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));      
+        return;                                                                   
+    }                                                                             
+    switch (args[0])                                                              
+    {                                                                             
+        case 0:                                                                   
+            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));  
+        case 1:                                                                   
+            term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));           
+        case 2:                                                                   
+            term.erase({ 0, term.cursor.y }, term.grid.width);                    
+        case 3:                                                                   
+            break;                                                                
+    }                                                                             
+}                                                                                 
