@@ -131,11 +131,12 @@ fn int! parse_ansi(Terminal* terminal, Char32[] ansi_func, AnsiMap map)
                 break;
             }
         }
+        new_idx++;
         if (command == 0) return 0;
         int[] args_array = args.array_view();
         io::printfn("Interpreted ANSI code, function: %c, args: %s", command, args_array);
         map.search(command)!(terminal, args_array);
-        return new_idx;
+        return new_idx + 1;
     };
 }
 
@@ -179,15 +180,15 @@ fn void j_erase(Terminal* term, int[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor) + 1);
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor) + 1);
         case 1:
-            term.erase({ 0, 0 }, term.get_grid_idx(term.cursor));
+            term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.cursor) + 1));
         case 2:
             term.clear();
         case 3:
@@ -198,17 +199,17 @@ fn void k_erase(Terminal* term, int[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
+        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
+            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
         case 1:
-            term.erase({ 0, term.cursor.y }, term.cursor.x);
+            term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
         case 2:
-            term.clear();
+            term.erase({ 0, term.cursor.y }, term.grid.width);
         case 3:
             break;
     }
