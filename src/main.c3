@@ -95,7 +95,7 @@ fn int main(String[] args)
         }
         else
         {
-            io::print(pty_read);
+            terminal.interpret(pty_read);
         }
         
         terminal.pre_render();
@@ -107,24 +107,23 @@ fn int main(String[] args)
 
 fn void key_press_callback(uint codepoint, int mods = 0)
 {
-    if (mods & glfw::MOD_CONTROL) switch (codepoint)        
-    {                                                       
-        case 'G':                                           
+    if (mods & glfw::MOD_CONTROL) switch (codepoint)
+    {
+        case 'G':
             codepoint = '\a';
-            return;                                         
-        case 'H':                                           
-            codepoint = '\b';                               
-        case 'I':                                           
-            codepoint = '\t';                               
-        case 'J':                                           
-            codepoint = '\n';                               
-        case 'K':                                           
-            codepoint = '\v';                               
-        case 'L':                                           
-            codepoint = '\f';                               
-        case 'M':                                           
-            codepoint = '\r';                               
-    }                                                       
+        case 'H':
+            codepoint = '\b';
+        case 'I':
+            codepoint = '\t';
+        case 'J':
+            codepoint = '\n';
+        case 'K':
+            codepoint = '\v';
+        case 'L':
+            codepoint = '\f';
+        case 'M':
+            codepoint = '\r';
+    }
 
     String! buffer = string::from_utf32(allocator::temp(), { codepoint });
     if (catch excuse = buffer) return;
