@@ -1,6 +1,7 @@
 module main;
 
 import terminal;
+import pty;
 import input;
 import window;
 import glfw;
@@ -46,6 +47,7 @@ const float[<3>][] COLORS = {
 };
 
 terminal::Terminal terminal;
+pty::Pty pty;
 fn int main(String[] args)
 {
     terminal.init(900, 600, "test.ttf", window_name: "m0tty", font_size: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;
@@ -71,12 +73,32 @@ fn int main(String[] args)
 
     input_manager.add_key_press_callback(&key_press_callback);
 
+    if (catch excuse = pty.init())
+    {
+        io::eprintfn("failed to initialize pty: %s", excuse);
+        return -1;
+    }
+
     while (!terminal.window.shouldClose)
     {
-        terminal.pre_render();
+        if (!pty.is_alive())
+        {
+            io::printn("pty is dead");
+            break;
+        }
 
-        terminal.assign_char('_');
+        String! pty_read = pty.read();
+        if (catch excuse = pty_read)
+        {
+            io::eprintfn("failed to read from pty: %s", excuse);
+            break;
+        }
+        else
+        {
+            io::print(pty_read);
+        }
         
+        terminal.pre_render();
         terminal.render()!!;
     }
 
@@ -85,55 +107,31 @@ fn int main(String[] args)
 
 fn void key_press_callback(uint codepoint, int mods = 0)
 {
-    io::printfn("codepoint: |'%c'| (mods %d)", codepoint, mods);
-    if (mods & glfw::MOD_CONTROL) switch (codepoint)
+    if (mods & glfw::MOD_CONTROL) switch (codepoint)        
+    {                                                       
+        case 'G':                                           
+            codepoint = '\a';
+            return;                                         
+        case 'H':                                           
+            codepoint = '\b';                               
+        case 'I':                                           
+            codepoint = '\t';                               
+        case 'J':                                           
+            codepoint = '\n';                               
+        case 'K':                                           
+            codepoint = '\v';                               
+        case 'L':                                           
+            codepoint = '\f';                               
+        case 'M':                                           
+            codepoint = '\r';                               
+    }                                                       
+
+    String! buffer = string::from_utf32(allocator::temp(), { codepoint });
+    if (catch excuse = buffer) return;
+    if (catch excuse = pty.write(buffer))
     {
-        case 'G':
-            io::printfn("bell");
-            return;
-        case 'H':
-            codepoint = '\b';
-        case 'I':
-            codepoint = '\t';
-        case 'J':
-            codepoint = '\n';
-        case 'K':
-            codepoint = '\v';
-        case 'L':
-            codepoint = '\f';
-        case 'M':
-            codepoint = '\r';
+        io::eprintfn("failed to write to pty: %s", excuse);
     }
-    switch (codepoint)
-    {
-        case '\r':
-            terminal.assign_char(' ');
-            terminal.cursor.x = 0;
-            return;
-        case '\n':
-            terminal.assign_char(' ');
-            terminal.cursor.y++;
-            return;
-        case '\t':
-            terminal.assign_char(' ');
-            terminal.cursor.x += 4;
-            return;
-        case '\v':
-            terminal.assign_char(' ');
-            terminal.cursor.y += 1;
-            return;
-        case '\b':
-            terminal.assign_char(' ');
-            if (terminal.cursor.x > 0) terminal.cursor.x--;
-            return;
-        case '\f':
-            terminal.clear();
-            return;
-        case '\e':
-            return;
-    }
-    terminal.assign_char(codepoint);
-    terminal.cursor.x++;
 }
 fn void paste_clipboard()
 {
