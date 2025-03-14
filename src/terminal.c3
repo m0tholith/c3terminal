@@ -88,14 +88,16 @@ fn void Terminal.assign_char_bg(&self, float[<3>] bg)
 {
     self.grid.bg[self.cursor.x + self.grid.width * self.cursor.y].color = bg;
 }
-fn void Terminal.clear(&self)
+macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.fg.len);
+fn void Terminal.erase(&self, uint[<2>] start, usz length)
 {
-    for (usz i = 0; i < self.grid.fg.len; i++)
+    for (int i = start.x + self.grid.width * start.y; i < length; i++)
     {
         self.grid.fg[i].codepoint = ' ';
         self.grid.bg[i].color = self.bg;
     }
 }
+macro uint Terminal.get_grid_idx(&self, uint[<2>] position) => position.x + self.grid.width * position.y;
 <*
  Assigns foreground color to terminal's current cursor position
 

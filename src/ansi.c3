@@ -159,8 +159,50 @@ AnsiMap csi_map = {
 
     { 's', fn (Terminal* term, args) => term.save_cursor_sco()    },
     { 'u', fn (Terminal* term, args) => term.restore_cursor_sco() },
+
+    { 'J', &j_erase },
+    { 'K', &k_erase },
 };
 AnsiMap dcs_map = {
 };
 AnsiMap osc_map = {
 };
+
+fn void j_erase(Terminal* term, int[] args)
+{
+    if (args.len == 0)
+    {
+        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+        return;
+    }
+    switch (args[0])
+    {
+        case 0:
+            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+        case 1:
+            term.erase({ 0, 0 }, term.get_grid_idx(term.cursor));
+        case 2:
+            term.clear();
+        case 3:
+            break;
+    }
+}
+fn void k_erase(Terminal* term, int[] args)
+{
+    if (args.len == 0)
+    {
+        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
+        return;
+    }
+    switch (args[0])
+    {
+        case 0:
+            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
+        case 1:
+            term.erase({ 0, term.cursor.y }, term.cursor.x);
+        case 2:
+            term.clear();
+        case 3:
+            break;
+    }
+}
