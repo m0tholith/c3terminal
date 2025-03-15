@@ -135,7 +135,7 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 
         if (param_range_normal.contains(c))
         {
-            while (current_param >= parameters.len()) parameters.push(0);
+            while (current_param >= parameters.len()) parameters.push(1);
             parameters[current_param] = parameters[current_param] * 10 + (c - '0');
         }
         else if (param_range_sep.contains(c))
