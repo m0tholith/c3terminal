@@ -142,9 +142,9 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     {
         uint c = buffer[*char_idx];
 
-        while (current_param >= parameters.len()) parameters.push(0);
         if (param_range_normal.contains(c))
         {
+            while (current_param >= parameters.len()) parameters.push(0);
             parameters[current_param] = parameters[current_param] * 10 + (c - '0');
         }
         else if (param_range_sep.contains(c))
@@ -153,7 +153,9 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
         }
         else if (param_range_private.contains(c))
         {
+            while (current_param >= parameters.len()) parameters.push(0);
             parameters[current_param] = c;
+            current_param++;
         }
         else if (command_range.contains(c))
         {
@@ -161,12 +163,11 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
             break;
         }
     }
-    (void)parameters.pop();
     (*char_idx)++;
 
     io::printfn("parsing csi command: %c, args: %s", command, parameters.array_view());
 
-    csi_map.find(command)(terminal, parameters.array_view())!;
+    (void)csi_map.find(command)(terminal, parameters.array_view());
 }
 fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
