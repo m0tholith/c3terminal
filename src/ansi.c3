@@ -175,7 +175,7 @@ AnsiMap csi_map = {
 
     { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })          },
 
-    { 'H', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 }) },
+    { 'H', fn (term, args) => term.set_cursor({args.len == 0? 0 : args[0],args.len == 1? 0 : args[1]}) },
 
     { 'J', &j_erase                                                                                    },
     { 'K', &k_erase                                                                                    },
