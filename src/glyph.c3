@@ -230,7 +230,7 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(hfirst, x_idx, y_idx, i
  @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0, char[<3>] bg = { 0, 0, 0 })
+fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
     usz uniform_idx = 0;
     usz last_grid_idx = 0; GridCharBg last_grid_char = grid[0]; usz new_size = 1;
