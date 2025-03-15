@@ -79,7 +79,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
  *>
 fn void Terminal.assign_char(&self, uint codepoint)
 {
-    self.grid.fg[self.cursor.x + self.grid.width * (self.cursor.y + self.scroll)].codepoint = codepoint;
+    self.grid.fg[self.get_grid_idx(self.cursor)].codepoint = codepoint;
 }
 <*
  Assigns background color to terminal's current cursor position
@@ -88,7 +88,7 @@ fn void Terminal.assign_char(&self, uint codepoint)
  *>
 fn void Terminal.assign_char_bg(&self, float[<3>] bg)
 {
-    self.grid.bg[self.cursor.x + self.grid.width * (self.cursor.y + self.scroll)].color = bg;
+    self.grid.bg[self.get_grid_idx(self.cursor)].color = bg;
 }
 <*
  Assigns foreground color to terminal's current cursor position
@@ -97,18 +97,18 @@ fn void Terminal.assign_char_bg(&self, float[<3>] bg)
  *>
 fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 {
-    self.grid.fg[self.cursor.x + self.grid.width * (self.cursor.y + self.scroll)].color = fg;
+    self.grid.fg[self.get_grid_idx(self.cursor)].color = fg;
 }
 macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.fg.len);
 fn void Terminal.erase(&self, uint[<2>] start, usz length)
 {
-    for (uint i = start.x + self.grid.width * (start.y + self.scroll); i < length; i++)
+    for (usz i = self.get_grid_idx(start); i < length; i++)
     {
         self.grid.fg[i].codepoint = ' ';
         self.grid.bg[i].color = self.bg;
     }
 }
-macro uint Terminal.get_grid_idx(&self, uint[<2>] position) => position.x + self.grid.width * position.y;
+macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.fg.len;
 fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
 {
     self.cursor = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
@@ -137,7 +137,7 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     else if (new_cursor.y >= self.grid.height)
     {
-        self.scroll = (uint)(new_cursor.y - self.grid.height + 1);
+        self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (self.grid.fg.len / self.grid.height);
         new_cursor.y = (long)self.grid.height - 1;
         io::printfn("scroll: %d", self.scroll);
     }
@@ -172,8 +172,8 @@ fn void Terminal.pre_render(&self)
 }
 fn void! Terminal.render(&self)
 {
-    self.fontAtlas.render_grid_bg(self.grid.bg[self.grid.width * self.scroll..], self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
-    self.fontAtlas.render_grid_fg(self.grid.fg[self.grid.width * self.scroll..], self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize)!;
+    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, (usz)(self.grid.width * self.scroll))!;
+    self.fontAtlas.render_grid_fg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, (usz)(self.grid.width * self.scroll))!;
 
     self.window.clear_color(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
