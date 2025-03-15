@@ -137,7 +137,7 @@ struct GridCharFg
     float[<3>] color;
 }
 <*
- @require grid_w * grid_h < grid.len
+ @require grid_w * grid_h <= grid.len
  @require font_size > 0
  *>
 fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0)
@@ -198,7 +198,7 @@ struct GridCharBg
     inline float[<3>] color;
 }
 <*
- @require grid_w * grid_h < grid.len
+ @require grid_w * grid_h <= grid.len
  @require font_size > 0
  *>
 fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0)
