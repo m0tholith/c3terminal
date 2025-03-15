@@ -7,6 +7,7 @@ import std::math;
 import std::math::matrix;
 import std::core::mem;
 import std::collections::list;
+import std::ascii;
 
 import glyph::renderer;
 import opengl;
@@ -149,6 +150,7 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int heigh
         {
             usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
             GridCharFg c = grid[idx];
+            if (ascii::is_space((char)c.codepoint)) continue;
 
             float x = (float)(int)(x_idx * width / grid_w);
             float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
