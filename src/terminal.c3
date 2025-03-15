@@ -39,8 +39,8 @@ struct Terminal
     font_atlas::FontAtlas fontAtlas;
     uint[<2>] cursor;
     Grid grid;
-    float[<3>] bg;
-    float[<3>] fg;
+    char[<3>] bg;
+    char[<3>] fg;
     uint[<2>] sco;
     uint[<2>] dec;
     // number of lines that will be clipped from the top of the screen
@@ -63,7 +63,7 @@ Terminal terminal @public @builtin;
  @require font_size > 0
  @require grid_size > 0
  *>
-fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
+fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, char[<3>] bg = {0,0,0}, char[<3>] fg = {1,1,1})
 {
     pty.init()!;
 
@@ -113,7 +113,7 @@ fn void Terminal.assign_char(&self, uint codepoint)
 
  @require self.grid.bg.ptr != null
  *>
-fn void Terminal.assign_char_bg(&self, float[<3>] bg)
+fn void Terminal.assign_char_bg(&self, char[<3>] bg)
 {
     self.grid.bg[self.get_grid_idx(self.cursor)].color = bg;
 }
@@ -122,7 +122,7 @@ fn void Terminal.assign_char_bg(&self, float[<3>] bg)
 
  @require self.grid.fg.ptr != null
  *>
-fn void Terminal.assign_char_fg(&self, float[<3>] fg)
+fn void Terminal.assign_char_fg(&self, char[<3>] fg)
 {
     self.grid.fg[self.get_grid_idx(self.cursor)].color = fg;
 }
