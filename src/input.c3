@@ -137,6 +137,11 @@ import glfw;
 import std::io;
 import std::collections::range;
 
+macro run_callbacks(codepoint, mods = 0)
+{
+    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+}
+
 <*
  @param [&in] window
  @require input_manager.is_initialized()
@@ -160,23 +165,23 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
     {
         case glfw::KEY_ESCAPE:
             codepoint = '\e';
-            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+            run_callbacks(codepoint, mods);
         case glfw::KEY_ENTER:
             codepoint = '\n';
-            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+            run_callbacks(codepoint, mods);
         case glfw::KEY_TAB:
             codepoint = '\t';
-            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+            run_callbacks(codepoint, mods);
         case glfw::KEY_BACKSPACE:
             codepoint = '\b';
-            foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+            run_callbacks(codepoint, mods);
     }
     mods &= ~glfw::MOD_CAPS_LOCK;
     if (mods == 0 || mods == glfw::MOD_SHIFT) return;
 
-    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+    run_callbacks(codepoint, mods);
 }
 fn void char_callback(glfw::Window* window, uint codepoint)
 {
-    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint);
+    run_callbacks(codepoint);
 }
