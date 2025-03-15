@@ -126,7 +126,7 @@ fn void! Pty.write(&self, String buffer)
         return PtyError.POLL_FAILED?;
     }
     if (polls[0].revents != net::POLL_EVENT_WRITE) return PtyError.PTY_NOT_READY?;
-    
+
     libc::write(self.master, buffer.ptr, buffer.len);
 }
 fn bool Pty.is_alive(&self) @inline => waitpid(self.pid, null, 1) >= 0;

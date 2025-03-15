@@ -106,7 +106,7 @@ fn int main(String[] args)
                 io::eprintfn("couldnt interpret buffer: %s", interpret_excuse);
             }
         }
-        
+
         terminal.pre_render();
         terminal.render()!!;
     }

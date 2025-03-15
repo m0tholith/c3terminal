@@ -129,7 +129,7 @@ fn stb_truetype::PackedChar*! FontAtlas.get_char(&self, uint codepoint)
  *>
 fn void FontAtlas.bind_texture(&self)
 {
-    gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);           
+    gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);
 }
 struct GridCharFg
 {
@@ -260,7 +260,7 @@ fn char[]! read_file(String file_name, char[] buffer) @local
     File file = file::open(file_name, "r")!;
     defer (void)file.close();
     file.read(buffer)!;
-    return buffer; 
+    return buffer;
 }
 
 module glyph::renderer;

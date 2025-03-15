@@ -209,22 +209,22 @@ fn void j_erase(Terminal* term, uint[] args)
             break;
     }
 }
-fn void k_erase(Terminal* term, int[] args)                                       
-{                                                                                 
-    if (args.len == 0)                                                            
-    {                                                                             
-        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));      
-        return;                                                                   
-    }                                                                             
-    switch (args[0])                                                              
-    {                                                                             
-        case 0:                                                                   
-            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));  
-        case 1:                                                                   
-            term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));           
-        case 2:                                                                   
-            term.erase({ 0, term.cursor.y }, term.grid.width);                    
-        case 3:                                                                   
-            break;                                                                
-    }                                                                             
-}                                                                                 
+fn void k_erase(Terminal* term, uint[] args)
+{
+    if (args.len == 0)
+    {
+        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
+        return;
+    }
+    switch (args[0])
+    {
+        case 0:
+            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
+        case 1:
+            term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
+        case 2:
+            term.erase({ 0, term.cursor.y }, term.grid.width);
+        case 3:
+            break;
+    }
+}

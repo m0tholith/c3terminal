@@ -52,7 +52,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debug_message_callback, null);
-    
+
     self.fontAtlas.init(font_name, font_size)!;
     defer catch { self.fontAtlas.free(); }
 
