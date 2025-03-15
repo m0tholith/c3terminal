@@ -36,6 +36,8 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
 
 module terminal::ansi @private;
 
+import pty;
+
 import std::collections::tuple;
 import std::collections::list;
 import std::collections::range;
@@ -201,6 +203,8 @@ AnsiMap csi_map = {
 
     // enable and disable aux; don't care
     { 'i', fn (term, args) => (void)0                                                                  },
+
+    { 'n', &send_cursor_pos                                                                            },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
@@ -239,4 +243,11 @@ fn void k_erase(Terminal* term, uint[] args)
         case 3:
             break;
     }
+}
+fn void send_cursor_pos(Terminal* term, uint[] args)
+{
+    DString builder;
+    builder.init(allocator::temp());
+    builder.appendf("\e[%d;%dR", term.cursor.x, term.cursor.y);
+    (void)pty.write(builder.str_view());
 }
