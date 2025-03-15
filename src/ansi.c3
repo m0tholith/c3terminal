@@ -135,16 +135,17 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 
         if (param_range_normal.contains(c))
         {
-            while (current_param >= parameters.len()) parameters.push(1);
+            if (current_param >= parameters.len()) parameters.push(0);
             parameters[current_param] = parameters[current_param] * 10 + (c - '0');
         }
         else if (param_range_sep.contains(c))
         {
+            while (current_param >= parameters.len()) parameters.push(1);
             current_param++;
         }
         else if (param_range_private.contains(c))
         {
-            while (current_param >= parameters.len()) parameters.push(0);
+            if (current_param >= parameters.len()) parameters.push(0);
             parameters[current_param] = c;
             current_param++;
         }
