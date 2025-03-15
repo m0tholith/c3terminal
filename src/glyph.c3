@@ -199,21 +199,43 @@ struct GridCharBg
 {
     inline char[<3>] color;
 }
+macro @grid_loop(grid_w, grid_h; @body(x_idx, y_idx)) @private
+{
+    if (grid_h > grid_w)
+    {
+        for (int y_idx = 0; y_idx < grid_h; y_idx++)
+        {
+            for (int x_idx = 0; x_idx < grid_w; x_idx++)
+            {
+                @body(x_idx, y_idx);
+            }
+        }
+    }
+    else
+    {
+        for (int x_idx = 0; x_idx < grid_w; x_idx++)
+        {
+            for (int y_idx = 0; y_idx < grid_h; y_idx++)
+            {
+                @body(x_idx, y_idx);
+            }
+        }
+    }
+}
 <*
  @require grid_w * grid_h <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0)
+fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0, char[<3>] bg = { 0, 0, 0 })
 {
     int uniform_idx = 0;
     int gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
-    for (int x_idx = 0; x_idx < grid_w; x_idx++)
+    @grid_loop(grid_w, grid_h; uint x_idx, uint y_idx)
     {
-        for (int y_idx = 0; y_idx < grid_h; y_idx++)
+        usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
+        GridCharBg c = grid[idx];
+        if (c.color != bg)
         {
-            usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
-            GridCharBg c = grid[idx];
-
             float x = (float)(int)(x_idx * width / grid_w);
             float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
@@ -241,7 +263,7 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int heigh
 
             uniform_idx++;
         }
-    }
+    };
     self.renderer.renderBg(uniform_idx);
 }
 fn void FontAtlas.free(&self)
@@ -485,7 +507,7 @@ out vec4 FragColor;
 void main() {
     vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x * useTexture + (1 - useTexture); // same as comparison
-    vec4 result = vec4(fs_in.color / vec3(255), color);
+    vec4 result = vec4(fs_in.color.r / 255.0, fs_in.color.g / 255.0, fs_in.color.b / 255.0, color);
     FragColor = result;
 }
 `;
