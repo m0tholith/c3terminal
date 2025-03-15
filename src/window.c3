@@ -83,9 +83,9 @@ fn void Window.free(&self) @local
     glfw::destroyWindow(self.glfwWin);
 }
 
-fn void Window.clear_color(&self, float red, float green, float blue)
+fn void Window.clear_color(&self, char[<3>] color)
 {
-    gl::clearColor(red, green, blue, 1.0f);
+    gl::clearColor(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, 1.0f);
 }
 <*
  @require self.glfwWin != null

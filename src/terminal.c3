@@ -231,11 +231,12 @@ fn void! Terminal.pre_render(&self)
 }
 fn void! Terminal.render(&self)
 {
+    self.window.clear_color(self.bg);
+
     usz char_start = (usz)(self.grid.width * self.scroll);
-    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, char_start)!;
+    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, char_start, self.bg)!;
     self.fontAtlas.render_grid_fg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, char_start)!;
 
-    self.window.clear_color(self.bg.r, self.bg.g, self.bg.b);
     self.window.refresh();
 }
 fn void Grid.free(&self) @local
