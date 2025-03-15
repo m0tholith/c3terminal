@@ -46,7 +46,6 @@ const float[<3>][] COLORS = {
     { 0.067f, 0.067f, 0.067f },
 };
 
-terminal::Terminal terminal;
 pty::Pty pty;
 fn int main(String[] args)
 {

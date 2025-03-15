@@ -40,6 +40,7 @@ struct Terminal
     // number of lines that will be clipped from the top of the screen
     uint scroll;
 }
+Terminal terminal @public @builtin;
 
 <*
  Initializes the following:
