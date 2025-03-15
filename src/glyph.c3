@@ -138,10 +138,10 @@ struct GridCharFg
     char[<3>] color;
 }
 <*
- @require grid_w * grid_h <= grid.len
+ @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0)
+fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
     int uniform_idx = 0;
     for (int x_idx = 0; x_idx < grid_w; x_idx++)
@@ -199,7 +199,7 @@ struct GridCharBg
 {
     inline char[<3>] color;
 }
-macro @grid_loop(grid_w, grid_h; @body(x_idx, y_idx)) @private
+macro @grid_loop(char_start, grid, grid_w, grid_h; @body(x_idx, y_idx, idx, c)) @private
 {
     if (grid_h > grid_w)
     {
@@ -207,7 +207,9 @@ macro @grid_loop(grid_w, grid_h; @body(x_idx, y_idx)) @private
         {
             for (int x_idx = 0; x_idx < grid_w; x_idx++)
             {
-                @body(x_idx, y_idx);
+                usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
+                var c = grid[idx];
+                @body(x_idx, y_idx, idx, c);
             }
         }
     }
@@ -217,23 +219,23 @@ macro @grid_loop(grid_w, grid_h; @body(x_idx, y_idx)) @private
         {
             for (int y_idx = 0; y_idx < grid_h; y_idx++)
             {
-                @body(x_idx, y_idx);
+                usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
+                var c = grid[idx];
+                @body(x_idx, y_idx, idx, c);
             }
         }
     }
 }
 <*
- @require grid_w * grid_h <= grid.len
+ @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int height, int grid_w, int grid_h, float font_size, usz char_start = 0, char[<3>] bg = { 0, 0, 0 })
+fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0, char[<3>] bg = { 0, 0, 0 })
 {
-    int uniform_idx = 0;
-    int gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
-    @grid_loop(grid_w, grid_h; uint x_idx, uint y_idx)
+    usz uniform_idx = 0;
+    usz gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
+    @grid_loop(char_start, grid, grid_w, grid_h; uint x_idx, uint y_idx, usz idx, GridCharBg c)
     {
-        usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
-        GridCharBg c = grid[idx];
         if (c.color != bg)
         {
             float x = (float)(int)(x_idx * width / grid_w);
