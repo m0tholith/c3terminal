@@ -16,9 +16,6 @@ fault AnsiError
 
 fn void! Terminal.interpret(&self, Char32[] buffer)
 {
-    io::print("parsing buffer: [");
-    foreach (c : buffer) io::printf("%02X, ", c);
-    io::printn("]");
     for (int char_idx = 0; char_idx < buffer.len;)
     {
         if (try parse_c0(self, &char_idx, buffer)) continue;
@@ -55,11 +52,8 @@ fn AnsiCallback! AnsiMap.find(&self, uint command)
 macro in_range(x, a, b) => (Range{$typeof(x)}){ a, b }.contains(x);
 fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    io::printfn("c0 buflen %d, char_idx %d", buffer.len, *char_idx);
     if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
-
-    io::printfn("parsing c0 0x%02X", buffer[*char_idx]);
 
     switch (buffer[*char_idx])
     {
@@ -97,11 +91,8 @@ fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    io::printfn("fe buflen %d, char_idx %d", buffer.len, *char_idx);
     if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
-
-    io::printfn("parsing fe 0x%02X", buffer[*char_idx]);
 
     switch (buffer[*char_idx])
     {
@@ -120,13 +111,11 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    io::printfn("dcs buflen %d, char_idx %d", buffer.len, *char_idx);
     if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
 }
 fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    io::printfn("csi buflen %d, char_idx %d", buffer.len, *char_idx);
     if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
 
@@ -167,13 +156,10 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     }
     (*char_idx)++;
 
-    io::printfn("parsing csi command: %c, args: %s", command, parameters.array_view());
-
     (void)csi_map.find(command)(terminal, parameters.array_view());
 }
 fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    io::printfn("osc buflen %d, char_idx %d", buffer.len, *char_idx);
     if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
 }
@@ -191,8 +177,6 @@ AnsiMap csi_map = {
 
     { 'H', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 }) },
 
-    { 'J', fn (term, args) => j_erase(term, args)                                                      },
-    { 'K', fn (term, args) => k_erase(term, args)                                                      },
     { 'J', &j_erase                                                                                    },
     { 'K', &k_erase                                                                                    },
 
