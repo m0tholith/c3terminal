@@ -73,7 +73,7 @@ fn Button*! Map.find(&self, String name)
     return InputError.BUTTON_NAME_NOT_FOUND?;
 }
 
-def KeyPressCallback = fn void(uint codepoint, int mods = 0);
+def KeyPressCallback = fn void(Char32[] codepoints, int mods = 0);
 struct Manager
 {
     HashMap{String, Map} maps;
@@ -139,7 +139,11 @@ import std::collections::range;
 
 macro run_callbacks(codepoint, mods = 0)
 {
-    foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+    $if $typeof(codepoint).typeid == uint.typeid:
+        foreach (callback : input_manager.keyPressCallbacks) callback({ codepoint }, mods);
+    $else
+        foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+    $endif
 }
 
 <*
@@ -175,6 +179,14 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         case glfw::KEY_BACKSPACE:
             codepoint = '\b';
             run_callbacks(codepoint, mods);
+        case glfw::KEY_RIGHT:
+            run_callbacks((uint[]){ '\e', '[', 'C' }, mods);
+        case glfw::KEY_LEFT:
+            run_callbacks((uint[]){ '\e', '[', 'D' }, mods);
+        case glfw::KEY_DOWN:
+            run_callbacks((uint[]){ '\e', '[', 'B' }, mods);
+        case glfw::KEY_UP:
+            run_callbacks((uint[]){ '\e', '[', 'A' }, mods);
     }
     mods &= ~glfw::MOD_CAPS_LOCK;
     if (mods == 0 || mods == glfw::MOD_SHIFT) return;

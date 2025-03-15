@@ -270,27 +270,27 @@ fn void debug_message_callback(GLenum source,
     io::eprintfn("GL CALLBACK: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
 }
 
-fn void key_press_callback(uint codepoint, int mods = 0)
+fn void key_press_callback(Char32[] codepoints, int mods = 0)
 {
-    if (mods & glfw::MOD_CONTROL) switch (codepoint)
+    if (mods & glfw::MOD_CONTROL) switch (codepoints[0])
     {
         case 'G':
-            codepoint = '\a';
+            codepoints[0] = '\a';
         case 'H':
-            codepoint = '\b';
+            codepoints[0] = '\b';
         case 'I':
-            codepoint = '\t';
+            codepoints[0] = '\t';
         case 'J':
-            codepoint = '\n';
+            codepoints[0] = '\n';
         case 'K':
-            codepoint = '\v';
+            codepoints[0] = '\v';
         case 'L':
-            codepoint = '\f';
+            codepoints[0] = '\f';
         case 'M':
-            codepoint = '\r';
+            codepoints[0] = '\r';
     }
 
-    String! buffer = string::from_utf32(allocator::temp(), { codepoint });
+    String! buffer = string::from_utf32(allocator::temp(), codepoints);
     if (catch excuse = buffer) return;
     if (catch excuse = pty.write(buffer))
     {

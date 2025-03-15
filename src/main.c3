@@ -98,7 +98,7 @@ fn void paste_clipboard()
     for (int i = 0; i < clipboard_len; i++)
     {
         uint codepoint = clipboard_string[i];
-        foreach (callback : input_manager.keyPressCallbacks) callback(codepoint);
+        foreach (callback : input_manager.keyPressCallbacks) callback({ codepoint });
     }
 }
 macro usz get_len(uint[] arr)
