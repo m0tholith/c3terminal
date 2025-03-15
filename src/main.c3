@@ -65,80 +65,23 @@ fn int main(String[] args)
         },
     });
 
-    input_manager.init(&terminal.window);
     input_manager.add_map("default", map);
-    defer input_manager.free();
 
-    input_manager.add_key_press_callback(&key_press_callback);
-
-    if (catch excuse = pty.init())
+    while (!terminal.window.shouldClose)
     {
-        io::eprintfn("failed to initialize pty: %s", excuse);
-        return -1;
-    }
-
-    while READ: (!terminal.window.shouldClose)
-    {
-        if (!pty.is_alive())
+        if (catch excuse = terminal.pre_render())
         {
-            io::printn("pty is dead");
             break;
         }
-
-        String! pty_read = pty.read();
-        if (catch excuse = pty_read)
+        if (catch excuse = terminal.render())
         {
-            switch (excuse)
-            {
-                case PtyError.PTY_NOT_READY:
-                    break;
-                default:
-                    io::eprintfn("failed to read from pty: %s", excuse);
-                    break READ;
-            }
+            break;
         }
-        else
-        {
-            if (try buffer = pty_read.to_utf32(allocator::temp())) if (catch interpret_excuse = terminal.interpret(buffer))
-            {
-                io::eprintfn("couldnt interpret buffer: %s", interpret_excuse);
-            }
-        }
-
-        terminal.pre_render();
-        terminal.render()!!;
     }
 
     return 0;
 }
 
-fn void key_press_callback(uint codepoint, int mods = 0)
-{
-    if (mods & glfw::MOD_CONTROL) switch (codepoint)
-    {
-        case 'G':
-            codepoint = '\a';
-        case 'H':
-            codepoint = '\b';
-        case 'I':
-            codepoint = '\t';
-        case 'J':
-            codepoint = '\n';
-        case 'K':
-            codepoint = '\v';
-        case 'L':
-            codepoint = '\f';
-        case 'M':
-            codepoint = '\r';
-    }
-
-    String! buffer = string::from_utf32(allocator::temp(), { codepoint });
-    if (catch excuse = buffer) return;
-    if (catch excuse = pty.write(buffer))
-    {
-        io::eprintfn("failed to write to pty: %s", excuse);
-    }
-}
 fn void paste_clipboard()
 {
     ZString clipboard = glfw::getClipboardString(null);

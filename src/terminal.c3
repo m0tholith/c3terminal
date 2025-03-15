@@ -1,5 +1,6 @@
 module terminal;
 
+import pty;
 import glfw;
 import opengl;
 import glyph;
@@ -10,6 +11,11 @@ import std::core::mem;
 import std::thread;
 import std::io;
 import std::math;
+
+fault TerminalError
+{
+    PTY_DEAD,
+}
 
 struct Grid @local
 {
@@ -44,6 +50,7 @@ Terminal terminal @public @builtin;
 
 <*
  Initializes the following:
+ - Pty
  - Window system
  - Window
  - Input system
@@ -58,9 +65,14 @@ Terminal terminal @public @builtin;
  *>
 fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, float[<3>] bg = {0,0,0}, float[<3>] fg = {1,1,1})
 {
+    pty.init()!;
+
     window::init_system();
     self.window.init(window_width, window_height, window_name)!;
     defer catch { window::terminate_system(); }
+
+    input_manager.init(&self.window);
+    input_manager.add_key_press_callback(&key_press_callback);
 
     gl::enable(gl::GL_DEBUG_OUTPUT);
     gl::debugMessageCallback(&debug_message_callback, null);
@@ -168,7 +180,7 @@ macro Terminal.newline(&self, long row_translation = 1)
     self.cursor.x = 0;
 }
 fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll = (uint)((long)(self.scroll + amount) % (self.grid.size / self.grid.width));
-fn void Terminal.pre_render(&self)
+fn void! Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
     {
@@ -184,6 +196,35 @@ fn void Terminal.pre_render(&self)
         self.grid.height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
         self.cursor = { 0, 0 };
         self.scroll = 0;
+    }
+
+    if (!pty.is_alive())
+    {
+        io::printn("pty is dead");
+        return TerminalError.PTY_DEAD?;
+    }
+
+    String! pty_read = pty.read();
+    if (catch excuse = pty_read)
+    {
+        switch (excuse)
+        {
+            case PtyError.PTY_NOT_READY:
+                break;
+            default:
+                io::eprintfn("failed to read from pty: %s", excuse);
+                return excuse?;
+        }
+    }
+    else
+    {
+        if (try buffer = pty_read.to_utf32(allocator::temp()))
+        {
+            if (catch interpret_excuse = terminal.interpret(buffer))
+            {
+                io::eprintfn("couldnt interpret buffer: %s", interpret_excuse);
+            }
+        }
     }
 }
 fn void! Terminal.render(&self)
@@ -204,16 +245,53 @@ fn void Terminal.free(&self)
 {
     self.grid.free();
     self.fontAtlas.free();
+    input_manager.free();
     window::terminate_system();
 }
 
+module terminal @private;
+
+import opengl;
+import glfw;
+import pty;
+
+import std::io;
+
 fn void debug_message_callback(GLenum source,
-                             GLenum type,
-                             uint id,
-                             GLenum severity,
-                             usz length,
-                             ZString message,
-                             void* user_param) @private
+                               GLenum type,
+                               uint id,
+                               GLenum severity,
+                               usz length,
+                               ZString message,
+                               void* user_param)
 {
     io::eprintfn("GL CALLBACK: type = 0x%x, severity = 0x%x, message = %s\n", type, severity, message);
+}
+
+fn void key_press_callback(uint codepoint, int mods = 0)
+{
+    if (mods & glfw::MOD_CONTROL) switch (codepoint)
+    {
+        case 'G':
+            codepoint = '\a';
+        case 'H':
+            codepoint = '\b';
+        case 'I':
+            codepoint = '\t';
+        case 'J':
+            codepoint = '\n';
+        case 'K':
+            codepoint = '\v';
+        case 'L':
+            codepoint = '\f';
+        case 'M':
+            codepoint = '\r';
+    }
+
+    String! buffer = string::from_utf32(allocator::temp(), { codepoint });
+    if (catch excuse = buffer) return;
+    if (catch excuse = pty.write(buffer))
+    {
+        io::eprintfn("failed to write to pty: %s", excuse);
+    }
 }
