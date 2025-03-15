@@ -46,7 +46,6 @@ const float[<3>][] COLORS = {
     { 0.067f, 0.067f, 0.067f },
 };
 
-pty::Pty pty;
 fn int main(String[] args)
 {
     terminal.init(900, 600, "test.ttf", window_name: "m0tty", font_size: 20, bg: { 0.1176f, 0.117f, 0.1803f }, fg: { 0.8039f, 0.8392f, 0.9568f })!!;

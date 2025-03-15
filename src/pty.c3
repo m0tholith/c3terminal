@@ -29,6 +29,7 @@ struct Pty
     inline CInt master;
     libc::Pid_t pid;
 }
+pty::Pty pty @public @builtin;
 
 fn void! Pty.init(&self)
 {
