@@ -175,20 +175,20 @@ fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 
 AnsiMap csi_map = {
-    { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 : -(long)args[0] }) },
-    { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 :  (long)args[0] }) },
-    { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 : -(long)args[0], 0 }) },
-    { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 :  (long)args[0], 0 }) },
+    { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 : -(long)args[0] })        },
+    { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? 1 :  (long)args[0] })        },
+    { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 : -(long)args[0], 0 })        },
+    { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? 1 :  (long)args[0], 0 })        },
 
-    { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0])                       },
-    { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0])                       },
+    { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0])                              },
+    { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0])                              },
 
-    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })   },
+    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })          },
 
-    { 'H', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0], args[1] })  },
+    { 'H', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 }) },
 
-    { 'J', fn (term, args) => j_erase(term, args)                                               },
-    { 'K', fn (term, args) => k_erase(term, args)                                               },
+    { 'J', fn (term, args) => j_erase(term, args)                                                      },
+    { 'K', fn (term, args) => k_erase(term, args)                                                      },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
