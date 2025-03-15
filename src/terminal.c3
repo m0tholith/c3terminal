@@ -168,7 +168,6 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     {
         self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (uint)(self.grid.size / self.grid.width);
         new_cursor.y = (long)self.grid.height - 1;
-        io::printfn("scroll: %d", self.scroll);
     }
     self.cursor = (uint[<2>])new_cursor;
 }
