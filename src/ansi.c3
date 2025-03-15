@@ -192,6 +192,11 @@ AnsiMap csi_map = {
 
     { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : args[0])                          },
     { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 : args[0])                          },
+
+    { 'f', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 }) },
+
+    // enable and disable aux; don't care
+    { 'i', fn (term, args) => (void)0                                                                  },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
