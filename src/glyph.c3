@@ -199,7 +199,7 @@ struct GridCharBg
 {
     inline char[<3>] color;
 }
-macro @grid_loop(char_start, grid, grid_w, grid_h; @body(x_idx, y_idx, idx, c)) @private
+macro @grid_loop(char_start, grid, grid_w, grid_h; @body(hfirst, x_idx, y_idx, idx, c)) @private
 {
     if (grid_h > grid_w)
     {
@@ -209,7 +209,7 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(x_idx, y_idx, idx, c)) 
             {
                 usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
                 var c = grid[idx];
-                @body(x_idx, y_idx, idx, c);
+                @body(true, x_idx, y_idx, idx, c);
             }
         }
     }
@@ -221,7 +221,7 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(x_idx, y_idx, idx, c)) 
             {
                 usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
                 var c = grid[idx];
-                @body(x_idx, y_idx, idx, c);
+                @body(false, x_idx, y_idx, idx, c);
             }
         }
     }
@@ -233,10 +233,19 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(x_idx, y_idx, idx, c)) 
 fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0, char[<3>] bg = { 0, 0, 0 })
 {
     usz uniform_idx = 0;
-    usz gridStartIdx = 0; GridCharBg gridStartChar = grid[0];
-    @grid_loop(char_start, grid, grid_w, grid_h; uint x_idx, uint y_idx, usz idx, GridCharBg c)
+    usz last_grid_idx = 0; GridCharBg last_grid_char = grid[0]; usz new_size = 1;
+    @grid_loop(char_start, grid, grid_w, grid_h; bool hfirst, uint x_idx, uint y_idx, usz idx, GridCharBg c)
     {
-        if (c.color != bg)
+        bool cond = c.color != last_grid_char.color;
+        if (hfirst)
+        {
+            cond |= y_idx == grid_w - 1;
+        }
+        else
+        {
+            cond |= x_idx == grid_w - 1;
+        }
+        if (cond)
         {
             float x = (float)(int)(x_idx * width / grid_w);
             float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
@@ -245,6 +254,14 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint hei
 
             float w = (float)(int)(width / grid_w) * s;
             float h = (float)(int)(height / grid_h) * s;
+            if (hfirst)
+            {
+                h *= new_size;
+            }
+            else
+            {
+                w *= new_size;
+            }
 
             x = x / width  * 2 - 1;
             y = y / height * 2 - 1;
@@ -264,6 +281,12 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint hei
             self.renderer.instanceData[uniform_idx].color    = { c.color.x, c.color.y, c.color.z };
 
             uniform_idx++;
+
+            last_grid_idx = idx; last_grid_char = c; new_size = 1;
+        }
+        else
+        {
+            new_size++;
         }
     };
     self.renderer.render_bg(uniform_idx);
