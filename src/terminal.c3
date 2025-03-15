@@ -133,8 +133,8 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
     usz end_idx = start_idx + length;
     for (usz i = start_idx; i < end_idx; i++)
     {
-        self.grid.fg[i].codepoint = ' ';
-        self.grid.bg[i].color = self.bg;
+        self.grid.fg[i % self.grid.size].codepoint = ' ';
+        self.grid.bg[i % self.grid.size].color = self.bg;
     }
 }
 macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.size;
