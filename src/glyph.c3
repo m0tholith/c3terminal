@@ -135,7 +135,7 @@ fn void FontAtlas.bind_texture(&self)
 struct GridCharFg
 {
     uint codepoint;
-    float[<3>] color;
+    char[<3>] color;
 }
 <*
  @require grid_w * grid_h <= grid.len
@@ -188,7 +188,7 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int heigh
             self.renderer.instanceData[uniform_idx].quadSize = { w, h };
             self.renderer.instanceData[uniform_idx].texPos   = { texPosX, texPosY };
             self.renderer.instanceData[uniform_idx].texSize  = { texSizeX, texSizeY };
-            self.renderer.instanceData[uniform_idx].color    = c.color;
+            self.renderer.instanceData[uniform_idx].color    = { c.color.x, c.color.y, c.color.z };
 
             uniform_idx++;
         }
@@ -197,7 +197,7 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int heigh
 }
 struct GridCharBg
 {
-    inline float[<3>] color;
+    inline char[<3>] color;
 }
 <*
  @require grid_w * grid_h <= grid.len
@@ -237,7 +237,7 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int heigh
             self.renderer.instanceData[uniform_idx].quadSize = { w, h };
             self.renderer.instanceData[uniform_idx].texPos   = { 0, 0 };
             self.renderer.instanceData[uniform_idx].texSize  = { 0, 0 };
-            self.renderer.instanceData[uniform_idx].color    = c.color;
+            self.renderer.instanceData[uniform_idx].color    = { c.color.x, c.color.y, c.color.z };
 
             uniform_idx++;
         }
@@ -277,6 +277,7 @@ const ARRAY_MAX = 16384;
 
 def Vec2f = float[2] @local;
 def Vec3f = float[3] @local;
+def Vec3i =  char[3] @local;
 struct Vertex
 {
     Vec2f position;
@@ -288,7 +289,16 @@ struct InstanceData @packed
     Vec2f texPos;
     Vec2f texSize;
 
-    Vec3f color;
+    union
+    {
+        Vec3i color;
+        struct
+        {
+            char r;
+            char g;
+            char b;
+        }
+    }
 }
 struct Renderer
 {
@@ -355,7 +365,7 @@ fn void! Renderer.init(&self)
     attr++;
 
     gl::enableVertexAttribArray(attr);
-    gl::vertexAttribPointer(attr, 3, gl::GL_FLOAT, false, InstanceData.sizeof, (void*)InstanceData.color.offsetof);
+    gl::vertexAttribIPointer(attr, 3, gl::GL_UNSIGNED_BYTE, InstanceData.sizeof, (void*)InstanceData.color.offsetof);
     gl::vertexAttribDivisor(attr, 1);
     attr++;
 
@@ -433,7 +443,7 @@ layout (location = 1) in vec2 quadPos;
 layout (location = 2) in vec2 quadSize;
 layout (location = 3) in vec2 texPos;
 layout (location = 4) in vec2 texSize;
-layout (location = 5) in vec3 color;
+layout (location = 5) in ivec3 color;
 
 vec2 getPos(vec2 inVec) {
     return quadPos + quadSize * inVec;
@@ -444,7 +454,7 @@ out VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 color;
+    flat ivec3 color;
 } vs_out;
 
 void main() {
@@ -464,7 +474,7 @@ in VS_OUT {
     vec2 uv;
     vec2 texPos;
     vec2 texSize;
-    vec3 color;
+    flat ivec3 color;
 } fs_in;
 
 uniform sampler2D tex;
@@ -475,7 +485,7 @@ out vec4 FragColor;
 void main() {
     vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
     float color = texture(tex, uv).x * useTexture + (1 - useTexture); // same as comparison
-    vec4 result = vec4(fs_in.color, color);
+    vec4 result = vec4(fs_in.color / vec3(255), color);
     FragColor = result;
 }
 `;
