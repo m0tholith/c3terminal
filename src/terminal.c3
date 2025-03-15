@@ -151,7 +151,7 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     else if (new_cursor.y >= self.grid.height)
     {
-        self.scroll = (uint)(new_cursor.y - self.grid.height + 1);
+        self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (uint)(self.grid.size / self.grid.width);
         new_cursor.y = (long)self.grid.height - 1;
         io::printfn("scroll: %d", self.scroll);
     }
@@ -166,6 +166,7 @@ macro Terminal.newline(&self, long row_translation = 1)
     self.move_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
     self.cursor.x = 0;
 }
+fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll = (uint)((long)(self.scroll + amount) % (self.grid.size / self.grid.width));
 fn void Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)

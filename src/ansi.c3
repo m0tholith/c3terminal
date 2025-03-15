@@ -189,6 +189,9 @@ AnsiMap csi_map = {
 
     { 'J', fn (term, args) => j_erase(term, args)                                                      },
     { 'K', fn (term, args) => k_erase(term, args)                                                      },
+
+    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : args[0])                          },
+    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 : args[0])                          },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
