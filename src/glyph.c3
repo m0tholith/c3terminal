@@ -181,7 +181,7 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int heigh
             if (uniform_idx >= renderer::ARRAY_MAX)
             {
                 uniform_idx = 0;
-                self.renderer.renderFg();
+                self.renderer.render_fg();
             }
 
             self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
@@ -193,7 +193,7 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, int width, int heigh
             uniform_idx++;
         }
     }
-    self.renderer.renderFg(uniform_idx);
+    self.renderer.render_fg(uniform_idx);
 }
 struct GridCharBg
 {
@@ -252,7 +252,7 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int heigh
             if (uniform_idx >= renderer::ARRAY_MAX)
             {
                 uniform_idx = 0;
-                self.renderer.renderFg();
+                self.renderer.render_fg();
             }
 
             self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
@@ -264,7 +264,7 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, int width, int heigh
             uniform_idx++;
         }
     };
-    self.renderer.renderBg(uniform_idx);
+    self.renderer.render_bg(uniform_idx);
 }
 fn void FontAtlas.free(&self)
 {
@@ -399,7 +399,7 @@ fn void! Renderer.init(&self)
 <*
  @require gl::isBuffer(self.instanceVbo)
  *>
-fn void Renderer.renderFg(&self, usz count = ARRAY_MAX)
+fn void Renderer.render_fg(&self, usz count = ARRAY_MAX)
 {
     if (count == 0) return;
 
@@ -411,7 +411,7 @@ fn void Renderer.renderFg(&self, usz count = ARRAY_MAX)
 <*
  @require gl::isBuffer(self.instanceVbo)
  *>
-fn void Renderer.renderBg(&self, usz count = ARRAY_MAX)
+fn void Renderer.render_bg(&self, usz count = ARRAY_MAX)
 {
     if (count == 0) return;
 
