@@ -194,13 +194,13 @@ fn void j_erase(Terminal* term, uint[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+        term.erase(term.cursor, term.grid.size - term.get_grid_idx(term.cursor));
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, term.grid.fg.len - term.get_grid_idx(term.cursor));
+            term.erase(term.cursor, term.grid.size - term.get_grid_idx(term.cursor));
         case 1:
             term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.cursor) + 1));
         case 2:

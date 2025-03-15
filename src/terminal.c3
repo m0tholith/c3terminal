@@ -15,8 +15,17 @@ struct Grid @local
 {
     font_atlas::GridCharFg[] fg;
     font_atlas::GridCharBg[] bg;
-    uint width; uint height;
+    union
+    {
+        struct
+        {
+            uint width;
+            uint height;
+        }
+        uint[<2>] dimensions;
+    }
     float fontSize;
+    usz size;
 }
 struct Terminal
 {
@@ -58,11 +67,16 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
     self.fontAtlas.init(font_name, font_size)!;
     defer catch { self.fontAtlas.free(); }
 
-    self.grid = { mem::new_array(font_atlas::GridCharFg, grid_size),
-                  mem::new_array(font_atlas::GridCharBg, grid_size),
-                  (uint)((float)window_width  / self.fontAtlas.charMaxX),
-                  (uint)((float)window_height / self.fontAtlas.charMaxY),
-                  font_size };
+    self.grid = {
+        .fg = mem::new_array(font_atlas::GridCharFg, grid_size),
+        .bg = mem::new_array(font_atlas::GridCharBg, grid_size),
+        .dimensions = {
+            (uint)((float)window_width  / self.fontAtlas.charMaxX),
+            (uint)((float)window_height / self.fontAtlas.charMaxY),
+        },
+        .fontSize = font_size,
+        .size = grid_size,
+    };
     defer catch { self.grid.free(); }
     self.bg = bg;
     self.fg = fg;
@@ -99,7 +113,7 @@ fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 {
     self.grid.fg[self.get_grid_idx(self.cursor)].color = fg;
 }
-macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.fg.len);
+macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.size);
 fn void Terminal.erase(&self, uint[<2>] start, usz length)
 {
     for (usz i = self.get_grid_idx(start); i < length; i++)
@@ -108,7 +122,7 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
         self.grid.bg[i].color = self.bg;
     }
 }
-macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.fg.len;
+macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.size;
 fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
 {
     self.cursor = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
@@ -137,7 +151,7 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     else if (new_cursor.y >= self.grid.height)
     {
-        self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (self.grid.fg.len / self.grid.height);
+        self.scroll = (uint)(new_cursor.y - self.grid.height + 1);
         new_cursor.y = (long)self.grid.height - 1;
         io::printfn("scroll: %d", self.scroll);
     }
