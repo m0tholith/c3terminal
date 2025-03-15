@@ -254,7 +254,7 @@ fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint hei
             if (uniform_idx >= renderer::ARRAY_MAX)
             {
                 uniform_idx = 0;
-                self.renderer.render_fg();
+                self.renderer.render_bg();
             }
 
             self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
