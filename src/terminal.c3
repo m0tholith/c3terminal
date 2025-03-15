@@ -129,7 +129,9 @@ fn void Terminal.assign_char_fg(&self, float[<3>] fg)
 macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.size);
 fn void Terminal.erase(&self, uint[<2>] start, usz length)
 {
-    for (usz i = self.get_grid_idx(start); i < length; i++)
+    usz start_idx = self.get_grid_idx(start);
+    usz end_idx = start_idx + length;
+    for (usz i = start_idx; i < end_idx; i++)
     {
         self.grid.fg[i].codepoint = ' ';
         self.grid.bg[i].color = self.bg;
