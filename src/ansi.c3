@@ -190,6 +190,14 @@ AnsiMap csi_map = {
     { 'i', fn (term, args) => (void)0                                                                   },
 
     { 'n', &send_cursor_pos                                                                             },
+
+    /// private sequences
+
+    { 's', fn (term, args) => term.save_cursor_sco()                                                   },
+    { 'u', fn (term, args) => term.restore_cursor_sco()                                                },
+
+    { 'h', &h_parse                                                                                    },
+    { 'l', &l_parse                                                                                    },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
@@ -235,4 +243,44 @@ fn void send_cursor_pos(Terminal* term, uint[] args)
     builder.init(allocator::temp());
     builder.appendf("\e[%d;%dR", term.cursor.x, term.cursor.y);
     (void)pty.write(builder.str_view());
+}
+fn void h_parse(Terminal* term, uint[] args)
+{
+    if (args.len < 2) return;
+
+    if (args[0] != '?')
+    {
+        // maybe i'll find a spec that defines this
+        return;
+    }
+    uint c = args[1];
+    switch (c)
+    {
+        case 25:
+        case 1004:
+        case 1049:
+        case 2004:
+        default:
+            return;
+    }
+}
+fn void l_parse(Terminal* term, uint[] args)
+{
+    if (args.len < 2) return;
+
+    if (args[0] != '?')
+    {
+        // maybe i'll find a spec that defines this
+        return;
+    }
+    uint c = args[1];
+    switch (c)
+    {
+        case 25:
+        case 1004:
+        case 1049:
+        case 2004:
+        default:
+            return;
+    }
 }
