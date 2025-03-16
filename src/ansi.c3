@@ -105,17 +105,17 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 
     switch (buffer[*char_idx])
     {
-        case 'E':
+        case 'E': // next line
             (*char_idx)++;
             terminal.move_cursor({ 0, 1 });
             terminal.cursor.x = 0;
-        case 'P':
+        case 'P': // device control string
             (*char_idx)++;
             parse_dcs(terminal, char_idx, buffer)!;
-        case '[':
+        case '[': // control sequence indicator
             (*char_idx)++;
             parse_csi(terminal, char_idx, buffer)!;
-        case ']':
+        case ']': // operating system command
             (*char_idx)++;
             parse_osc(terminal, char_idx, buffer)!;
         default:
@@ -179,37 +179,49 @@ fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 
 AnsiMap csi_map = {
+    // cursor up/down/forward/back
     { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? -1 : -(long)args[0] })        },
     { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ?  1 :  (long)args[0] })        },
     { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ?  1 :  (long)args[0], 0 })        },
     { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? -1 : -(long)args[0], 0 })        },
 
+    // move cursor to the beginning of line, n lines down/up
     { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0])                               },
     { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0])                               },
 
+    // move cursor to column n
     { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })           },
 
+    // set cursor position
     { 'H', fn (term, args) => term.set_cursor({args.len == 0? 0 : args[0], args.len <= 1? 0 : args[1]}) },
 
+    // erase in display
     { 'J', &j_erase                                                                                     },
+    // erase in line
     { 'K', &k_erase                                                                                     },
 
+    // scroll up/down
     { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : args[0])                           },
     { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 : args[0])                           },
 
+    // set cursor position
     { 'f', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 })  },
 
     // enable and disable aux; don't care
     { 'i', fn (term, args) => (void)0                                                                   },
 
+    // report cursor position
     { 'n', &send_cursor_pos                                                                             },
 
     /// private sequences
 
+    // save/restore cursor to sco
     { 's', fn (term, args) => term.save_cursor_sco()                                                   },
     { 'u', fn (term, args) => term.restore_cursor_sco()                                                },
 
+    // enable setting
     { 'h', &h_parse                                                                                    },
+    // disable setting
     { 'l', &l_parse                                                                                    },
 };
 fn void j_erase(Terminal* term, uint[] args)
@@ -269,10 +281,10 @@ fn void h_parse(Terminal* term, uint[] args)
     uint c = args[1];
     switch (c)
     {
-        case 25:
-        case 1004:
-        case 1049:
-        case 2004:
+        case 25:   // show cursor
+        case 1004: // enable reporting focus
+        case 1049: // enable alternate screen buffer
+        case 2004: // enable bracketed paste
         default:
             return;
     }
@@ -289,10 +301,10 @@ fn void l_parse(Terminal* term, uint[] args)
     uint c = args[1];
     switch (c)
     {
-        case 25:
-        case 1004:
-        case 1049:
-        case 2004:
+        case 25:   // hide cursor
+        case 1004: // disable reporting focus
+        case 1049: // disable alternate screen buffer
+        case 2004: // disable bracketed paste
         default:
             return;
     }
