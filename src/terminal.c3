@@ -303,7 +303,7 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
         }
     }
 
-    String! buffer = string::from_utf32(allocator::temp(), codepoints);
+    String! buffer = string::from_utf32(temp_alloc, codepoints);
     if (catch excuse = buffer) return;
     if (catch excuse = pty.write(buffer))
     {
