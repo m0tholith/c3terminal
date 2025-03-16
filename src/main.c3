@@ -85,7 +85,6 @@ fn int main(String[] args)
 fn void paste_clipboard()
 {
     ZString clipboard = glfw::getClipboardString(null);
-    io::printfn("got string from clipboard: %s", clipboard);
     if (clipboard == null) return;
     uint[] clipboard_string = mem::temp_array(uint, clipboard.len());
     if (catch excuse = conv::utf8to32(clipboard.str_view(), clipboard_string))
@@ -94,7 +93,6 @@ fn void paste_clipboard()
         return;
     }
     usz clipboard_len = get_len(clipboard_string);
-    io::printfn("converted string to utf32: %s", clipboard_string);
     for (int i = 0; i < clipboard_len; i++)
     {
         uint codepoint = clipboard_string[i];
