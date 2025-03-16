@@ -20,9 +20,9 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
     {
         if (try parse_c1(self, &char_idx, buffer)) continue;
         if (try parse_c0(self, &char_idx, buffer)) continue;
+        if (char_idx >= buffer.len) break;
 
         // render-able
-        if (char_idx >= buffer.len) break;
         if (in_range(buffer[char_idx], 32, 126))
         {
             self.assign_char(buffer[char_idx]);
