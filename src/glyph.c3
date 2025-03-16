@@ -530,9 +530,6 @@ uniform int useTexture = 1; // boolean
 out vec4 FragColor;
 
 void main() {
-    vec2 uv = fs_in.texPos + fs_in.texSize * fs_in.uv;
-    float color = texture(tex, uv).x * useTexture + (1 - useTexture); // same as comparison
-    vec4 result = vec4(fs_in.color.r / 255.0, fs_in.color.g / 255.0, fs_in.color.b / 255.0, color);
-    FragColor = result;
+    FragColor = vec4(fs_in.color / 255.0, useTexture == 0? 1 : texture(tex, fs_in.texPos + fs_in.texSize * fs_in.uv).x);
 }
 `;
