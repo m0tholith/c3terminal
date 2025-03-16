@@ -258,6 +258,8 @@ import glfw;
 import pty;
 
 import std::io;
+import std::ascii;
+import std::core::mem;
 
 fn void debug_message_callback(GLenum source,
                                GLenum type,
@@ -272,22 +274,26 @@ fn void debug_message_callback(GLenum source,
 
 fn void key_press_callback(Char32[] codepoints, int mods = 0)
 {
-    if (mods & glfw::MOD_CONTROL) switch (codepoints[0])
+    Allocator temp_alloc = allocator::temp();
+    if (ascii::is_upper((char)codepoints[0]))
     {
-        case 'G':
-            codepoints[0] = '\a';
-        case 'H':
-            codepoints[0] = '\b';
-        case 'I':
-            codepoints[0] = '\t';
-        case 'J':
-            codepoints[0] = '\n';
-        case 'K':
-            codepoints[0] = '\v';
-        case 'L':
-            codepoints[0] = '\f';
-        case 'M':
-            codepoints[0] = '\r';
+        if (mods == glfw::MOD_CONTROL)
+        {
+            // ctrl-c => 0x03 ; ctrl-g -> 0x07 ; etc.
+            codepoints[0] -= 'A' - 1;
+        }
+        else if (!(mods == 0 || mods == glfw::MOD_SHIFT))
+        {
+            char new_mod = 1;
+            if (mods & glfw::MOD_SHIFT) new_mod += 1;
+            if (mods & glfw::MOD_ALT) new_mod += 2;
+            if (mods & glfw::MOD_CONTROL) new_mod += 4;
+            if (mods & glfw::MOD_SUPER) new_mod += 8;
+            DString builder;
+            builder.init(temp_alloc);
+            builder.appendf("\e[%d;%du", codepoints[0] + (mods & glfw::MOD_SHIFT > 0 ? 'a' - 'A' : 0), new_mod);
+            codepoints = builder.copy_utf32(temp_alloc);
+        }
     }
 
     String! buffer = string::from_utf32(allocator::temp(), codepoints);
