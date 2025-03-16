@@ -17,6 +17,14 @@ fault TerminalError
     PTY_DEAD,
 }
 
+struct TermSettings
+{
+    uint[<2>] sco;
+    uint[<2>] dec;
+    bool showCursor;
+    bool reportFocus;
+    bool bracketedPaste;
+}
 struct Grid @local
 {
     font_atlas::GridCharFg[] fg;
@@ -41,8 +49,7 @@ struct Terminal
     Grid grid;
     char[<3>] bg;
     char[<3>] fg;
-    uint[<2>] sco;
-    uint[<2>] dec;
+    TermSettings settings;
     // number of lines that will be clipped from the top of the screen
     uint scroll;
 }
@@ -171,10 +178,10 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     self.cursor = (uint[<2>])new_cursor;
 }
-macro void Terminal.save_cursor_sco(&self) => self.sco = self.cursor;
-macro void Terminal.save_cursor_dec(&self) => self.dec = self.cursor;
-macro void Terminal.restore_cursor_sco(&self) => self.cursor = self.sco;
-macro void Terminal.restore_cursor_dec(&self) => self.cursor = self.dec;
+macro void Terminal.save_cursor_sco(&self) => self.settings.sco = self.cursor;
+macro void Terminal.save_cursor_dec(&self) => self.settings.dec = self.cursor;
+macro void Terminal.restore_cursor_sco(&self) => self.cursor = self.settings.sco;
+macro void Terminal.restore_cursor_dec(&self) => self.cursor = self.settings.dec;
 macro Terminal.newline(&self, long row_translation = 1)
 {
     self.move_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
