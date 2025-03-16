@@ -105,6 +105,10 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 
     switch (buffer[*char_idx])
     {
+        case 'E':
+            (*char_idx)++;
+            terminal.move_cursor({ 0, 1 });
+            terminal.cursor.x = 0;
         case 'P':
             (*char_idx)++;
             parse_dcs(terminal, char_idx, buffer)!;
