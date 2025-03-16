@@ -134,6 +134,10 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     Range{uint} param_range_sep     = { ';', ';' }; // separator
     Range{uint} param_range_private = { '<', '?' }; // private function parameters
 
+    List{uint} intermediates;
+    intermediates.init(allocator::temp());
+    Range{uint} intermediate_range = { '!', '/' }; // any number of these chars can come before the command
+
     uint command;
     Range{uint} command_range = { 0x40, 0x7E };
 
@@ -157,6 +161,10 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
             if (current_param >= parameters.len()) parameters.push(0);
             parameters[current_param] = c;
             current_param++;
+        }
+        else if (intermediate_range.contains(c))
+        {
+            intermediates.push(c);
         }
         else if (command_range.contains(c))
         {
