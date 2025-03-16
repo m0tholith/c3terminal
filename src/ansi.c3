@@ -74,10 +74,7 @@ fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
             terminal.move_cursor({ -1, 0 });
         case 0x09: // horizontal tab
             (*char_idx)++;
-            usz movement = (usz)math::ceil(++terminal.cursor.x / 8.0);
-            movement *= 8;
-            movement -= terminal.cursor.x;
-            terminal.move_cursor({ movement, 0 });
+            terminal.set_cursor({ (uint)math::ceil(++terminal.cursor.x / 8.0) * 8, terminal.cursor.y });
         case 0x0A: // line feed
             (*char_idx)++;
             terminal.move_cursor({ 0, 1 });
