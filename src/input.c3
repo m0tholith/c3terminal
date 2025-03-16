@@ -137,12 +137,16 @@ import glfw;
 import std::io;
 import std::collections::range;
 
-macro run_callbacks(codepoint, mods = 0)
+macro @run_callbacks(#codepoint, mods = 0)
 {
-    $if $typeof(codepoint).typeid == uint.typeid:
-        foreach (callback : input_manager.keyPressCallbacks) callback({ codepoint }, mods);
+    $if $typeof(#codepoint).typeid == uint.typeid:
+        foreach (callback : input_manager.keyPressCallbacks) callback({ #codepoint }, mods);
     $else
-        foreach (callback : input_manager.keyPressCallbacks) callback(codepoint, mods);
+        $if $typeof(#codepoint).typeid == char.typeid:
+            foreach (callback : input_manager.keyPressCallbacks) callback({ (char)#codepoint }, mods);
+        $else
+            foreach (callback : input_manager.keyPressCallbacks) callback(#codepoint, mods);
+        $endif
     $endif
 }
 
@@ -168,32 +172,36 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
     switch (key)
     {
         case glfw::KEY_ESCAPE:
-            codepoint = '\e';
-            run_callbacks(codepoint, mods);
+            @run_callbacks('\e', mods);
+            return;
         case glfw::KEY_ENTER:
-            codepoint = '\n';
-            run_callbacks(codepoint, mods);
+            @run_callbacks('\n', mods);
+            return;
         case glfw::KEY_TAB:
-            codepoint = '\t';
-            run_callbacks(codepoint, mods);
+            @run_callbacks('\t', mods);
+            return;
         case glfw::KEY_BACKSPACE:
-            codepoint = '\b';
-            run_callbacks(codepoint, mods);
+            @run_callbacks('\b', mods);
+            return;
         case glfw::KEY_RIGHT:
-            run_callbacks((uint[]){ '\e', '[', 'C' }, mods);
+            @run_callbacks((uint[]){ '\e', '[', 'C' }, mods);
+            return;
         case glfw::KEY_LEFT:
-            run_callbacks((uint[]){ '\e', '[', 'D' }, mods);
+            @run_callbacks((uint[]){ '\e', '[', 'D' }, mods);
+            return;
         case glfw::KEY_DOWN:
-            run_callbacks((uint[]){ '\e', '[', 'B' }, mods);
+            @run_callbacks((uint[]){ '\e', '[', 'B' }, mods);
+            return;
         case glfw::KEY_UP:
-            run_callbacks((uint[]){ '\e', '[', 'A' }, mods);
+            @run_callbacks((uint[]){ '\e', '[', 'A' }, mods);
+            return;
     }
     mods &= ~glfw::MOD_CAPS_LOCK;
     if (mods == 0 || mods == glfw::MOD_SHIFT) return;
 
-    run_callbacks(codepoint, mods);
+    @run_callbacks(codepoint, mods);
 }
 fn void char_callback(glfw::Window* window, uint codepoint)
 {
-    run_callbacks(codepoint);
+    @run_callbacks(codepoint);
 }
