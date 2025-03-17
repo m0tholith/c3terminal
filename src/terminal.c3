@@ -303,12 +303,12 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
             }
             else
             {
-                mods_sequence_codepoints(codepoints, mods);
+                mods_sequence_codepoints(codepoints, mods, temp_alloc);
             }
         }
         else
         {
-            mods_sequence_codepoints(codepoints, mods);
+            mods_sequence_codepoints(codepoints, mods, temp_alloc);
         }
     }
 
@@ -319,20 +319,16 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
         io::eprintfn("failed to write to pty: %s", excuse);
     }
 }
-macro mods_sequence_codepoints(codepoints, mods)
+macro mods_sequence_codepoints(codepoints, mods, alloc)
 {
     uint new_mod = 1;
     new_mod |= mods & glfw::MOD_SHIFT   ? 1 : 0;
     new_mod |= mods & glfw::MOD_ALT     ? 2 : 0;
     new_mod |= mods & glfw::MOD_CONTROL ? 4 : 0;
     new_mod |= mods & glfw::MOD_SUPER   ? 8 : 0;
-    if (new_mod <= 9)
-    {
-        codepoints = { '\e', '[', new_mod + '0', codepoints[0] };
-    }
-    else
-    {
-        codepoints = { '\e', '[', new_mod / 10 + '0', new_mod % 10 + '0', codepoints[0] };
-    }
+    DString builder;
+    builder.init(alloc);
+    builder.appendf("\e[%d;%d~", codepoints[0], new_mod);
+    codepoints = builder.str_view().to_utf32(alloc)!!;
     return codepoints;
 }
