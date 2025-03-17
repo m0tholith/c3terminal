@@ -369,7 +369,7 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                         // 8-bit color
                         case 5:
                             if (args.len < 3) return;
-                            term.cursor.fg = color_8_bit(args[3]);
+                            term.cursor.fg = color_8_bit(args[3], args[3] & 4);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
@@ -385,7 +385,7 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                         // 8-bit color
                         case 5:
                             if (args.len < 3) return;
-                            term.cursor.bg = color_8_bit(args[3]);
+                            term.cursor.bg = color_8_bit(args[3], args[3] & 4);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
@@ -398,14 +398,28 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     // 8-bit foreground
                     if (args[0].in_range(30, 8)) // 30-37
                     {
-                        term.cursor.fg = color_8_bit(args[0] - 30);
+                        term.cursor.fg = color_8_bit(args[0] - 30, false);
                     }
                     // 8-bit background
                     else if (args[0].in_range(40, 8)) // 40-47
                     {
-                        term.cursor.bg = color_8_bit(args[0] - 40);
+                        term.cursor.bg = color_8_bit(args[0] - 40, false);
+                    }
+                    // 8-bit bright foreground
+                    if (args[0].in_range(90, 8)) // 90-97
+                    {
+                        term.cursor.fg = color_8_bit(args[0] - 90, true);
+                    }
+                    // 8-bit bright background
+                    else if (args[0].in_range(100, 8)) // 100-107
+                    {
+                        term.cursor.bg = color_8_bit(args[0] - 100, true);
                     }
             }
     }
 }
-macro char[<3>] color_8_bit(idx) => { idx & 1 ? 255 : 0, idx & 2 ? 255 : 0, idx & 4 ? 255 : 0 };
+macro char[<3>] color_8_bit(idx, bright) => {
+    idx & 1 ? (bright ? 255 : 127) : 0,
+    idx & 2 ? (bright ? 255 : 127) : 0,
+    idx & 4 ? (bright ? 255 : 127) : 0
+};
