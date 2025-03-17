@@ -23,6 +23,7 @@ struct TermSettings
     uint[<2>] dec;
     bool showCursor;
     bool reportFocus;
+    bool alternateBuffer;
     bool bracketedPaste;
 }
 struct Grid @local

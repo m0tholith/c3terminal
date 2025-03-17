@@ -290,7 +290,7 @@ fn void h_parse(Terminal* term, uint[] args)
         case 1004: // enable reporting focus
             term.settings.reportFocus = true;
         case 1049: // enable alternate screen buffer
-            break;
+            term.settings.alternateBuffer = true;
         case 2004: // enable bracketed paste
             term.settings.bracketedPaste = true;
         default:
@@ -314,7 +314,7 @@ fn void l_parse(Terminal* term, uint[] args)
         case 1004: // disable reporting focus
             term.settings.reportFocus = false;
         case 1049: // disable alternate screen buffer
-            break;
+            term.settings.alternateBuffer = false;
         case 2004: // disable bracketed paste
             term.settings.bracketedPaste = false;
         default:
