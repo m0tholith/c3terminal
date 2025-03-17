@@ -141,7 +141,7 @@ struct GridCharFg
  @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
+fn void FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
     int uniform_idx = 0;
     for (int y_idx = 0; y_idx < grid_h; y_idx++)
@@ -155,7 +155,8 @@ fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint hei
             float x = (float)(int)(x_idx * width / grid_w);
             float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
-            stb_truetype::PackedChar* pChar = self.get_char(c.codepoint)!;
+            stb_truetype::PackedChar*! pChar = self.get_char(c.codepoint);
+            if (catch excuse = pChar) continue;
 
             float s = font_size / self.fontSize;
 
@@ -230,7 +231,7 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(hfirst, x_idx, y_idx, i
  @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void! FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
+fn void FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
     usz uniform_idx = 0;
     usz last_grid_idx = 0; GridCharBg last_grid_char = grid[0]; usz new_size = 1;

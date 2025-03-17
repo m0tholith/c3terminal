@@ -73,10 +73,7 @@ fn int main(String[] args)
         {
             break;
         }
-        if (catch excuse = terminal.render())
-        {
-            break;
-        }
+        terminal.render();
     }
 
     return 0;
