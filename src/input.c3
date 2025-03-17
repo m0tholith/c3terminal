@@ -174,16 +174,16 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
     switch (key)
     {
         case glfw::KEY_ESCAPE:
-            @run_callbacks('\e', mods);
+            @run_callbacks('\e', 0);
             return;
         case glfw::KEY_ENTER:
-            @run_callbacks('\n', mods);
+            @run_callbacks('\n', 0);
             return;
         case glfw::KEY_TAB:
-            @run_callbacks('\t', mods);
+            @run_callbacks('\t', 0);
             return;
         case glfw::KEY_BACKSPACE:
-            @run_callbacks('\b', mods);
+            @run_callbacks('\b', 0);
             return;
         case glfw::KEY_RIGHT:
             @run_callbacks((uint[]){ '\e', '[', 'C' }, mods);
