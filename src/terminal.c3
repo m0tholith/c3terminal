@@ -200,8 +200,13 @@ fn void! Terminal.pre_render(&self)
                 self.grid.bg[i + self.grid.width * j].color = self.bg;
             }
         }
-        self.grid.width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
-        self.grid.height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
+        uint new_width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
+        uint new_height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
+        if (self.grid.width != new_width || self.grid.height != new_height)
+        {
+            self.grid.dimensions = { new_width, new_height };
+            pty.set_winsize(self.grid.dimensions);
+        }
         self.cursor = { 0, 0 };
         self.scroll = 0;
     }

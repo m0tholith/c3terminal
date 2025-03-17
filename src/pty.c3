@@ -130,6 +130,12 @@ fn void! Pty.write(&self, String buffer)
 
     libc::write(self.master, buffer.ptr, buffer.len);
 }
+fn void Pty.set_winsize(&self, uint[<2>] new_dimensions)
+{
+    Winsize w = { (ushort)new_dimensions.y, (ushort)new_dimensions.x, 0, 0 };
+    ioctl(self.master, 21524, &w);
+    kill(0, 28);
+}
 fn bool Pty.is_alive(&self) @inline => waitpid(self.pid, null, 1) >= 0;
 
 module pty @private;
@@ -155,3 +161,4 @@ extern fn CInt execvp(ZString file, ZString* argv);
 extern fn libc::Pid_t waitpid(libc::Pid_t pid, int* wstatus, int options);
 extern fn libc::Pid_t getppid();
 extern fn int fcntl(CInt socket, int cmd, ...);
+extern fn int ioctl(CInt fd, int cmd, ...);
