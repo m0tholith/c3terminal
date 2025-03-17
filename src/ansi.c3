@@ -448,6 +448,6 @@ macro char[<3>] color_8_bit(idx, bright)
         result.b = m - result.r * 36 - result.g * 6;
         return result * 51;
     }
-    // TODO: return correct grayscale values
-    return {255,0,127};
+    idx -= 216;
+    return (char[<3>]){1,1,1} * (char)(idx * 255.0f / 24.0f);
 }
