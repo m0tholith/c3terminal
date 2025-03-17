@@ -193,8 +193,8 @@ AnsiMap csi_map = {
     { 'G', fn (term, args) => (void)(term.cursor.x = args.len == 0 ? 1 : (long)args[0] - 1) },
 
     // set cursor position
-    { 'H', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1,
-                                                args.len <= 1 ? 0 : (long)args[1] - 1 }) },
+    { 'H', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
+                                                args.len == 0 ? 0 : (long)args[0] - 1 }) },
 
     // erase in display
     { 'J', &j_erase },
@@ -206,8 +206,8 @@ AnsiMap csi_map = {
     { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
 
     // set cursor position
-    { 'f', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1,
-                                                args.len <= 1 ? 0 : (long)args[1] - 1 }) },
+    { 'f', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
+                                                args.len == 0 ? 0 : (long)args[0] - 1 }) },
 
     // select graphic rendition
     { 'm', &select_graphic_rendition },
