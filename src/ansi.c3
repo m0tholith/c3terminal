@@ -334,31 +334,41 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     term.cursor.bg = term.bg;
                     term.cursor.fg = term.fg;
                     term.cursor.opts = {};
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 1:
                     term.cursor.opts.bold          = true;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 2:
                     term.cursor.opts.faint         = true;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 3:
                     term.cursor.opts.italics       = true;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 4:
                     term.cursor.opts.underline     = true;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 7:
                     @swap(term.cursor.fg, term.cursor.bg);
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 9:
                     term.cursor.opts.strikethrough = true;
-                    break;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 21:
                     term.cursor.opts.bold          = false;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 22:
                     term.cursor.opts.bold          = false;
                     term.cursor.opts.faint         = false;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 23:
                     term.cursor.opts.italics       = false;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 24:
                     term.cursor.opts.underline     = false;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 29:
                     term.cursor.opts.strikethrough = false;
-                // TODO: cases 30-37
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 38:
                     switch (args[1])
                     {
@@ -374,7 +384,7 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     }
                 case 39:
                     term.cursor.fg = term.fg;
-                // TODO: cases 40-47
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 case 48:
                     switch (args[1])
                     {
@@ -390,26 +400,31 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     }
                 case 49:
                     term.cursor.bg = term.bg;
+                    if (args.len > 1) select_graphic_rendition(term, args[1..]);
                 default:
                     // 8-bit foreground
                     if (args[0].in_range(30, 8)) // 30-37
                     {
                         term.cursor.fg = color_8_bit(args[0] - 30, false);
+                        if (args.len > 1) select_graphic_rendition(term, args[1..]);
                     }
                     // 8-bit background
                     else if (args[0].in_range(40, 8)) // 40-47
                     {
                         term.cursor.bg = color_8_bit(args[0] - 40, false);
+                        if (args.len > 1) select_graphic_rendition(term, args[1..]);
                     }
                     // 8-bit bright foreground
                     if (args[0].in_range(90, 8)) // 90-97
                     {
                         term.cursor.fg = color_8_bit(args[0] - 90, true);
+                        if (args.len > 1) select_graphic_rendition(term, args[1..]);
                     }
                     // 8-bit bright background
                     else if (args[0].in_range(100, 8)) // 100-107
                     {
                         term.cursor.bg = color_8_bit(args[0] - 100, true);
+                        if (args.len > 1) select_graphic_rendition(term, args[1..]);
                     }
             }
     }
