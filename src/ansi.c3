@@ -211,6 +211,9 @@ AnsiMap csi_map = {
     // set cursor position
     { 'f', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 })  },
 
+    // select graphic rendition
+    { 'm', &select_graphic_rendition                                                                    },
+
     // enable and disable aux; don't care
     { 'i', fn (term, args) => (void)0                                                                   },
 
@@ -319,5 +322,52 @@ fn void l_parse(Terminal* term, uint[] args)
             term.settings.bracketedPaste = false;
         default:
             return;
+    }
+}
+fn void select_graphic_rendition(Terminal* term, uint[] args)
+{
+    switch (args.len)
+    {
+        case 0:
+            args = { 0 };
+            nextcase;
+        default:
+            switch (args[0])
+            {
+                case 0:
+                    term.cursor.bg = term.bg;
+                    term.cursor.fg = term.fg;
+                    term.cursor.opts = {};
+                case 1:
+                    term.cursor.opts.bold          = true;
+                case 2:
+                    term.cursor.opts.faint         = true;
+                case 3:
+                    term.cursor.opts.italics       = true;
+                case 4:
+                    term.cursor.opts.underline     = true;
+                case 7:
+                    @swap(term.cursor.fg, term.cursor.bg);
+                case 9:
+                    term.cursor.opts.strikethrough = true;
+                    break;
+                case 21:
+                    term.cursor.opts.bold          = false;
+                case 22:
+                    term.cursor.opts.bold          = false;
+                    term.cursor.opts.faint         = false;
+                case 23:
+                    term.cursor.opts.italics       = false;
+                case 24:
+                    term.cursor.opts.underline     = false;
+                case 29:
+                    term.cursor.opts.strikethrough = false;
+                // TODO: cases 30-37 and case 38
+                case 39:
+                    term.cursor.fg = term.fg;
+                // TODO: cases 40-47 and case 48
+                case 49:
+                    term.cursor.bg = term.bg;
+            }
     }
 }
