@@ -47,6 +47,14 @@ struct Cursor
     inline uint[<2>] position;
     char[<3>] bg;
     char[<3>] fg;
+    bitstruct opts : char
+    {
+        bool bold;
+        bool faint;
+        bool italics;
+        bool strikethrough;
+        bool underline;
+    }
 }
 struct Terminal
 {
@@ -112,7 +120,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
         self.grid.fg[i] = { ' ', fg };
         self.grid.bg[i].color = self.bg;
     }
-    self.cursor = { { 0, 0 }, self.bg, self.fg };
+    self.cursor = { .position = { 0, 0 }, .bg = self.bg, .fg = self.fg };
 }
 <*
  Assigns character to terminal's current cursor position
