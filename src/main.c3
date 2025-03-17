@@ -86,19 +86,7 @@ fn void paste_clipboard()
 {
     ZString clipboard = glfw::getClipboardString(null);
     if (clipboard == null) return;
-    uint[] clipboard_string = mem::temp_array(uint, clipboard.len() + (terminal.settings.bracketedPaste ? 6+6 : 0));
-    if (catch excuse = conv::utf8to32(clipboard.str_view(), clipboard_string[(terminal.settings.bracketedPaste ? 6 : 0)..]))
-    {
-        io::printfn("could not convert string to utf32: %s", excuse);
-        return;
-    }
-    usz clipboard_len = get_len(clipboard_string);
-    if (terminal.settings.bracketedPaste)
-    {
-        set_bracketed_paste(clipboard_string, clipboard_len);
-        clipboard_len += (terminal.settings.bracketedPaste ? 6+6 : 0);
-    }
-    foreach (callback : input_manager.keyPressCallbacks) callback(clipboard_string[:clipboard_len]);
+    (void)pty.write((String)clipboard[:clipboard.len()]);
 }
 macro usz get_len(uint[] arr)
 {
