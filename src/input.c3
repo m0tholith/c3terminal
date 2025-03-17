@@ -136,6 +136,7 @@ import glfw;
 
 import std::io;
 import std::collections::range;
+import std::ascii;
 
 macro @run_callbacks(#codepoint, mods = 0)
 {
@@ -169,6 +170,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
     }
     if (action == glfw::RELEASE) return;
     uint codepoint = key;
+    mods &= ~glfw::MOD_CAPS_LOCK & ~glfw::MOD_NUM_LOCK;
     switch (key)
     {
         case glfw::KEY_ESCAPE:
@@ -196,8 +198,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             @run_callbacks((uint[]){ '\e', '[', 'A' }, mods);
             return;
     }
-    mods &= ~glfw::MOD_CAPS_LOCK;
-    if (mods == 0 || mods == glfw::MOD_SHIFT) return;
+    if (ascii::is_alnum((char)key)) if (mods == 0 || mods == glfw::MOD_SHIFT) return;
 
     @run_callbacks(codepoint, mods);
 }
