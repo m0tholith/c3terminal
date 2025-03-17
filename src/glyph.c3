@@ -144,9 +144,9 @@ struct GridCharFg
 fn void! FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
     int uniform_idx = 0;
-    for (int x_idx = 0; x_idx < grid_w; x_idx++)
+    for (int y_idx = 0; y_idx < grid_h; y_idx++)
     {
-        for (int y_idx = 0; y_idx < grid_h; y_idx++)
+        for (int x_idx = 0; x_idx < grid_w; x_idx++)
         {
             usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
             GridCharFg c = grid[idx];

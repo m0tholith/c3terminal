@@ -162,9 +162,9 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
     }
 }
 macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.size;
-fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
+fn void Terminal.set_cursor(&self, long[<2>] position) @inline
 {
-    self.cursor.position = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
+    self.cursor.position = { (uint)math::clamp(position.x, 0, self.grid.width), (uint)math::clamp(position.y, 0, self.grid.height) };
 }
 fn void Terminal.move_cursor_clamp(&self, long[<2>] translation) @inline
 {
@@ -190,7 +190,7 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     else if (new_cursor.y >= self.grid.height)
     {
-        self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (uint)(self.grid.size / self.grid.width);
+        self.scroll_lines(new_cursor.y - self.scroll - self.grid.height + 1);
         new_cursor.y = (long)self.grid.height - 1;
     }
     self.cursor.position = (uint[<2>])new_cursor;
