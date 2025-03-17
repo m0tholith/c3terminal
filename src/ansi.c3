@@ -429,8 +429,25 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
             }
     }
 }
-macro char[<3>] color_8_bit(idx, bright) => {
-    idx & 1 ? (bright ? 255 : 127) : 0,
-    idx & 2 ? (bright ? 255 : 127) : 0,
-    idx & 4 ? (bright ? 255 : 127) : 0
-};
+macro char[<3>] color_8_bit(idx, bright)
+{
+    // 3/4-bit mode
+    if (idx < 16) return  {
+        idx & 1 ? 128 + (bright ? 127 : 0) : 0,
+        idx & 2 ? 128 + (bright ? 127 : 0) : 0,
+        idx & 4 ? 128 + (bright ? 127 : 0) : 0
+    };
+    // 8-bit mode
+    idx -= 16;
+    if (idx <= 215)
+    {
+        char[<3>] result;
+        char m = (char)idx;
+        result.r = m / 36;
+        result.g = (m - result.r * 36) / 6;
+        result.b = m - result.r * 36 - result.g * 6;
+        return result * 51;
+    }
+    // TODO: return correct grayscale values
+    return {255,0,127};
+}
