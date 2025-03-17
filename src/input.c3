@@ -185,6 +185,9 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         case glfw::KEY_BACKSPACE:
             @run_callbacks('\b', 0);
             return;
+        case glfw::KEY_DELETE:
+            @run_callbacks(0x7F, 0);
+            return;
         case glfw::KEY_RIGHT:
             @run_callbacks((uint[]){ '\e', '[', 'C' }, mods);
             return;
