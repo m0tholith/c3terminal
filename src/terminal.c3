@@ -201,7 +201,7 @@ macro void Terminal.restore_cursor_sco(&self) => self.cursor.position = self.set
 macro void Terminal.restore_cursor_dec(&self) => self.cursor.position = self.settings.dec;
 macro Terminal.newline(&self, long row_translation = 1)
 {
-    self.move_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
+    self.set_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
     self.cursor.x = 0;
 }
 fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll = (uint)((long)(self.scroll + amount) % (self.grid.size / self.grid.width));
