@@ -208,7 +208,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
                     return;
             }
     }
-    if (ascii::is_alnum((char)key)) if (mods == 0 || mods == glfw::MOD_SHIFT) return;
+    if (' ' <= key && key <= '~') if (mods == 0 || mods == glfw::MOD_SHIFT) return;
     // means only modifier keypresses
     if (key >= glfw::KEY_LEFT_SHIFT) return;
 
