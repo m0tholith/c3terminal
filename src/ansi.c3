@@ -286,9 +286,13 @@ fn void h_parse(Terminal* term, uint[] args)
     switch (c)
     {
         case 25:   // show cursor
+            term.settings.showCursor = true;
         case 1004: // enable reporting focus
+            term.settings.reportFocus = true;
         case 1049: // enable alternate screen buffer
+            break;
         case 2004: // enable bracketed paste
+            term.settings.bracketedPaste = true;
         default:
             return;
     }
@@ -306,9 +310,13 @@ fn void l_parse(Terminal* term, uint[] args)
     switch (c)
     {
         case 25:   // hide cursor
+            term.settings.showCursor = false;
         case 1004: // disable reporting focus
+            term.settings.reportFocus = false;
         case 1049: // disable alternate screen buffer
+            break;
         case 2004: // disable bracketed paste
+            term.settings.bracketedPaste = false;
         default:
             return;
     }
