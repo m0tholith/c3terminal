@@ -70,7 +70,7 @@ fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
             terminal.move_cursor({ -1, 0 });
         case 0x09: // horizontal tab
             (*char_idx)++;
-            terminal.set_cursor({ (uint)math::ceil(++terminal.cursor.x / 8.0) * 8, terminal.cursor.y });
+            terminal.set_cursor({ (long)math::ceil(++terminal.cursor.x / 8.0) * 8, terminal.cursor.y });
         case 0x0A: // line feed
             (*char_idx)++;
             terminal.move_cursor({ 0, 1 });
@@ -149,7 +149,7 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
         }
         else if (param_range_sep.contains(c))
         {
-            while (current_param >= parameters.len()) parameters.push(1);
+            while (current_param >= parameters.len()) parameters.push(0);
             current_param++;
         }
         else if (param_range_private.contains(c))
@@ -180,52 +180,54 @@ fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 
 AnsiMap csi_map = {
     // cursor up/down/forward/back
-    { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? -1 : -(long)args[0] })        },
-    { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ?  1 :  (long)args[0] })        },
-    { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ?  1 :  (long)args[0], 0 })        },
-    { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? -1 : -(long)args[0], 0 })        },
+    { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? -1 : -(long)args[0] }) },
+    { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ?  1 :  (long)args[0] }) },
+    { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ?  1 :  (long)args[0], 0 }) },
+    { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? -1 : -(long)args[0], 0 }) },
 
     // move cursor to the beginning of line, n lines down/up
-    { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0])                               },
-    { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0])                               },
+    { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0]) },
+    { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0]) },
 
     // move cursor to column n
-    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : args[0], term.cursor.y })           },
+    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1, term.cursor.y }) },
 
     // set cursor position
-    { 'H', fn (term, args) => term.set_cursor({args.len == 0? 0 : args[0], args.len <= 1? 0 : args[1]}) },
+    { 'H', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1,
+                                                args.len <= 1 ? 0 : (long)args[1] - 1 }) },
 
     // erase in display
-    { 'J', &j_erase                                                                                     },
+    { 'J', &j_erase },
     // erase in line
-    { 'K', &k_erase                                                                                     },
+    { 'K', &k_erase },
 
     // scroll up/down
-    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0])                           },
-    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0])                           },
+    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
+    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
 
     // set cursor position
-    { 'f', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 })  },
+    { 'f', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1,
+                                                args.len <= 1 ? 0 : (long)args[1] - 1 }) },
 
     // select graphic rendition
-    { 'm', &select_graphic_rendition                                                                    },
+    { 'm', &select_graphic_rendition },
 
     // enable and disable aux; don't care
-    { 'i', fn (term, args) => (void)0                                                                   },
+    { 'i', fn (term, args) => (void)0 },
 
     // report cursor position
-    { 'n', &send_cursor_pos                                                                             },
+    { 'n', &send_cursor_pos },
 
     /// private sequences
 
     // save/restore cursor to sco
-    { 's', fn (term, args) => term.save_cursor_sco()                                                   },
-    { 'u', fn (term, args) => term.restore_cursor_sco()                                                },
+    { 's', fn (term, args) => term.save_cursor_sco() },
+    { 'u', fn (term, args) => term.restore_cursor_sco() },
 
     // enable setting
-    { 'h', &h_parse                                                                                    },
+    { 'h', &h_parse },
     // disable setting
-    { 'l', &l_parse                                                                                    },
+    { 'l', &l_parse },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
