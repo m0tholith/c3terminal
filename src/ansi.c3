@@ -362,10 +362,34 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     term.cursor.opts.underline     = false;
                 case 29:
                     term.cursor.opts.strikethrough = false;
-                // TODO: cases 30-37 and case 38
+                // TODO: cases 30-37
+                case 38:
+                    switch (args[1])
+                    {
+                        // 8-bit color
+                        case 5:
+                            break;
+                        // 24-bit color
+                        case 2:
+                            if (args.len < 5) return;
+                            // 38;2;<r>;<g><b>
+                            term.cursor.fg = { (char)args[2], (char)args[3], (char)args[4] };
+                    }
                 case 39:
                     term.cursor.fg = term.fg;
-                // TODO: cases 40-47 and case 48
+                // TODO: cases 40-47
+                case 48:
+                    switch (args[1])
+                    {
+                        // 8-bit color
+                        case 5:
+                            break;
+                        // 24-bit color
+                        case 2:
+                            if (args.len < 5) return;
+                            // 48;2;<r>;<g><b>
+                            term.cursor.bg = { (char)args[2], (char)args[3], (char)(char)args[4] };
+                    }
                 case 49:
                     term.cursor.bg = term.bg;
             }
