@@ -205,8 +205,8 @@ AnsiMap csi_map = {
     { 'K', &k_erase                                                                                     },
 
     // scroll up/down
-    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : args[0])                           },
-    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 : args[0])                           },
+    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0])                           },
+    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0])                           },
 
     // set cursor position
     { 'f', fn (term, args) => term.set_cursor(args.len == 0 ? { 0, 0 } : { args[0] - 1, args[1] - 1 })  },
