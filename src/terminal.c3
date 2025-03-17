@@ -287,24 +287,28 @@ fn void debug_message_callback(GLenum source,
 fn void key_press_callback(Char32[] codepoints, int mods = 0)
 {
     Allocator temp_alloc = allocator::temp();
-    if (ascii::is_upper((char)codepoints[0]))
+    if (codepoints.len == 1) if (mods > 0)
     {
-        if (mods == glfw::MOD_CONTROL)
+        if (ascii::is_alpha((char)codepoints[0]))
         {
-            // ctrl-c => 0x03 ; ctrl-g -> 0x07 ; etc.
-            codepoints[0] -= 'A' - 1;
+            if (mods == glfw::MOD_CONTROL)
+            {
+                // ctrl-c => 0x03 ; ctrl-g -> 0x07 ; etc.
+                codepoints[0] -= 'A' - 1;
+            }
+            else if (mods == glfw::MOD_ALT || mods == glfw::MOD_ALT | glfw::MOD_SHIFT)
+            {
+                codepoints[0] += mods & glfw::MOD_SHIFT ? 'a' - 'A' : 0;
+                codepoints = { '\e', codepoints[0] };
+            }
+            else
+            {
+                mods_sequence_codepoints(codepoints, mods);
+            }
         }
-        else if (!(mods == 0 || mods == glfw::MOD_SHIFT))
+        else
         {
-            char new_mod = 1;
-            if (mods & glfw::MOD_SHIFT) new_mod += 1;
-            if (mods & glfw::MOD_ALT) new_mod += 2;
-            if (mods & glfw::MOD_CONTROL) new_mod += 4;
-            if (mods & glfw::MOD_SUPER) new_mod += 8;
-            DString builder;
-            builder.init(temp_alloc);
-            builder.appendf("\e[%d;%du", codepoints[0] + (mods & glfw::MOD_SHIFT > 0 ? 'a' - 'A' : 0), new_mod);
-            codepoints = builder.copy_utf32(temp_alloc);
+            mods_sequence_codepoints(codepoints, mods);
         }
     }
 
@@ -314,4 +318,21 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
     {
         io::eprintfn("failed to write to pty: %s", excuse);
     }
+}
+macro mods_sequence_codepoints(codepoints, mods)
+{
+    uint new_mod = 1;
+    new_mod |= mods & glfw::MOD_SHIFT   ? 1 : 0;
+    new_mod |= mods & glfw::MOD_ALT     ? 2 : 0;
+    new_mod |= mods & glfw::MOD_CONTROL ? 4 : 0;
+    new_mod |= mods & glfw::MOD_SUPER   ? 8 : 0;
+    if (new_mod <= 9)
+    {
+        codepoints = { '\e', '[', new_mod + '0', codepoints[0] };
+    }
+    else
+    {
+        codepoints = { '\e', '[', new_mod / 10 + '0', new_mod % 10 + '0', codepoints[0] };
+    }
+    return codepoints;
 }
