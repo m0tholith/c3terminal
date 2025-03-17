@@ -41,11 +41,17 @@ struct Grid @local
     float fontSize;
     usz size;
 }
+struct Cursor
+{
+    inline uint[<2>] position;
+    char[<3>] bg;
+    char[<3>] fg;
+}
 struct Terminal
 {
     window::Window window;
     font_atlas::FontAtlas fontAtlas;
-    uint[<2>] cursor;
+    Cursor cursor;
     Grid grid;
     char[<3>] bg;
     char[<3>] fg;
@@ -105,6 +111,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
         self.grid.fg[i] = { ' ', fg };
         self.grid.bg[i].color = self.bg;
     }
+    self.cursor = { { 0, 0 }, self.bg, self.fg };
 }
 <*
  Assigns character to terminal's current cursor position
@@ -113,7 +120,8 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
  *>
 fn void Terminal.assign_char(&self, uint codepoint)
 {
-    self.grid.fg[self.get_grid_idx(self.cursor)].codepoint = codepoint;
+    self.grid.fg[self.get_grid_idx(self.cursor)] = { .codepoint = codepoint, .color = self.cursor.fg };
+    self.grid.bg[self.get_grid_idx(self.cursor)].color = self.cursor.bg;
 }
 <*
  Assigns background color to terminal's current cursor position
@@ -122,7 +130,7 @@ fn void Terminal.assign_char(&self, uint codepoint)
  *>
 fn void Terminal.assign_char_bg(&self, char[<3>] bg)
 {
-    self.grid.bg[self.get_grid_idx(self.cursor)].color = bg;
+    self.cursor.bg = bg;
 }
 <*
  Assigns foreground color to terminal's current cursor position
@@ -131,7 +139,7 @@ fn void Terminal.assign_char_bg(&self, char[<3>] bg)
  *>
 fn void Terminal.assign_char_fg(&self, char[<3>] fg)
 {
-    self.grid.fg[self.get_grid_idx(self.cursor)].color = fg;
+    self.cursor.fg = fg;
 }
 macro void Terminal.clear(&self) => self.erase({ 0, 0 }, self.grid.size);
 fn void Terminal.erase(&self, uint[<2>] start, usz length)
@@ -147,16 +155,16 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
 macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.size;
 fn void Terminal.set_cursor(&self, uint[<2>] position) @inline
 {
-    self.cursor = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
+    self.cursor.position = { math::clamp(position.x, 0, self.grid.width), math::clamp(position.y, 0, self.grid.height) };
 }
 fn void Terminal.move_cursor_clamp(&self, long[<2>] translation) @inline
 {
-    long[<2>] new_cursor = (long[<2>])self.cursor + translation;
-    self.cursor = { (uint)math::clamp(new_cursor.x, 0, self.grid.width - 1), (uint)math::clamp(new_cursor.y, 0, self.grid.height - 1) };
+    long[<2>] new_cursor = (long[<2>])self.cursor.position + translation;
+    self.cursor.position = { (uint)math::clamp(new_cursor.x, 0, self.grid.width - 1), (uint)math::clamp(new_cursor.y, 0, self.grid.height - 1) };
 }
 fn void Terminal.move_cursor(&self, long[<2>] translation)
 {
-    long[<2>] new_cursor = (long[<2>])self.cursor + translation + { 0, self.scroll };
+    long[<2>] new_cursor = (long[<2>])self.cursor.position + translation + { 0, self.scroll };
     if (new_cursor.x < 0)
     {
         new_cursor.x = (long)self.grid.width - 1;
@@ -176,12 +184,12 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
         self.scroll = (uint)(new_cursor.y - self.grid.height + 1) % (uint)(self.grid.size / self.grid.width);
         new_cursor.y = (long)self.grid.height - 1;
     }
-    self.cursor = (uint[<2>])new_cursor;
+    self.cursor.position = (uint[<2>])new_cursor;
 }
 macro void Terminal.save_cursor_sco(&self) => self.settings.sco = self.cursor;
 macro void Terminal.save_cursor_dec(&self) => self.settings.dec = self.cursor;
-macro void Terminal.restore_cursor_sco(&self) => self.cursor = self.settings.sco;
-macro void Terminal.restore_cursor_dec(&self) => self.cursor = self.settings.dec;
+macro void Terminal.restore_cursor_sco(&self) => self.cursor.position = self.settings.sco;
+macro void Terminal.restore_cursor_dec(&self) => self.cursor.position = self.settings.dec;
 macro Terminal.newline(&self, long row_translation = 1)
 {
     self.move_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
@@ -207,7 +215,7 @@ fn void! Terminal.pre_render(&self)
             self.grid.dimensions = { new_width, new_height };
             pty.set_winsize(self.grid.dimensions);
         }
-        self.cursor = { 0, 0 };
+        self.cursor.position = { 0, 0 };
         self.scroll = 0;
     }
 
