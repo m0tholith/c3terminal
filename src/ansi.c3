@@ -243,9 +243,9 @@ fn void j_erase(Terminal* term, uint[] args)
         case 1:
             term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.cursor) + 1));
         case 2:
-            term.clear();
+            term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.grid.dimensions) + 1));
         case 3:
-            break;
+            term.clear();
     }
 }
 fn void k_erase(Terminal* term, uint[] args)
@@ -263,8 +263,6 @@ fn void k_erase(Terminal* term, uint[] args)
             term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
         case 2:
             term.erase({ 0, term.cursor.y }, term.grid.width);
-        case 3:
-            break;
     }
 }
 fn void send_cursor_pos(Terminal* term, uint[] args)
