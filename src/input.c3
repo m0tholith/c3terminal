@@ -197,6 +197,16 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
         case glfw::KEY_UP:
             @run_callbacks((uint[]){ '\e', '[', 'A' }, mods);
             return;
+        case glfw::KEY_LEFT_BRACKET:
+            switch (mods)
+            {
+                case glfw::MOD_ALT:
+                    @run_callbacks((uint[]){ '\e', '[' }, 0);
+                    return;
+                case glfw::MOD_CONTROL:
+                    @run_callbacks('\e', 0);
+                    return;
+            }
     }
     if (ascii::is_alnum((char)key)) if (mods == 0 || mods == glfw::MOD_SHIFT) return;
 
