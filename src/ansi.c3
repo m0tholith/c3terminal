@@ -368,7 +368,8 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     {
                         // 8-bit color
                         case 5:
-                            break;
+                            if (args.len < 3) return;
+                            term.cursor.fg = color_8_bit(args[3]);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
@@ -383,7 +384,8 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     {
                         // 8-bit color
                         case 5:
-                            break;
+                            if (args.len < 3) return;
+                            term.cursor.bg = color_8_bit(args[3]);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
@@ -392,6 +394,18 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                     }
                 case 49:
                     term.cursor.bg = term.bg;
+                default:
+                    // 8-bit foreground
+                    if (args[0].in_range(30, 8)) // 30-37
+                    {
+                        term.cursor.fg = color_8_bit(args[0] - 30);
+                    }
+                    // 8-bit background
+                    else if (args[0].in_range(40, 8)) // 40-47
+                    {
+                        term.cursor.bg = color_8_bit(args[0] - 40);
+                    }
             }
     }
 }
+macro char[<3>] color_8_bit(idx) => { idx & 1 ? 255 : 0, idx & 2 ? 255 : 0, idx & 4 ? 255 : 0 };
