@@ -22,12 +22,8 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
         if (try parse_c0(self, &char_idx, buffer)) continue;
         if (char_idx >= buffer.len) break;
 
-        // render-able
-        if (in_range(buffer[char_idx], 32, 126))
-        {
-            self.assign_char(buffer[char_idx]);
-            self.move_cursor({ 1, 0 });
-        }
+        self.assign_char(buffer[char_idx]);
+        self.move_cursor({ 1, 0 });
         char_idx++;
     }
 }
