@@ -369,7 +369,7 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                         // 8-bit color
                         case 5:
                             if (args.len < 3) return;
-                            term.cursor.fg = color_8_bit(args[3], args[3] & 4);
+                            term.cursor.fg = color_8_bit(args[2], args[2] & 4);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
@@ -385,7 +385,7 @@ fn void select_graphic_rendition(Terminal* term, uint[] args)
                         // 8-bit color
                         case 5:
                             if (args.len < 3) return;
-                            term.cursor.bg = color_8_bit(args[3], args[3] & 4);
+                            term.cursor.bg = color_8_bit(args[2], args[2] & 4);
                         // 24-bit color
                         case 2:
                             if (args.len < 5) return;
