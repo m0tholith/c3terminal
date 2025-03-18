@@ -180,6 +180,21 @@ fn void! parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return AnsiError.INCOMPLETE?;
     if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
+
+    int start_idx = *char_idx;
+    Char32[] str_to_parse;
+    for (; *char_idx < buffer.len; *char_idx++)
+    {
+        // catch ST (string terminator)
+        if (buffer[*char_idx] == 0x9c ||
+            (buffer[*char_idx] == '\\' &&
+                *char_idx - 1 >= 0 &&
+                buffer[*char_idx-1] == '\e'))
+        {
+            str_to_parse = buffer[start_idx..*char_idx];
+        }
+    }
+    if (str_to_parse.ptr == null) return AnsiError.INCOMPLETE?;
 }
 fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
