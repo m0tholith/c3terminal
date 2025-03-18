@@ -48,7 +48,7 @@ const float[<3>][] COLORS = {
 
 fn int main(String[] args)
 {
-    terminal.init(900, 600, "test.ttf", window_name: "m0tty", font_size: 20, bg: { 0x1e, 0x1e, 0x2e }, fg: { 0xcd, 0xd6, 0xf4 })!!;
+    terminal.init(900, 600, "test.ttf", window_name: "m0tty", font_size: 20, grid_size: 32400 + 1120000, bg: { 0x1e, 0x1e, 0x2e }, fg: { 0xcd, 0xd6, 0xf4 })!!;
     defer terminal.free();
 
     input::Map map;
