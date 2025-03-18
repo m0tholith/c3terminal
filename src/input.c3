@@ -177,7 +177,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
             @run_callbacks('\e', 0);
             return;
         case glfw::KEY_ENTER:
-            @run_callbacks('\n', 0);
+            @run_callbacks('\r', 0);
             return;
         case glfw::KEY_TAB:
             @run_callbacks('\t', 0);
