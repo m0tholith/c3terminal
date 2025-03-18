@@ -23,8 +23,14 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
         if (catch excuse = parse_c1(self, &char_idx, buffer)) { switch (excuse)
         {
             case AnsiError.INCOMPLETE:
-                if (self.lastBuffer.ptr != null) mem::free(self.lastBuffer);
-                self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                if (self.lastBuffer.ptr == null)
+                {
+                    self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                }
+                else
+                {
+                    self.lastBuffer = ((Char32*)mem::realloc(self.lastBuffer, Char32.sizeof * (self.lastBuffer.len + buffer.len - prev_char_idx)))[:self.lastBuffer.len + buffer.len - prev_char_idx];
+                }
                 mem::move(self.lastBuffer.ptr, buffer[prev_char_idx..].ptr, self.lastBuffer.len);
                 return excuse?;
             default:
@@ -34,8 +40,14 @@ fn void! Terminal.interpret(&self, Char32[] buffer)
         if (catch excuse = parse_c0(self, &char_idx, buffer)) { switch (excuse)
         {
             case AnsiError.INCOMPLETE:
-                if (self.lastBuffer.ptr != null) mem::free(self.lastBuffer);
-                self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                if (self.lastBuffer.ptr == null)
+                {
+                    self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                }
+                else
+                {
+                    self.lastBuffer = ((Char32*)mem::realloc(self.lastBuffer, Char32.sizeof * (self.lastBuffer.len + buffer.len - prev_char_idx)))[:self.lastBuffer.len + buffer.len - prev_char_idx];
+                }
                 mem::move(self.lastBuffer.ptr, buffer[prev_char_idx..].ptr, buffer.len - prev_char_idx);
                 return excuse?;
             default:
