@@ -57,6 +57,14 @@ struct Cursor
         bool underline;
     }
 }
+struct Tabs
+{
+    inline char spaces;
+    // positions where a tabstop has been added by user
+    List{uint[<2>]} tabstopsNew;
+    // positions where a tabstop has been removed by user
+    List{uint[<2>]} tabstopsDel;
+}
 struct Terminal
 {
     window::Window window;
@@ -66,6 +74,7 @@ struct Terminal
     char[<3>] bg;
     char[<3>] fg;
     TermSettings settings;
+    Tabs tabs;
     // if last command pty sent was incomplete, this will be populated and, on the next read, will be appended and interpreted
     Char32[] lastBuffer;
     // number of lines that will be clipped from the top of the screen
@@ -124,6 +133,10 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
         self.grid.bg[i].color = self.bg;
     }
     self.cursor = { .position = { 0, 0 }, .bg = self.bg, .fg = self.fg };
+
+    self.tabs.spaces = 8;
+    self.tabs.tabstopsNew.init(mem);
+    self.tabs.tabstopsDel.init(mem);
 
     pty.set_winsize(self.grid.dimensions);
 }
@@ -294,6 +307,8 @@ fn void Terminal.free(&self)
     input_manager.free();
     window::terminate_system();
     pty.free();
+    self.tabs.tabstopsNew.free();
+    self.tabs.tabstopsDel.free();
 }
 
 module terminal @private;

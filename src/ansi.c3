@@ -105,7 +105,18 @@ fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
             terminal.move_cursor({ -1, 0 });
         case 0x09: // horizontal tab
             (*char_idx)++;
-            terminal.set_cursor({ (long)math::ceil(++terminal.cursor.x / 8.0) * 8, terminal.cursor.y });
+            uint default_tabstop = (uint)math::ceil(++terminal.cursor.x / 8.0) * 8;
+            if (!terminal.tabs.tabstopsDel.contains({ default_tabstop, terminal.cursor.y }))
+            {
+                terminal.set_cursor({ default_tabstop, terminal.cursor.y });
+                return;
+            }
+            for (; terminal.cursor.x < terminal.grid.width; terminal.cursor.x++)
+            {
+                if (terminal.tabs.tabstopsNew.contains(terminal.cursor.position)) break;
+                if ((terminal.cursor.x + 1) % 8 == 0 &&
+                    !terminal.tabs.tabstopsDel.contains(terminal.cursor.position)) break;
+            }
         case 0x0A: // line feed
             (*char_idx)++;
             terminal.move_cursor({ 0, 1 });
