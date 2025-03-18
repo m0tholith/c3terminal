@@ -328,7 +328,7 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
             }
             else if (mods == glfw::MOD_ALT || mods == glfw::MOD_ALT | glfw::MOD_SHIFT)
             {
-                codepoints[0] += mods & glfw::MOD_SHIFT ? 'a' - 'A' : 0;
+                codepoints[0] += mods & glfw::MOD_SHIFT ? 0 : 'a' - 'A';
                 codepoints = { '\e', codepoints[0] };
             }
             else
