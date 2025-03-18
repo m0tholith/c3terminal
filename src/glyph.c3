@@ -246,6 +246,8 @@ macro get_grid_bg_ranges(grid, grid_w, grid_h, char_start) @local
     }
 }
 <*
+ @require grid.ptr != null
+ @require grid_w != 0 && grid_h != 0
  @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
