@@ -148,6 +148,9 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
         case ']': // operating system command
             (*char_idx)++;
             parse_osc(terminal, char_idx, buffer)!;
+        case '_': // application program command
+            (*char_idx)++;
+            parse_apc(terminal, char_idx, buffer)!;
         case 'c': // full reset
             (*char_idx)++;
             terminal.cursor   = {
@@ -228,6 +231,11 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     (void)csi_map.find(command)(terminal, parameters.array_view());
 }
 fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
+{
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
+}
+fn void! parse_apc(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return AnsiError.INCOMPLETE?;
     if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
