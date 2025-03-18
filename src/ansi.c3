@@ -148,6 +148,17 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
         case ']': // operating system command
             (*char_idx)++;
             parse_osc(terminal, char_idx, buffer)!;
+        case 'c': // full reset
+            (*char_idx)++;
+            terminal.cursor   = {
+                .position = {},
+                .bg = terminal.bg,
+                .fg = terminal.fg,
+            };
+            terminal.settings = {};
+            terminal.tabs     = {};
+            terminal.scroll   = 0;
+            terminal.clear();
         case '(':
             (*char_idx)++;
             if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
