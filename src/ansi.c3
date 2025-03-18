@@ -148,6 +148,8 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
         case '[': // control sequence indicator
             (*char_idx)++;
             parse_csi(terminal, char_idx, buffer)!;
+        case '\\': // ST (string terminator)
+            (*char_idx)++;
         case ']': // operating system command
             (*char_idx)++;
             parse_osc(terminal, char_idx, buffer)!;
