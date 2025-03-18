@@ -223,6 +223,24 @@ macro Terminal.newline(&self, long row_translation = 1)
     self.cursor.x = 0;
 }
 fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll = (uint)((long)(self.scroll + amount) % (self.grid.size / self.grid.width));
+fn void Terminal.tab(&self, uint amount = 1)
+{
+    for (; amount > 0; amount--)
+    {
+        uint default_tabstop = (uint)math::ceil(++terminal.cursor.x / 8.0) * 8;
+        if (!terminal.tabs.tabstopsDel.contains({ default_tabstop, terminal.cursor.y }))
+        {
+            terminal.set_cursor({ default_tabstop, terminal.cursor.y });
+            continue;
+        }
+        for (; terminal.cursor.x < terminal.grid.width; terminal.cursor.x++)
+        {
+            if (terminal.tabs.tabstopsNew.contains(terminal.cursor.position)) break;
+            if ((terminal.cursor.x + 1) % 8 == 0 &&
+                !terminal.tabs.tabstopsDel.contains(terminal.cursor.position)) break;
+        }
+    }
+}
 fn void! Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
