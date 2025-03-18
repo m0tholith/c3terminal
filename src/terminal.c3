@@ -11,6 +11,7 @@ import std::core::mem;
 import std::thread;
 import std::io;
 import std::math;
+import std::collections::list;
 
 fault TerminalError
 {
@@ -65,6 +66,8 @@ struct Terminal
     char[<3>] bg;
     char[<3>] fg;
     TermSettings settings;
+    // if last command pty sent was incomplete, this will be populated and, on the next read, will be appended and interpreted
+    Char32[] lastBuffer;
     // number of lines that will be clipped from the top of the screen
     uint scroll;
 }
@@ -248,11 +251,21 @@ fn void! Terminal.pre_render(&self)
     }
     else
     {
-        if (try buffer = pty_read.to_utf32(allocator::temp()))
+        Allocator temp_alloc = allocator::temp();
+        if (try buffer = pty_read.to_utf32(temp_alloc))
         {
-            if (catch interpret_excuse = terminal.interpret(buffer))
+            List{uint} new_buf;
+            new_buf.init(temp_alloc);
+            new_buf.add_array(self.lastBuffer);
+            new_buf.add_array(buffer);
+            if (catch interpret_excuse = terminal.interpret(new_buf.array_view()))
             {
                 io::eprintfn("couldnt interpret buffer: %s", interpret_excuse);
+            }
+            else
+            {
+                mem::free(self.lastBuffer);
+                self.lastBuffer = {};
             }
         }
     }

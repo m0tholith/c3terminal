@@ -12,14 +12,36 @@ fault AnsiError
 {
     PARSE_FAILED,
     COMMAND_NOT_FOUND,
+    INCOMPLETE,
 }
 
 fn void! Terminal.interpret(&self, Char32[] buffer)
 {
     for (int char_idx = 0; char_idx < buffer.len;)
     {
-        if (try parse_c1(self, &char_idx, buffer)) continue;
-        if (try parse_c0(self, &char_idx, buffer)) continue;
+        int prev_char_idx = char_idx;
+        if (catch excuse = parse_c1(self, &char_idx, buffer)) { switch (excuse)
+        {
+            case AnsiError.INCOMPLETE:
+                if (self.lastBuffer.ptr != null) mem::free(self.lastBuffer);
+                self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                mem::move(self.lastBuffer.ptr, buffer[prev_char_idx..].ptr, self.lastBuffer.len);
+                return excuse?;
+            default:
+                break;
+        } }
+        else { continue; }
+        if (catch excuse = parse_c0(self, &char_idx, buffer)) { switch (excuse)
+        {
+            case AnsiError.INCOMPLETE:
+                if (self.lastBuffer.ptr != null) mem::free(self.lastBuffer);
+                self.lastBuffer = mem::new_array(uint, buffer.len - prev_char_idx);
+                mem::move(self.lastBuffer.ptr, buffer[prev_char_idx..].ptr, buffer.len - prev_char_idx);
+                return excuse?;
+            default:
+                break;
+        } }
+        else { continue; }
         if (char_idx >= buffer.len) break;
 
         self.assign_char(buffer[char_idx]);
@@ -57,8 +79,8 @@ fn void! parse_c1(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 
     switch (buffer[*char_idx])
     {
@@ -92,8 +114,8 @@ fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 
     switch (buffer[*char_idx])
     {
@@ -116,13 +138,13 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 }
 fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 
     List{uint} parameters;
     parameters.init(allocator::temp());
@@ -140,6 +162,7 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     int current_param = 0;
     for (; *char_idx < buffer.len; (*char_idx)++)
     {
+        if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
         uint c = buffer[*char_idx];
 
         if (param_range_normal.contains(c))
@@ -174,8 +197,8 @@ fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 fn void! parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 }
 
 AnsiMap csi_map = {
