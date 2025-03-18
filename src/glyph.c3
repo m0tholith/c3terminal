@@ -7,6 +7,8 @@ import std::math;
 import std::math::matrix;
 import std::core::mem;
 import std::collections::list;
+import std::collections::triple;
+import std::collections::range;
 import std::ascii;
 
 import glyph::renderer;
@@ -200,29 +202,45 @@ struct GridCharBg
 {
     inline char[<3>] color;
 }
-macro @grid_loop(char_start, grid, grid_w, grid_h; @body(hfirst, x_idx, y_idx, idx, c)) @private
+def GridBgRange = List{Triple{uint, Range{uint}, char[<3>]}} @local;
+GridBgRange bg_range @local;
+macro get_grid_bg_ranges(grid, grid_w, grid_h, char_start) @local
 {
-    if (grid_h > grid_w)
+    uint scroll = (uint)(char_start / grid_w);
+    if (!bg_range.is_initialized())
     {
-        for (int y_idx = 0; y_idx < grid_h; y_idx++)
-        {
-            for (int x_idx = 0; x_idx < grid_w; x_idx++)
-            {
-                usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
-                var c = grid[idx];
-                @body(true, x_idx, y_idx, idx, c);
-            }
-        }
+        bg_range.init(mem);
     }
     else
     {
-        for (int x_idx = 0; x_idx < grid_w; x_idx++)
+        bg_range.clear();
+    }
+    uint x_idx;
+    uint y_idx;
+    for (; y_idx < grid_h; y_idx++)
+    {
+        x_idx = 0;
+        uint idx = (uint)(char_start + x_idx + (usz)(grid_w * y_idx)) % grid.len;
+
+        bg_range.push({
+            .first = y_idx + scroll,
+            .second.start = 0,
+            .third = grid[idx],
+        });
+        for (; x_idx < grid_w; x_idx++)
         {
-            for (int y_idx = 0; y_idx < grid_h; y_idx++)
+            idx = (uint)(char_start + x_idx + (usz)(grid_w * y_idx)) % grid.len;
+            if (grid[idx].color == bg_range[^1].third)
             {
-                usz idx = ((usz)(x_idx + grid_w * y_idx) + char_start) % grid.len;
-                var c = grid[idx];
-                @body(false, x_idx, y_idx, idx, c);
+                bg_range[^1].second.end = x_idx;
+            }
+            else
+            {
+                bg_range.push({
+                    .first = y_idx,
+                    .second = { x_idx, (uint)(grid_w - 1) },
+                    .third = grid[idx],
+                });
             }
         }
     }
@@ -233,63 +251,43 @@ macro @grid_loop(char_start, grid, grid_w, grid_h; @body(hfirst, x_idx, y_idx, i
  *>
 fn void FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
 {
+    get_grid_bg_ranges(grid, grid_w, grid_h, char_start);
     usz uniform_idx = 0;
-    usz last_grid_idx = 0; GridCharBg last_grid_char = grid[0]; usz new_size = 1;
-    @grid_loop(char_start, grid, grid_w, grid_h; bool hfirst, uint x_idx, uint y_idx, usz idx, GridCharBg c)
+    foreach (elem : bg_range)
     {
-        bool cond = c.color != last_grid_char.color;
-        if (hfirst)
+        uint y_idx = elem.first;
+        uint last_grid_x_idx = elem.second.start;
+        uint x_idx = elem.second.end;
+        usz block_size = elem.second.len();
+        char[<3>] c = elem.third;
+
+        float x = (float)(int)(last_grid_x_idx * width / grid_w);
+        float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
+
+        float s = font_size / self.fontSize;
+
+        float w = (float)(int)(width / grid_w) * s * block_size;
+        float h = (float)(int)(height / grid_h) * s;
+
+        x = x / width  * 2 - 1;
+        y = y / height * 2 - 1;
+        w = w / width  * 2;
+        h = h / height * 2;
+
+        if (uniform_idx >= renderer::ARRAY_MAX)
         {
-            cond |= y_idx == grid_w - 1;
+            uniform_idx = 0;
+            self.renderer.render_bg();
         }
-        else
-        {
-            cond |= x_idx == grid_w - 1;
-        }
-        if (cond)
-        {
-            float x = (float)(int)(x_idx * width / grid_w);
-            float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
 
-            float s = font_size / self.fontSize;
+        self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
+        self.renderer.instanceData[uniform_idx].quadSize = { w, h };
+        self.renderer.instanceData[uniform_idx].texPos   = { 0, 0 };
+        self.renderer.instanceData[uniform_idx].texSize  = { 0, 0 };
+        self.renderer.instanceData[uniform_idx].color    = { c.x, c.y, c.z };
 
-            float w = (float)(int)(width / grid_w) * s;
-            float h = (float)(int)(height / grid_h) * s;
-            if (hfirst)
-            {
-                h *= new_size;
-            }
-            else
-            {
-                w *= new_size;
-            }
-
-            x = x / width  * 2 - 1;
-            y = y / height * 2 - 1;
-            w = w / width  * 2;
-            h = h / height * 2;
-
-            if (uniform_idx >= renderer::ARRAY_MAX)
-            {
-                uniform_idx = 0;
-                self.renderer.render_bg();
-            }
-
-            self.renderer.instanceData[uniform_idx].quadPos  = { x, y };
-            self.renderer.instanceData[uniform_idx].quadSize = { w, h };
-            self.renderer.instanceData[uniform_idx].texPos   = { 0, 0 };
-            self.renderer.instanceData[uniform_idx].texSize  = { 0, 0 };
-            self.renderer.instanceData[uniform_idx].color    = { c.color.x, c.color.y, c.color.z };
-
-            uniform_idx++;
-
-            last_grid_idx = idx; last_grid_char = c; new_size = 1;
-        }
-        else
-        {
-            new_size++;
-        }
-    };
+        uniform_idx++;
+    }
     self.renderer.render_bg(uniform_idx);
 }
 fn void FontAtlas.free(&self)
@@ -299,6 +297,7 @@ fn void FontAtlas.free(&self)
     mem::free(self.pixels);
     gl::deleteTextures(1, &self.textureId);
     self.renderer.free();
+    bg_range.free(); // if more than one font atlas, it will be reinitialized no problem
 }
 
 <*
