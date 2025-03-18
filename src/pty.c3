@@ -28,6 +28,7 @@ struct Pty
 {
     inline CInt master;
     libc::Pid_t pid;
+    String nextWrite;
 }
 pty::Pty pty @public @builtin;
 
@@ -115,6 +116,19 @@ fn void! Pty.write(&self, String buffer)
 {
     if (!self.is_alive()) return PtyError.PROCESS_DEAD?;
 
+    defer catch {
+        if (self.nextWrite.ptr == null)
+        {
+            self.nextWrite = buffer.copy(mem);
+        }
+        else
+        {
+            String prev_write = self.nextWrite;
+            self.nextWrite = self.nextWrite.concat(mem, buffer);
+            mem::free(prev_write);
+        }
+    }
+
     net::Poll[] polls = {
         {
             .socket = (os::NativeSocket)self.master,
@@ -128,7 +142,11 @@ fn void! Pty.write(&self, String buffer)
     }
     if (polls[0].revents != net::POLL_EVENT_WRITE) return PtyError.PTY_NOT_READY?;
 
+    libc::write(self.master, self.nextWrite.ptr, self.nextWrite.len);
     libc::write(self.master, buffer.ptr, buffer.len);
+
+    mem::free(self.nextWrite.ptr);
+    self.nextWrite = {};
 }
 fn void Pty.set_winsize(&self, uint[<2>] new_dimensions)
 {
