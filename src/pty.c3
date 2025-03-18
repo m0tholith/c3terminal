@@ -155,6 +155,10 @@ fn void Pty.set_winsize(&self, uint[<2>] new_dimensions)
     kill(0, 28);
 }
 fn bool Pty.is_alive(&self) @inline => waitpid(self.pid, null, 1) >= 0;
+fn void Pty.free(&self)
+{
+    if (self.nextWrite.ptr != null) mem::free(self.nextWrite.ptr);
+}
 
 module pty @private;
 

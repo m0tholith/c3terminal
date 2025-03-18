@@ -291,6 +291,7 @@ fn void Terminal.free(&self)
     self.fontAtlas.free();
     input_manager.free();
     window::terminate_system();
+    pty.free();
 }
 
 module terminal @private;
