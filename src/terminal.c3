@@ -124,6 +124,8 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
         self.grid.bg[i].color = self.bg;
     }
     self.cursor = { .position = { 0, 0 }, .bg = self.bg, .fg = self.fg };
+
+    pty.set_winsize(self.grid.dimensions);
 }
 <*
  Assigns character to terminal's current cursor position
