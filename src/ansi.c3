@@ -136,6 +136,9 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
             (*char_idx)++;
             terminal.move_cursor({ 0, 1 });
             terminal.cursor.x = 0;
+        case 'H': // add tabstop
+            (*char_idx)++;
+            terminal.tabs.tabstopsNew.push(terminal.cursor);
         case 'P': // device control string
             (*char_idx)++;
             parse_dcs(terminal, char_idx, buffer)!;
