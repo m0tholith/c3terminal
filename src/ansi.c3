@@ -240,6 +240,9 @@ AnsiMap csi_map = {
     { 'H', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
                                                 args.len == 0 ? 0 : (long)args[0] - 1 }) },
 
+    // tabulation n times
+    { 'I', fn (term, args) => term.tab(args.len > 0 ? args[0] : 1) },
+
     // erase in display
     { 'J', &j_erase },
     // erase in line
