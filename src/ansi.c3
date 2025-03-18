@@ -87,7 +87,7 @@ fn void! parse_c1(Terminal* terminal, int* char_idx, Char32[] buffer)
     if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
 
     if (buffer[*char_idx] < 0x80) return AnsiError.PARSE_FAILED?;
-    buffer[*char_idx] -= 0x80;
+    buffer[*char_idx] -= 0x40;
     parse_fe(terminal, char_idx, buffer)!;
 }
 fn void! parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
