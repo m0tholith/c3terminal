@@ -133,6 +133,11 @@ fn void! parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
         case ']': // operating system command
             (*char_idx)++;
             parse_osc(terminal, char_idx, buffer)!;
+        case '(':
+            (*char_idx)++;
+            if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
+            // TODO: implement charsets (next char is charset)
+            (*char_idx)++;
         default:
             return AnsiError.PARSE_FAILED?;
     }
