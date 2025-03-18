@@ -176,7 +176,7 @@ fn void Terminal.move_cursor_clamp(&self, long[<2>] translation) @inline
 }
 fn void Terminal.move_cursor(&self, long[<2>] translation)
 {
-    long[<2>] new_cursor = (long[<2>])self.cursor.position + translation + { 0, self.scroll };
+    long[<2>] new_cursor = (long[<2>])self.cursor.position + translation;
     while (new_cursor.x < 0)
     {
         new_cursor.x += self.grid.width;
@@ -193,7 +193,7 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
     }
     else if (new_cursor.y >= self.grid.height)
     {
-        self.scroll_lines(new_cursor.y - self.scroll - self.grid.height + 1);
+        self.scroll_lines(new_cursor.y - self.grid.height + 1);
         new_cursor.y = (long)self.grid.height - 1;
     }
     self.cursor.position = (uint[<2>])new_cursor;
