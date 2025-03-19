@@ -262,69 +262,68 @@ fn void! parse_apc(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 
 AnsiMap csi_map = {
-    // insert space
+    // insert space (ICH)
     { '@', &insert_space },
 
-    // cursor up/down/forward/back
+    // cursor up/down/forward/back (CUU,CUD,CUF,CUB)
     { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? -1 : -(long)args[0] }) },
     { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ?  1 :  (long)args[0] }) },
     { 'C', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ?  1 :  (long)args[0], 0 }) },
     { 'D', fn (term, args) => term.move_cursor_clamp({ args.len == 0 ? -1 : -(long)args[0], 0 }) },
 
-    // move cursor to the beginning of line, n lines down/up
+    // move cursor to the beginning of line, n lines down/up (CNL,CPL)
     { 'E', fn (term, args) => term.newline(args.len == 0 ?  1 :  args[0]) },
     { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0]) },
 
-    // move cursor to column n
+    // move cursor to column n (CHA)
     { 'G', fn (term, args) => (void)(term.cursor.x = args.len == 0 ? 0 : (long)args[0] - 1) },
 
-    // set cursor position
+    // set cursor position (CUP)
     { 'H', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
                                                 args.len == 0 ? 0 : (long)args[0] - 1 }) },
 
-    // tabulation n times
+    // tabulation n times (CHT)
     { 'I', fn (term, args) => term.tab(args.len > 0 ? args[0] : 1) },
 
-    // erase in display
+    // erase in display (ED)
     { 'J', &j_erase },
-    // erase in line
+    // erase in line (EL)
     { 'K', &k_erase },
 
-    // insert line
+    // insert line (IL)
     { 'L', &insert_line },
-    // delete line
+    // delete line (DL)
     { 'M', &delete_line },
 
-    // delete chars
+    // delete chars (DCH)
     { 'P', &delete_chars },
 
-    // scroll up/down
+    // scroll up/down (SU)
     { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
     { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
 
-    // set cursor position
+    // set cursor position (HVP)
     { 'f', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
                                                 args.len == 0 ? 0 : (long)args[0] - 1 }) },
 
-    // select graphic rendition
-    { 'm', &select_graphic_rendition },
+    // enable setting (SM / DECSET)
+    { 'h', &h_parse },
 
-    // enable and disable aux; don't care
+    // enable and disable aux; don't care (MC)
     { 'i', fn (term, args) => (void)0 },
 
-    // report cursor position
+    // disable setting (RM / DECRST)
+    { 'l', &l_parse },
+
+    // select graphic rendition (SGR)
+    { 'm', &select_graphic_rendition },
+
+    // report cursor position (DSR)
     { 'n', &send_cursor_pos },
 
-    /// private sequences
-
-    // save/restore cursor to sco
+    // save/restore cursor to sco (SCOSC, SCORC)
     { 's', fn (term, args) => term.save_cursor_sco() },
     { 'u', fn (term, args) => term.restore_cursor_sco() },
-
-    // enable setting
-    { 'h', &h_parse },
-    // disable setting
-    { 'l', &l_parse },
 };
 fn void j_erase(Terminal* term, uint[] args)
 {
