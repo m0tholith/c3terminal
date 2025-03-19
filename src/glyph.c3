@@ -154,8 +154,8 @@ fn void FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint heig
             GridCharFg c = grid[idx];
             if (ascii::is_space((char)c.codepoint)) continue;
 
-            float x = (float)(int)(x_idx * width / grid_w);
-            float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
+            float x = (float)(x_idx * width / grid_w);
+            float y = (float)((grid_h - y_idx - 1) * height / grid_h);
 
             stb_truetype::PackedChar*! pChar = self.get_char(c.codepoint);
             if (catch excuse = pChar) continue;
@@ -263,8 +263,8 @@ fn void FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint heig
         usz block_size = elem.second.len();
         char[<3>] c = elem.third;
 
-        float x = (float)(int)(last_grid_x_idx * width / grid_w);
-        float y = (float)(int)((grid_h - y_idx - 1) * height / grid_h);
+        float x = (float)(last_grid_x_idx * width / grid_w);
+        float y = (float)((grid_h - y_idx - 1) * height / grid_h);
 
         float s = font_size / self.fontSize;
 
