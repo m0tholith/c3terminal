@@ -325,17 +325,17 @@ fn void j_erase(Terminal* term, uint[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, term.grid.size - term.get_grid_idx(term.cursor));
+        term.erase(term.cursor, term.get_grid_idx(term.grid.dimensions - {1,1}) - term.get_grid_idx(term.cursor));
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, term.grid.size - term.get_grid_idx(term.cursor));
+            term.erase(term.cursor, term.get_grid_idx(term.grid.dimensions - {1,1}) - term.get_grid_idx(term.cursor));
         case 1:
             term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.cursor) + 1));
         case 2:
-            term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.grid.dimensions) + 1));
+            term.erase({ 0, 0 }, (usz)(term.get_grid_idx(term.grid.dimensions - {1,1}) + 1));
         case 3:
             term.clear();
     }
@@ -344,17 +344,17 @@ fn void k_erase(Terminal* term, uint[] args)
 {
     if (args.len == 0)
     {
-        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
+        term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
         return;
     }
     switch (args[0])
     {
         case 0:
-            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x + 1));
+            term.erase(term.cursor, (usz)(term.grid.width - term.cursor.x));
         case 1:
             term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
         case 2:
-            term.erase({ 0, term.cursor.y }, term.grid.width);
+            term.erase({ 0, term.cursor.y }, (usz)(term.grid.width - 1));
     }
 }
 fn void send_cursor_pos(Terminal* term, uint[] args)
