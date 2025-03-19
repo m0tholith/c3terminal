@@ -134,10 +134,15 @@ fn void FontAtlas.bind_texture(&self)
 {
     gl::bindTexture(gl::GL_TEXTURE_2D, self.textureId);
 }
-struct GridCharFg
+struct GridCharFg (Printable)
 {
     uint codepoint;
     char[<3>] color;
+}
+macro GridCharFg.equals(a, b) => a.codepoint == b.codepoint && a.color == b.color;
+fn usz! GridCharFg.to_format(&self, Formatter* formatter) @dynamic
+{
+	return formatter.printf("{ %c, %s }", self.codepoint, self.color)!;
 }
 <*
  @require (usz)(grid_w * grid_h) <= grid.len
@@ -202,6 +207,8 @@ struct GridCharBg
 {
     inline char[<3>] color;
 }
+macro GridCharBg.equals(a, b) => a.color == b.color;
+fn usz! GridCharBg.to_format(&self, Formatter* formatter) @dynamic => formatter.printf("%s", self.color);
 def GridBgRange = List{Triple{uint, Range{uint}, char[<3>]}} @local;
 GridBgRange bg_range @local;
 macro get_grid_bg_ranges(grid, grid_w, grid_h, char_start) @local
