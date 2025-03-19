@@ -21,22 +21,16 @@ fn void test_no_ansi()
     defer mem::free(correct);
 
     assert(@ok(terminal.interpret(buf32)));
-    for (int i = 0; i < correct.len && i < terminal.grid.size; i++)
-    {
-        io::printfn("%d\tfg %s\tcorrect %s", i, terminal.grid.fg[i], correct[i]);
-        assert(terminal.grid.fg[i].equals(correct[i]));
-    }
+    assert_fg(terminal.grid.fg, correct);
 }
 fn void test_insert_space()
 {
     Terminal terminal;
     terminal.init_no_external();
+    io::printfn("terminal fg: %p", terminal.grid.fg.ptr);
     defer terminal.free_no_external();
 
-    String to_interpret = "lorem ipsu\e[6D\e[4@";
-    Char32[] buf32 = mem::new_array(Char32, to_interpret.len);
-    defer mem::free(buf32);
-    buf32 = buf32[:conv::utf8to32(to_interpret, buf32)!!];
+    interpret_str(terminal, "lorem ipsu\e[6D\e[4@");
 
     String correct_str = "lore    m ipsu";
     Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
@@ -45,12 +39,7 @@ fn void test_insert_space()
     GridCharFg[] correct = fg_from_char32(correct_32);
     defer mem::free(correct);
 
-    assert(@ok(terminal.interpret(buf32)));
-    for (int i = 0; i < correct.len && i < terminal.grid.size; i++)
-    {
-        io::printfn("%d\tfg %s\tcorrect %s", i, terminal.grid.fg[i], correct[i]);
-        assert(terminal.grid.fg[i].equals(correct[i]));
-    }
+    assert_fg(terminal.grid.fg, correct);
 }
 fn void test_cursor_updownforwardback()
 {
@@ -58,10 +47,7 @@ fn void test_cursor_updownforwardback()
     terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
     defer terminal.free_no_external();
 
-    String to_interpret = "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.";
-    Char32[] buf32 = mem::new_array(Char32, to_interpret.len);
-    defer mem::free(buf32);
-    buf32 = buf32[:conv::utf8to32(to_interpret, buf32)!!];
+    interpret_str(terminal, "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.");
 
     String correct_str = "lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ";
     Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
@@ -70,12 +56,7 @@ fn void test_cursor_updownforwardback()
     GridCharFg[] correct = fg_from_char32(correct_32);
     defer mem::free(correct);
 
-    assert(@ok(terminal.interpret(buf32)));
-    for (int i = 0; i < correct.len && i < terminal.grid.size; i++)
-    {
-        io::printfn("%d\tfg %s\tcorrect %s", i, terminal.grid.fg[i], correct[i]);
-        assert(terminal.grid.fg[i].equals(correct[i]));
-    }
+    assert_fg(terminal.grid.fg, correct);
 }
 
 module terminal::ansi @private;
@@ -112,6 +93,23 @@ macro Terminal.free_no_external(&self)
     self.grid.free();
     self.tabs.tabstopsNew.free();
     self.tabs.tabstopsDel.free();
+}
+
+macro assert_fg(fg, correct)
+{
+    for (int i = 0; i < fg.len && i < correct.len; i++)
+    {
+        io::printfn("%d\tfg %s\tcorrect %s", i, fg[i], correct[i]);
+        assert(fg[i].equals(correct[i]));
+    }
+}
+macro interpret_str(term, str)
+{
+    Char32[] buf32 = mem::new_array(Char32, str.len);
+    buf32 = buf32[:conv::utf8to32(str, buf32)!!];
+    defer mem::free(buf32);
+
+    assert(@ok(term.interpret(buf32)));
 }
 fn GridCharFg[] fg_from_char32(Char32[] buf)
 {
