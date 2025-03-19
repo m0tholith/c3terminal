@@ -62,9 +62,7 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     glfw::makeContextCurrent(glfw_win);
     glfw::swapInterval(0);
     glfw::windowHint(glfw::RESIZABLE, 1);
-    glfw::windowHint(glfw::SAMPLES, 2);
     gl::viewport(0, 0, width, height);
-    gl::enable(gl::GL_MULTISAMPLE);
     gl::enable(gl::GL_BLEND);
     gl::blendFunc(gl::GL_SRC_ALPHA, gl::GL_ONE_MINUS_SRC_ALPHA);
     glfw::setInputMode(glfw_win, glfw::LOCK_KEY_MODS, glfw::TRUE);
