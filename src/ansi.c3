@@ -262,6 +262,9 @@ fn void! parse_apc(Terminal* terminal, int* char_idx, Char32[] buffer)
 }
 
 AnsiMap csi_map = {
+    // insert space
+    { '@', &insert_space },
+
     // cursor up/down/forward/back
     { 'A', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ? -1 : -(long)args[0] }) },
     { 'B', fn (term, args) => term.move_cursor_clamp({ 0, args.len == 0 ?  1 :  (long)args[0] }) },
@@ -286,6 +289,9 @@ AnsiMap csi_map = {
     { 'J', &j_erase },
     // erase in line
     { 'K', &k_erase },
+
+    // delete chars
+    { 'P', &delete_chars },
 
     // scroll up/down
     { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
@@ -536,4 +542,36 @@ macro char[<3>] color_8_bit(idx, bright)
     }
     idx -= 216;
     return (char[<3>]){1,1,1} * (char)(idx * 255.0f / 24.0f);
+}
+fn void insert_space(Terminal* term, uint[] args)
+{
+    uint amount = args.len == 0 ? 1 : args[0];
+    usz start_idx = amount + term.get_grid_idx(term.cursor);
+    usz end_idx = term.get_grid_idx({ term.grid.width - 1, term.cursor.y });
+    for (usz i = end_idx; i >= start_idx; i--)
+    {
+        term.grid.fg[i] = term.grid.fg[(i - amount) % term.grid.size];
+        term.grid.bg[i] = term.grid.bg[(i - amount) % term.grid.size];
+    }
+    for (usz i = start_idx - amount; i < start_idx; i++)
+    {
+        term.grid.fg[i] = { .codepoint = ' ', .color = term.fg };
+        term.grid.bg[i].color = term.bg;
+    }
+}
+fn void delete_chars(Terminal* term, uint[] args)
+{
+    uint amount = args.len == 0 ? 1 : args[0];
+    usz start_idx = term.get_grid_idx(term.cursor);
+    usz end_idx = term.get_grid_idx({ term.grid.width - 1, term.cursor.y });
+    for (usz i = start_idx; i < end_idx - amount; i++)
+    {
+        term.grid.fg[i] = term.grid.fg[(i + amount) % term.grid.size];
+        term.grid.bg[i] = term.grid.bg[(i + amount) % term.grid.size];
+    }
+    for (usz i = end_idx; i > end_idx - amount; i--)
+    {
+        term.grid.fg[i] = { .codepoint = ' ', .color = term.fg };
+        term.grid.bg[i].color = term.bg;
+    }
 }
