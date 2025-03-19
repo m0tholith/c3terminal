@@ -245,14 +245,6 @@ fn void! Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
     {
-        for (int i = 0; i < self.grid.width; i++)
-        {
-            for (int j = 0; j < self.grid.height; j++)
-            {
-                self.grid.fg[i + self.grid.width * j] = { ' ', self.fg };
-                self.grid.bg[i + self.grid.width * j].color = self.bg;
-            }
-        }
         uint new_width  = (uint)((float)self.window.width  / self.fontAtlas.charMaxX);
         uint new_height = (uint)((float)self.window.height / self.fontAtlas.charMaxY);
         if (self.grid.width != new_width || self.grid.height != new_height)
@@ -260,8 +252,6 @@ fn void! Terminal.pre_render(&self)
             self.grid.dimensions = { new_width, new_height };
             pty.set_winsize(self.grid.dimensions);
         }
-        self.cursor.position = { 0, 0 };
-        self.scroll = 0;
     }
 
     if (!pty.is_alive())
