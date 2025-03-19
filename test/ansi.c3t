@@ -27,6 +27,56 @@ fn void test_no_ansi()
         assert(terminal.grid.fg[i].equals(correct[i]));
     }
 }
+fn void test_insert_space()
+{
+    Terminal terminal;
+    terminal.init_no_external();
+    defer terminal.free_no_external();
+
+    String to_interpret = "lorem ipsu\e[6D\e[4@";
+    Char32[] buf32 = mem::new_array(Char32, to_interpret.len);
+    defer mem::free(buf32);
+    buf32 = buf32[:conv::utf8to32(to_interpret, buf32)!!];
+
+    String correct_str = "lore    m ipsu";
+    Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
+    defer mem::free(correct_32);
+    correct_32 = correct_32[:conv::utf8to32(correct_str, correct_32)!!];
+    GridCharFg[] correct = fg_from_char32(correct_32);
+    defer mem::free(correct);
+
+    assert(@ok(terminal.interpret(buf32)));
+    for (int i = 0; i < correct.len && i < terminal.grid.size; i++)
+    {
+        io::printfn("%d\tfg %s\tcorrect %s", i, terminal.grid.fg[i], correct[i]);
+        assert(terminal.grid.fg[i].equals(correct[i]));
+    }
+}
+fn void test_cursor_updownforwardback()
+{
+    Terminal terminal;
+    terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
+    defer terminal.free_no_external();
+
+    String to_interpret = "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.";
+    Char32[] buf32 = mem::new_array(Char32, to_interpret.len);
+    defer mem::free(buf32);
+    buf32 = buf32[:conv::utf8to32(to_interpret, buf32)!!];
+
+    String correct_str = "lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ";
+    Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
+    defer mem::free(correct_32);
+    correct_32 = correct_32[:conv::utf8to32(correct_str, correct_32)!!];
+    GridCharFg[] correct = fg_from_char32(correct_32);
+    defer mem::free(correct);
+
+    assert(@ok(terminal.interpret(buf32)));
+    for (int i = 0; i < correct.len && i < terminal.grid.size; i++)
+    {
+        io::printfn("%d\tfg %s\tcorrect %s", i, terminal.grid.fg[i], correct[i]);
+        assert(terminal.grid.fg[i].equals(correct[i]));
+    }
+}
 
 module terminal::ansi @private;
 
