@@ -83,8 +83,8 @@ fn AnsiCallback! AnsiMap.find(&self, uint command)
 macro in_range(x, a, b) => (Range{$typeof(x)}){ a, b }.contains(x);
 fn void! parse_c1(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
-    if (buffer.len == 0) return AnsiError.PARSE_FAILED?;
-    if (buffer.len <= *char_idx) return AnsiError.PARSE_FAILED?;
+    if (buffer.len == 0) return AnsiError.INCOMPLETE?;
+    if (buffer.len <= *char_idx) return AnsiError.INCOMPLETE?;
 
     if (buffer[*char_idx] < 0x80) return AnsiError.PARSE_FAILED?;
     buffer[*char_idx] -= 0x40;
@@ -194,7 +194,7 @@ fn void! parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
             str_to_parse = buffer[start_idx..*char_idx];
         }
     }
-    if (str_to_parse.ptr == null) return AnsiError.INCOMPLETE?;
+    if (str_to_parse.ptr == null) return AnsiError.PARSE_FAILED?;
 }
 fn void! parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 {
