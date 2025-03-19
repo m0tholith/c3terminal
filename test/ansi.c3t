@@ -1,4 +1,4 @@
-module terminal::ansi @test;
+module terminal::ansi::test @test;
 
 import glyph::font_atlas;
 
@@ -6,7 +6,7 @@ import std::core::string::conv;
 import std::core::mem;
 import std::io;
 
-fn void test_no_ansi()
+fn void no_ansi()
 {
     Terminal terminal;
     terminal.init_no_external();
@@ -23,7 +23,7 @@ fn void test_no_ansi()
     assert(@ok(terminal.interpret(buf32)));
     assert_fg(terminal.grid.fg, correct);
 }
-fn void test_insert_space()
+fn void insert_space()
 {
     Terminal terminal;
     terminal.init_no_external();
@@ -41,7 +41,7 @@ fn void test_insert_space()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void test_cursor_updownforwardback()
+fn void cursor_updownforwardback()
 {
     Terminal terminal;
     terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
@@ -59,7 +59,7 @@ fn void test_cursor_updownforwardback()
     assert_fg(terminal.grid.fg, correct);
 }
 
-module terminal::ansi @private;
+module terminal::ansi::test @private;
 
 import glyph::font_atlas;
 
