@@ -290,6 +290,11 @@ AnsiMap csi_map = {
     // erase in line
     { 'K', &k_erase },
 
+    // insert line
+    { 'L', &insert_line },
+    // delete line
+    { 'M', &delete_line },
+
     // delete chars
     { 'P', &delete_chars },
 
@@ -573,5 +578,45 @@ fn void delete_chars(Terminal* term, uint[] args)
     {
         term.grid.fg[i] = { .codepoint = ' ', .color = term.fg };
         term.grid.bg[i].color = term.bg;
+    }
+}
+fn void insert_line(Terminal* term, uint[] args)
+{
+    uint amount = args.len == 0 ? 1 : args[0];
+    for (int y = term.cursor.y; y < term.cursor.y + amount; y++)
+    {
+        for (int x = 0; x < term.grid.width; x++)
+        {
+            term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })] = term.grid.fg[term.get_grid_idx({ x, y })];
+            term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })] = term.grid.bg[term.get_grid_idx({ x, y })];
+        }
+    }
+    for (int y = term.cursor.y; y < term.cursor.y + amount; y++)
+    {
+        for (int x = 0; x < term.grid.width; x++)
+        {
+            term.grid.fg[term.get_grid_idx({ x, y })] = { .codepoint = ' ', .color = term.fg };
+            term.grid.bg[term.get_grid_idx({ x, y })].color = term.bg;
+        }
+    }
+}
+fn void delete_line(Terminal* term, uint[] args)
+{
+    uint amount = args.len == 0 ? 1 : args[0];
+    for (int y = term.cursor.y; y < term.grid.height - amount; y++)
+    {
+        for (int x = 0; x < term.grid.width; x++)
+        {
+            term.grid.fg[term.get_grid_idx({ x, y })] = term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })];
+            term.grid.bg[term.get_grid_idx({ x, y })] = term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })];
+        }
+    }
+    for (int y = term.grid.height - 1; y >= term.grid.height - amount; y--)
+    {
+        for (int x = 0; x < term.grid.width; x++)
+        {
+            term.grid.fg[term.get_grid_idx({ x, y })] = { .codepoint = ' ', .color = term.fg };
+            term.grid.bg[term.get_grid_idx({ x, y })].color = term.bg;
+        }
     }
 }
