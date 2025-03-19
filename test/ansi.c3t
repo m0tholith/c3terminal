@@ -12,31 +12,22 @@ fn void no_ansi()
     terminal.init_no_external();
     defer terminal.free_no_external();
 
-    String to_interpret = "test[;;3mtest";
-    Char32[] buf32 = mem::new_array(Char32, to_interpret.len);
-    defer mem::free(buf32);
-    buf32 = buf32[:conv::utf8to32(to_interpret, buf32)!!];
+    interpret_str(terminal, "test[;;3mtest");
 
-    GridCharFg[] correct = fg_from_char32(buf32);
+    GridCharFg[] correct = fg_from_array("test[;;3mtest");
     defer mem::free(correct);
 
-    assert(@ok(terminal.interpret(buf32)));
     assert_fg(terminal.grid.fg, correct);
 }
 fn void insert_space()
 {
     Terminal terminal;
     terminal.init_no_external();
-    io::printfn("terminal fg: %p", terminal.grid.fg.ptr);
     defer terminal.free_no_external();
 
     interpret_str(terminal, "lorem ipsu\e[6D\e[4@");
 
-    String correct_str = "lore    m ipsu";
-    Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
-    defer mem::free(correct_32);
-    correct_32 = correct_32[:conv::utf8to32(correct_str, correct_32)!!];
-    GridCharFg[] correct = fg_from_char32(correct_32);
+    GridCharFg[] correct = fg_from_array("lore    m ipsu");
     defer mem::free(correct);
 
     assert_fg(terminal.grid.fg, correct);
@@ -49,11 +40,7 @@ fn void cursor_updownforwardback()
 
     interpret_str(terminal, "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.");
 
-    String correct_str = "lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ";
-    Char32[] correct_32 = mem::new_array(Char32, correct_str.len);
-    defer mem::free(correct_32);
-    correct_32 = correct_32[:conv::utf8to32(correct_str, correct_32)!!];
-    GridCharFg[] correct = fg_from_char32(correct_32);
+    GridCharFg[] correct = fg_from_array("lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ");
     defer mem::free(correct);
 
     assert_fg(terminal.grid.fg, correct);
@@ -105,13 +92,18 @@ macro assert_fg(fg, correct)
 }
 macro interpret_str(term, str)
 {
-    Char32[] buf32 = mem::new_array(Char32, str.len);
-    buf32 = buf32[:conv::utf8to32(str, buf32)!!];
+    Char32[] buf32 = char32_from_str(str);
     defer mem::free(buf32);
 
     assert(@ok(term.interpret(buf32)));
 }
-fn GridCharFg[] fg_from_char32(Char32[] buf)
+macro char32_from_str(str)
+{
+    Char32[] buf32 = mem::new_array(Char32, str.len);
+    buf32 = buf32[:conv::utf8to32(str, buf32)!!];
+    return buf32;
+}
+macro GridCharFg[] fg_from_array(buf)
 {
     GridCharFg[] result = mem::new_array(GridCharFg, buf.len);
     foreach (idx, &fg : result)
