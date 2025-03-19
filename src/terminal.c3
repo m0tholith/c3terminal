@@ -144,6 +144,7 @@ fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
  Assigns character to terminal's current cursor position
 
  @require self.grid.fg.ptr != null
+ @require self.grid.bg.ptr != null
  *>
 fn void Terminal.assign_char(&self, uint codepoint)
 {
