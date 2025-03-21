@@ -276,7 +276,8 @@ AnsiMap csi_map = {
     { 'F', fn (term, args) => term.newline(args.len == 0 ? -1 : -args[0]) },
 
     // move cursor to column n (CHA)
-    { 'G', fn (term, args) => (void)(term.cursor.x = args.len == 0 ? 0 : (long)args[0] - 1) },
+    { 'G', fn (term, args) => term.set_cursor({ args.len == 0 ? 0 : (long)args[0] - 1,
+                                                term.cursor.y }) },
 
     // set cursor position (CUP)
     { 'H', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,

@@ -58,6 +58,19 @@ fn void cursor_newline_updown()
 
     assert_fg(terminal.grid.fg, correct);
 }
+fn void cursor_horizontal()
+{
+    Terminal terminal;
+    terminal.init_no_external(dimensions: { 15, 5 });
+    defer terminal.free_no_external();
+
+    interpret_str(terminal, "lorem\e[10Gipsum\r\nsit\r\n\e[3Gdolor");
+
+    GridCharFg[] correct = fg_from_array("lorem    ipsum sit              dolor        ");
+    defer mem::free(correct);
+
+    assert_fg(terminal.grid.fg, correct);
+}
 
 module terminal::ansi::test @private;
 
@@ -95,13 +108,14 @@ macro Terminal.free_no_external(&self)
     self.tabs.tabstopsDel.free();
 }
 
-macro assert_fg(fg, correct)
+macro assert_fg(fg, correct, fail = false)
 {
     for (int i = 0; i < fg.len && i < correct.len; i++)
     {
         io::printfn("%d\tfg %s\tcorrect %s", i, fg[i], correct[i]);
-        assert(fg[i].equals(correct[i]));
+        assert(fg[i].equals(correct[i]) || fail);
     }
+    assert(!fail);
 }
 macro interpret_str(term, str)
 {
