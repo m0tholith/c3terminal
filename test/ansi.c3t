@@ -45,6 +45,19 @@ fn void cursor_updownforwardback()
 
     assert_fg(terminal.grid.fg, correct);
 }
+fn void cursor_newline_updown()
+{
+    Terminal terminal;
+    terminal.init_no_external(dimensions: { 8, 5 });
+    defer terminal.free_no_external();
+
+    interpret_str(terminal, "lorem\e[3Eipsum\e[Fdolor\e[Esit\e[2Famet.con");
+
+    GridCharFg[] correct = fg_from_array("lorem   amet.condolor   situm");
+    defer mem::free(correct);
+
+    assert_fg(terminal.grid.fg, correct);
+}
 
 module terminal::ansi::test @private;
 
