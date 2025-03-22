@@ -175,7 +175,10 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
     usz end_idx = start_idx + length;
     for (usz i = start_idx; i < end_idx; i++)
     {
-        self.grid.fg[i % self.grid.size].codepoint = ' ';
+        self.grid.fg[i % self.grid.size] = {
+            .codepoint = ' ',
+            .color = self.fg,
+        };
         self.grid.bg[i % self.grid.size].color = self.bg;
     }
 }
@@ -197,13 +200,14 @@ fn void Terminal.move_cursor(&self, long[<2>] translation)
         new_cursor.x += self.grid.width;
         new_cursor.y -= 1;
     }
-    if (new_cursor.x >= self.grid.width)
+    while (new_cursor.x >= self.grid.width)
     {
-        new_cursor.y += new_cursor.x / self.grid.width;
-        new_cursor.x %= self.grid.width;
+        new_cursor.x -= self.grid.width;
+        new_cursor.y += 1;
     }
     if (new_cursor.y < 0)
     {
+        self.scroll_lines(new_cursor.y);
         new_cursor.y = 0;
     }
     else if (new_cursor.y >= self.grid.height)
