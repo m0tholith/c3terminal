@@ -358,7 +358,7 @@ fn void k_erase(Terminal* term, uint[] args)
         case 1:
             term.erase({ 0, term.cursor.y }, (usz)(term.cursor.x + 1));
         case 2:
-            term.erase({ 0, term.cursor.y }, (usz)(term.grid.width - 1));
+            term.erase({ 0, term.cursor.y }, term.grid.width);
     }
 }
 fn void send_cursor_pos(Terminal* term, uint[] args)
