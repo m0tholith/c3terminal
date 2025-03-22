@@ -8,7 +8,6 @@ import std::io;
 
 fn void no_ansi()
 {
-    Terminal terminal;
     terminal.init_no_external();
     defer terminal.free_no_external();
 
@@ -21,7 +20,6 @@ fn void no_ansi()
 }
 fn void insert_space()
 {
-    Terminal terminal;
     terminal.init_no_external();
     defer terminal.free_no_external();
 
@@ -34,7 +32,6 @@ fn void insert_space()
 }
 fn void cursor_updownforwardback()
 {
-    Terminal terminal;
     terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
     defer terminal.free_no_external();
 
@@ -47,7 +44,6 @@ fn void cursor_updownforwardback()
 }
 fn void cursor_newline_updown()
 {
-    Terminal terminal;
     terminal.init_no_external(dimensions: { 8, 5 });
     defer terminal.free_no_external();
 
@@ -60,7 +56,6 @@ fn void cursor_newline_updown()
 }
 fn void cursor_horizontal()
 {
-    Terminal terminal;
     terminal.init_no_external(dimensions: { 15, 5 });
     defer terminal.free_no_external();
 
@@ -73,7 +68,6 @@ fn void cursor_horizontal()
 }
 fn void cursor_position()
 {
-    Terminal terminal;
     terminal.init_no_external(grid_size: 300, dimensions: { 26, 10 });
     defer terminal.free_no_external();
 
