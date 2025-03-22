@@ -11,8 +11,7 @@ import std::os::env;
 import std::thread;
 import std::net;
 
-fault PtyError
-{
+faultdef
     FORK_FAILED,
     ENV_SHELL_FAILED,
     SHELL_EXEC_FAILED,
@@ -22,7 +21,7 @@ fault PtyError
     PTY_NOT_READY,
     GET_FLAGS_ERROR,
     SET_FLAGS_ERROR,
-}
+;
 
 struct Pty
 {
@@ -32,7 +31,7 @@ struct Pty
 }
 pty::Pty pty @public @builtin;
 
-fn void! Pty.init(&self)
+fn void? Pty.init(&self)
 {
     Termios termios;
     termios.getAttr(libc::STDIN_FD);
@@ -43,7 +42,7 @@ fn void! Pty.init(&self)
     if (self.pid == -1)
     {
         io::eprintfn("failed to forkpty");
-        return PtyError.FORK_FAILED?;
+        return FORK_FAILED?;
     }
     else if (self.pid == 0)
     {
@@ -54,24 +53,24 @@ fn void! Pty.init(&self)
     if (flags == -1)
     {
         io::eprintfn("can't get master fd flags: %s", libc::errno());
-        return PtyError.GET_FLAGS_ERROR?;
+        return GET_FLAGS_ERROR?;
     }
 
     int a = fcntl(self.master, os::F_SETFL, flags | os::O_NONBLOCK);
     if (a == -1)
     {
         io::eprintfn("can't set master fd flags: %s", libc::errno());
-        return PtyError.SET_FLAGS_ERROR?;
+        return SET_FLAGS_ERROR?;
     }
 }
 
-fn void! child_process()
+fn void? child_process()
 {
-    String! shell = env::get_var(mem, "SHELL");
+    String? shell = env::get_var(mem, "SHELL");
     if (catch excuse = shell)
     {
         io::eprintfn("failed to get shell var: %s", excuse);
-        return PtyError.ENV_SHELL_FAILED?;
+        return ENV_SHELL_FAILED?;
     }
     defer mem::free(shell);
     ZString[] args = { shell.zstr_tcopy(), null };
@@ -81,8 +80,8 @@ fn void! child_process()
         thread::exit(-1);
     }
 }
-fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
-    if (!self.is_alive()) return PtyError.PROCESS_DEAD?;
+fn String? Pty.read(&self, Allocator allocator = tmem) {
+    if (!self.is_alive()) return PROCESS_DEAD?;
 
     net::Poll[] polls = {
         {
@@ -93,9 +92,9 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
     if (catch excuse = net::poll(polls, 0))
     {
         io::eprintfn("read poll failed: %s", excuse);
-        return PtyError.POLL_FAILED?;
+        return POLL_FAILED?;
     }
-    if (polls[0].revents != net::POLL_EVENT_READ) return PtyError.PTY_NOT_READY?;
+    if (polls[0].revents != net::POLL_EVENT_READ) return PTY_NOT_READY?;
 
     const usz BUF_SIZE = 32400;
     String buf = (String)allocator::alloc_array(allocator, char, BUF_SIZE);
@@ -103,7 +102,7 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
     if (s == -1)
     {
         io::eprintfn("error while reading errno: %s", libc::errno());
-        return PtyError.READ_ERROR?;
+        return READ_ERROR?;
     }
     if (s == 0)
     {
@@ -112,9 +111,9 @@ fn String! Pty.read(&self, Allocator allocator = allocator::temp()) {
 
     return buf[:s];
 }
-fn void! Pty.write(&self, String buffer)
+fn void? Pty.write(&self, String buffer)
 {
-    if (!self.is_alive()) return PtyError.PROCESS_DEAD?;
+    if (!self.is_alive()) return PROCESS_DEAD?;
 
     defer catch {
         if (self.nextWrite.ptr == null)
@@ -138,9 +137,9 @@ fn void! Pty.write(&self, String buffer)
     if (catch excuse = net::poll(polls, 0))
     {
         io::eprintfn("write poll failed: %s", excuse);
-        return PtyError.POLL_FAILED?;
+        return POLL_FAILED?;
     }
-    if (polls[0].revents != net::POLL_EVENT_WRITE) return PtyError.PTY_NOT_READY?;
+    if (polls[0].revents != net::POLL_EVENT_WRITE) return PTY_NOT_READY?;
 
     libc::write(self.master, self.nextWrite.ptr, self.nextWrite.len);
     libc::write(self.master, buffer.ptr, buffer.len);

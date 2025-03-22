@@ -31,16 +31,15 @@ struct FontAtlas
 
     renderer::Renderer renderer;
 }
-fault FontAtlasError
-{
+faultdef
     PACKBEGIN_FAILED,
     CHAR_NOT_FOUND,
-}
+;
 <*
  @require file_name.ptr != null
  @require font_size > 0
  *>
-fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_codepoint = 0, uint end_codepoint = uint.max)
+fn void? FontAtlas.init(&self, String file_name, float font_size, uint start_codepoint = 0, uint end_codepoint = uint.max)
 {
     self.startCodepoint = start_codepoint; self.endCodepoint = end_codepoint;
     self.width = 1024; self.height = 1024;
@@ -57,7 +56,7 @@ fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_cod
 
     stb_truetype::PackContext ctx;
 
-    if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return FontAtlasError.PACKBEGIN_FAILED?;
+    if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return PACKBEGIN_FAILED?;
     stb_truetype::packFontRange(&ctx, self.fontFile, 0, font_size, self.startCodepoint, self.fontInfo.numGlyphs, self.chars.ptr);
     stb_truetype::packEnd(&ctx);
 
@@ -102,7 +101,7 @@ fn void! FontAtlas.init(&self, String file_name, float font_size, uint start_cod
 <*
  @require self.chars.ptr != null
  *>
-fn stb_truetype::PackedChar*! FontAtlas.get_char(&self, uint codepoint)
+fn stb_truetype::PackedChar*? FontAtlas.get_char(&self, uint codepoint)
 {
     long l = 0; long r = self.chars.len - 1;
     long m;
@@ -125,7 +124,7 @@ fn stb_truetype::PackedChar*! FontAtlas.get_char(&self, uint codepoint)
     }
 
     io::eprintfn("could not find char '%c' (%d)", codepoint, codepoint);
-    return FontAtlasError.CHAR_NOT_FOUND?;
+    return CHAR_NOT_FOUND?;
 }
 <*
  @require gl::isTexture(self.textureId)
@@ -140,7 +139,7 @@ struct GridCharFg (Printable)
     char[<3>] color;
 }
 macro GridCharFg.equals(a, b) => a.codepoint == b.codepoint && a.color == b.color;
-fn usz! GridCharFg.to_format(&self, Formatter* formatter) @dynamic
+fn usz? GridCharFg.to_format(&self, Formatter* formatter) @dynamic
 {
 	return formatter.printf("{ %c, %s }", self.codepoint, self.color)!;
 }
@@ -162,7 +161,7 @@ fn void FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint heig
             float x = (float)(x_idx * width / grid_w);
             float y = (float)((grid_h - y_idx - 1) * height / grid_h);
 
-            stb_truetype::PackedChar*! pChar = self.get_char(c.codepoint);
+            stb_truetype::PackedChar*? pChar = self.get_char(c.codepoint);
             if (catch excuse = pChar) continue;
 
             float s = font_size / self.fontSize;
@@ -208,8 +207,8 @@ struct GridCharBg
     inline char[<3>] color;
 }
 macro GridCharBg.equals(a, b) => a.color == b.color;
-fn usz! GridCharBg.to_format(&self, Formatter* formatter) @dynamic => formatter.printf("%s", self.color);
-def GridBgRange = List{Triple{uint, Range{uint}, char[<3>]}} @local;
+fn usz? GridCharBg.to_format(&self, Formatter* formatter) @dynamic => formatter.printf("%s", self.color);
+alias GridBgRange @local = List{Triple{uint, Range{uint}, char[<3>]}};
 GridBgRange bg_range @local;
 macro get_grid_bg_ranges(grid, grid_w, grid_h, char_start) @local
 {
@@ -313,7 +312,7 @@ fn void FontAtlas.free(&self)
  @require file_name.ptr != null
  @require buffer.ptr != null
  *>
-fn char[]! read_file(String file_name, char[] buffer) @local
+fn char[]? read_file(String file_name, char[] buffer) @local
 {
     File file = file::open(file_name, "r")!;
     defer (void)file.close();
@@ -331,9 +330,9 @@ import opengl;
 
 const ARRAY_MAX = 16384;
 
-def Vec2f = float[2] @local;
-def Vec3f = float[3] @local;
-def Vec3i =  char[3] @local;
+alias Vec2f @local = float[2];
+alias Vec3f @local = float[3];
+alias Vec3i @local =  char[3];
 struct Vertex
 {
     Vec2f position;
@@ -369,13 +368,12 @@ struct Renderer
     uint uniformUseTexture;
 }
 
-fault RendererError
-{
+faultdef
     CREATE_SHADER_VERT_FAIL,
     CREATE_SHADER_FRAG_FAIL,
     LINK_SHADER_FAIL,
-}
-fn void! Renderer.init(&self)
+;
+fn void? Renderer.init(&self)
 {
     self.vertices = {
                       { { 0.0, 0.0 } }, // bottom left
@@ -467,7 +465,7 @@ fn void Renderer.free(&self)
  @param [&in] vert
  @param [&in] frag
  *>
-fn uint! loadShader(ZString* vert, ZString* frag) @private
+fn uint? loadShader(ZString* vert, ZString* frag) @private
 {
     bool success;
     char[512] infoLog;

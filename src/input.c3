@@ -8,11 +8,10 @@ import std::io;
 import window;
 import glfw;
 
-fault InputError
-{
+faultdef
     BUTTON_NAME_NOT_FOUND,
     MAP_NAME_NOT_FOUND,
-}
+;
 
 struct Key
 {
@@ -25,7 +24,7 @@ fn bool Key.compare(self, int keycode, int modifiers, int state)
 {
     return self.keycode == keycode && !(self.modifiers ^ modifiers) && self.state & state;
 }
-def ButtonCallback = fn void();
+alias ButtonCallback = fn void();
 struct Button (Printable)
 {
     inline Key key;
@@ -64,16 +63,16 @@ fn void Map.add_input(&self, Button button)
 <*
  @require self.buttons.is_initialized()
  *>
-fn Button*! Map.find(&self, String name)
+fn Button*? Map.find(&self, String name)
 {
     foreach (&button : self.buttons)
     {
         if (button.name == name) return button;
     }
-    return InputError.BUTTON_NAME_NOT_FOUND?;
+    return BUTTON_NAME_NOT_FOUND?;
 }
 
-def KeyPressCallback = fn void(Char32[] codepoints, int mods = 0);
+alias KeyPressCallback = fn void(Char32[] codepoints, int mods = 0);
 struct Manager
 {
     HashMap{String, Map} maps;
@@ -110,14 +109,14 @@ fn void Manager.add_key_press_callback(&self, KeyPressCallback callback)
 <*
  @require map_name.len != 0
  *>
-fn void! Manager.activate_map(&self, String map_name)
+fn void? Manager.activate_map(&self, String map_name)
 {
     if (!self.maps.is_initialized())
     {
         self.maps.init(mem);
-        return InputError.MAP_NAME_NOT_FOUND?;
+        return MAP_NAME_NOT_FOUND?;
     }
-    if (catch excuse = self.maps[map_name]) return InputError.MAP_NAME_NOT_FOUND?;
+    if (catch excuse = self.maps[map_name]) return MAP_NAME_NOT_FOUND?;
     self.currentMap = map_name;
 }
 fn void Manager.free(&self)

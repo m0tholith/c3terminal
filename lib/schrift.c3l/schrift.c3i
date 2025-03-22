@@ -3,10 +3,10 @@ module schrift;
 
 const SFT_DOWNWARD_Y @builtin = 0x01;
 
-distinct Font @export("SFT_Font") = void;
+typedef Font @export("SFT_Font") = void;
 
-def UChar = uint;
-def Glyph = uint;
+alias UChar = uint;
+alias Glyph = uint;
 
 struct Sft @export("SFT")
 {

@@ -1,6 +1,6 @@
 module stb_rect_pack;
 
-def Coord = int;
+alias Coord = int;
 
 const STBRP__MAXVAL = 0x7fffffff;
 // Mostly for internal use, but this is the maximum supported coordinate value.

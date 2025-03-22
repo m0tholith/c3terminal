@@ -6,10 +6,9 @@ import std::collections::list;
 import glfw;
 import opengl;
 
-fault WindowError
-{
+faultdef
     WINDOW_FAILED_INIT,
-}
+;
 
 struct Window
 {
@@ -43,7 +42,7 @@ fn void terminate_system()
  @require self.glfwWin == null
  @require name != null
  *>
-fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
+fn void? Window.init(&self, int width = 0, int height = 0, ZString name)
 {
     Monitor* monitor = null;
     if (width == 0 || height == 0) monitor = glfw::getPrimaryMonitor();
@@ -56,7 +55,7 @@ fn void! Window.init(&self, int width = 0, int height = 0, ZString name)
     {
         io::eprintf("could not initialize glfw window");
         glfw::terminate();
-        return WindowError.WINDOW_FAILED_INIT?;
+        return WINDOW_FAILED_INIT?;
     }
     glfw::setWindowSizeCallback(glfw_win, &window_size_callback);
     glfw::makeContextCurrent(glfw_win);

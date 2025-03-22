@@ -13,10 +13,9 @@ import std::io;
 import std::math;
 import std::collections::list;
 
-fault TerminalError
-{
+faultdef
     PTY_DEAD,
-}
+;
 
 struct TermSettings
 {
@@ -97,7 +96,7 @@ Terminal terminal @public @builtin;
  @require font_size > 0
  @require grid_size > 0
  *>
-fn void! Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, char[<3>] bg = {0,0,0}, char[<3>] fg = {1,1,1})
+fn void? Terminal.init(&self, int window_width = 0, int window_height = 0, String font_name, ZString window_name = "terminal", float font_size = 20.0f, usz grid_size = 32400, char[<3>] bg = {0,0,0}, char[<3>] fg = {1,1,1})
 {
     pty.init()!;
 
@@ -242,7 +241,7 @@ fn void Terminal.tab(&self, uint amount = 1)
         }
     }
 }
-fn void! Terminal.pre_render(&self)
+fn void? Terminal.pre_render(&self)
 {
     if (self.window.sizeChanged)
     {
@@ -258,15 +257,15 @@ fn void! Terminal.pre_render(&self)
     if (!pty.is_alive())
     {
         io::printn("pty is dead");
-        return TerminalError.PTY_DEAD?;
+        return PTY_DEAD?;
     }
 
-    String! pty_read = pty.read();
+    String? pty_read = pty.read();
     if (catch excuse = pty_read)
     {
         switch (excuse)
         {
-            case PtyError.PTY_NOT_READY:
+            case pty::PTY_NOT_READY:
                 break;
             default:
                 io::eprintfn("failed to read from pty: %s", excuse);
@@ -275,7 +274,7 @@ fn void! Terminal.pre_render(&self)
     }
     else
     {
-        Allocator temp_alloc = allocator::temp();
+        Allocator temp_alloc = tmem;
         if (try buffer = pty_read.to_utf32(temp_alloc))
         {
             List{uint} new_buf;
@@ -343,7 +342,7 @@ fn void debug_message_callback(GLenum source,
 
 fn void key_press_callback(Char32[] codepoints, int mods = 0)
 {
-    Allocator temp_alloc = allocator::temp();
+    Allocator temp_alloc = tmem;
     if (codepoints.len == 1) if (mods > 0)
     {
         if (ascii::is_alpha((char)codepoints[0]))
@@ -369,7 +368,7 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
         }
     }
 
-    String! buffer = string::from_utf32(temp_alloc, codepoints);
+    String? buffer = string::from_utf32(temp_alloc, codepoints);
     if (catch excuse = buffer) return;
     if (catch excuse = pty.write(buffer))
     {

@@ -15,7 +15,7 @@ import std::math;
 import std::collections::map;
 import std::collections::range;
 
-def Vec2ui = uint[<2>];
+alias Vec2ui = uint[<2>];
 
 const float[<3>][] COLORS = {
     { 0xf5, 0xe0, 0xdc },
