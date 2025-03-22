@@ -28,8 +28,8 @@ struct TermSettings
 }
 struct Grid @local
 {
-    font_atlas::GridCharFg[] fg;
-    font_atlas::GridCharBg[] bg;
+    GridCharFg[] fg;
+    GridCharBg[] bg;
     union
     {
         struct
@@ -67,7 +67,7 @@ struct Tabs
 struct Terminal
 {
     window::Window window;
-    font_atlas::FontAtlas fontAtlas;
+    FontAtlas fontAtlas;
     Cursor cursor;
     Grid grid;
     char[<3>] bg;
@@ -114,8 +114,8 @@ fn void? Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
     defer catch { self.fontAtlas.free(); }
 
     self.grid = {
-        .fg = mem::new_array(font_atlas::GridCharFg, grid_size),
-        .bg = mem::new_array(font_atlas::GridCharBg, grid_size),
+        .fg = mem::new_array(GridCharFg, grid_size),
+        .bg = mem::new_array(GridCharBg, grid_size),
         .dimensions = {
             (uint)((float)window_width  / self.fontAtlas.charMaxX),
             (uint)((float)window_height / self.fontAtlas.charMaxY),

@@ -81,8 +81,8 @@ import std::io;
 macro Terminal.init_no_external(&self, usz grid_size = 200, float font_size = 20, uint[<2>] dimensions = {20, 10}, char[<3>] bg = {}, char[<3>] fg = {0xff,0xff,0xff})
 {
     self.grid = {
-        .fg = mem::new_array(font_atlas::GridCharFg, grid_size),
-        .bg = mem::new_array(font_atlas::GridCharBg, grid_size),
+        .fg = mem::new_array(GridCharFg, grid_size),
+        .bg = mem::new_array(GridCharBg, grid_size),
         .dimensions = dimensions,
         .fontSize = font_size,
         .size = grid_size,

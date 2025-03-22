@@ -29,7 +29,7 @@ struct Pty
     libc::Pid_t pid;
     String nextWrite;
 }
-pty::Pty pty @public @builtin;
+Pty pty @public @builtin;
 
 fn void? Pty.init(&self)
 {

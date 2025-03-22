@@ -22,14 +22,14 @@ struct FontAtlas
     float fontSize;
 
     uint startCodepoint; uint endCodepoint;
-    stb_truetype::PackedChar[] chars;
-    stb_truetype::FontInfo fontInfo;
+    PackedChar[] chars;
+    FontInfo fontInfo;
     char[] fontFile;
     char[] pixels;
     uint textureId;
     float charMaxX; float charMaxY;
 
-    renderer::Renderer renderer;
+    Renderer renderer;
 }
 faultdef
     PACKBEGIN_FAILED,
@@ -51,10 +51,10 @@ fn void? FontAtlas.init(&self, String file_name, float font_size, uint start_cod
 
     stb_truetype::initFont(&self.fontInfo, self.fontFile.ptr, 0);
 
-    self.chars = mem::new_array(stb_truetype::PackedChar, self.fontInfo.numGlyphs);
+    self.chars = mem::new_array(PackedChar, self.fontInfo.numGlyphs);
     self.pixels = mem::new_array(char, (usz)(self.width * self.height));
 
-    stb_truetype::PackContext ctx;
+    PackContext ctx;
 
     if (stb_truetype::packBegin(&ctx, self.pixels.ptr, self.width, self.height, 0, 1, null) == 0) return PACKBEGIN_FAILED?;
     stb_truetype::packFontRange(&ctx, self.fontFile, 0, font_size, self.startCodepoint, self.fontInfo.numGlyphs, self.chars.ptr);
@@ -101,7 +101,7 @@ fn void? FontAtlas.init(&self, String file_name, float font_size, uint start_cod
 <*
  @require self.chars.ptr != null
  *>
-fn stb_truetype::PackedChar*? FontAtlas.get_char(&self, uint codepoint)
+fn PackedChar*? FontAtlas.get_char(&self, uint codepoint)
 {
     long l = 0; long r = self.chars.len - 1;
     long m;
@@ -161,7 +161,7 @@ fn void FontAtlas.render_grid_fg(&self, GridCharFg[] grid, uint width, uint heig
             float x = (float)(x_idx * width / grid_w);
             float y = (float)((grid_h - y_idx - 1) * height / grid_h);
 
-            stb_truetype::PackedChar*? pChar = self.get_char(c.codepoint);
+            PackedChar*? pChar = self.get_char(c.codepoint);
             if (catch excuse = pChar) continue;
 
             float s = font_size / self.fontSize;

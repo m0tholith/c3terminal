@@ -3,15 +3,15 @@ import stb_rect_pack;
 
 struct Buffer
 {
-   char* data;
-   int cursor;
-   int size;
+    char* data;
+    int cursor;
+    int size;
 }
 
 struct BakedChar
 {
-   ushort x0; ushort y0; ushort x1; ushort y1; // coordinates of bbox in bitmap
-   float xoff; float yoff; float xadvance;
+    ushort x0; ushort y0; ushort x1; ushort y1; // coordinates of bbox in bitmap
+    float xoff; float yoff; float xadvance;
 }
 
 // if return is positive, the first unused row of the bitmap
@@ -27,8 +27,8 @@ fn int bakeFontBitmap(char* data, int offset,        // font location (use offse
 
 struct AlignedQuad
 {
-   float x0; float y0; float s0; float t0; // top-left
-   float x1; float y1; float s1; float t1; // bottom-right
+    float x0; float y0; float s0; float t0; // top-left
+    float x1; float y1; float s1; float t1; // bottom-right
 }
 
 // Call GetBakedQuad with char_index = 'character - first_char', and it
@@ -53,10 +53,10 @@ fn void stbtt_GetScaledFontVMetrics(char* fontdata, int index, float size, float
 
 struct PackedChar
 {
-   ushort x0; ushort y0; ushort x1; ushort y1; // coordinates of bbox in bitmap
-   float xoff; float yoff; float xadvance;
-   float xoff2; float yoff2;
-   int codepoint;
+    ushort x0; ushort y0; ushort x1; ushort y1; // coordinates of bbox in bitmap
+    float xoff; float yoff; float xadvance;
+    float xoff2; float yoff2;
+    int codepoint;
 }
 
 // Initializes a packing context stored in the passed-in stbtt_Pack_context.
@@ -73,10 +73,7 @@ fn int packBegin(PackContext* spc, char* pixels, int width, int height, int stri
 // Cleans up the packing context and frees all memory.
 fn void packEnd(PackContext *spc) @extern("stbtt_PackEnd");
 
-macro pointsize(x)
-{
-    return -x;
-}
+macro pointsize(x) => -x;
 
 // Creates character bitmaps from the font_index'th font found in fontdata (use
 // font_index=0 if you don't know what that is). It creates num_chars_in_range
@@ -96,12 +93,12 @@ fn int packFontRange(PackContext* spc, char* fontdata, int font_index, float fon
 
 struct PackRange
 {
-   float font_size;
-   int first_unicode_codepoint_in_range;  // if non-zero, then the chars are continuous, and this is the first codepoint
-   int* array_of_unicode_codepoints;       // if non-zero, then this is an array of unicode codepoints
-   int num_chars;
-   PackedChar* chardata_for_range; // output
-   char h_oversample; char v_oversample; // don't set these, they're used internally
+    float font_size;
+    int first_unicode_codepoint_in_range;  // if non-zero, then the chars are continuous, and this is the first codepoint
+    int* array_of_unicode_codepoints;       // if non-zero, then this is an array of unicode codepoints
+    int num_chars;
+    PackedChar* chardata_for_range; // output
+    char h_oversample; char v_oversample; // don't set these, they're used internally
 }
 
 // Creates character bitmaps from multiple ranges of characters stored in
@@ -133,10 +130,10 @@ fn void stbtt_PackSetOversampling(PackContext* spc, uint h_oversample, uint v_ov
 fn void packSetSkipMissingCodepoints(PackContext* spc, int skip) @extern("stbtt_PackSetSkipMissingCodepoints");
 
 fn void getPackedQuad(PackedChar* chardata, int pw, int ph,  // same data as above
-                       int char_index,                       // character to display
-                       float* xpos, float* ypos,             // pointers to current position in screen pixel space
-                       AlignedQuad* q,                       // output: quad to draw
-                       int align_to_integer) @extern("stbtt_GetPackedQuad");
+                      int char_index,                       // character to display
+                      float* xpos, float* ypos,             // pointers to current position in screen pixel space
+                      AlignedQuad* q,                       // output: quad to draw
+                      int align_to_integer) @extern("stbtt_GetPackedQuad");
 
 // Calling these functions in sequence is roughly equivalent to calling
 // stbtt_PackFontRanges(). If you more control over the packing of multiple
@@ -147,24 +144,24 @@ fn void getPackedQuad(PackedChar* chardata, int pw, int ph,  // same data as abo
 // then call RenderIntoRects repeatedly. This may result in a
 // better packing than calling PackFontRanges multiple times
 // (or it may not).
-fn int  packFontRangesGatherRects(PackContext* spc, FontInfo* info, PackRange* ranges, int num_ranges, stb_rect_pack::Rect* rects) @extern("stbtt_PackFontRangesGatherRects");
-fn void packFontRangesPackRects(PackContext* spc, stb_rect_pack::Rect* rects, int num_rects) @extern("stbtt_PackFontRangesPackRects");
-fn int  packFontRangesRenderIntoRects(PackContext* spc, FontInfo* info, PackRange* ranges, int num_ranges, stb_rect_pack::Rect* rects) @extern("stbtt_PackFontRangesRenderIntoRects");
+fn int  packFontRangesGatherRects(PackContext* spc, FontInfo* info, PackRange* ranges, int num_ranges, Rect* rects) @extern("stbtt_PackFontRangesGatherRects");
+fn void packFontRangesPackRects(PackContext* spc, Rect* rects, int num_rects) @extern("stbtt_PackFontRangesPackRects");
+fn int  packFontRangesRenderIntoRects(PackContext* spc, FontInfo* info, PackRange* ranges, int num_ranges, Rect* rects) @extern("stbtt_PackFontRangesRenderIntoRects");
 
 // this is an opaque structure that you shouldn't mess with which holds
 // all the context needed from PackBegin to PackEnd.
 struct PackContext
 {
-   void* user_allocator_context;
-   void* pack_info;
-   int   width;
-   int   height;
-   int   stride_in_bytes;
-   int   padding;
-   int   skip_missing;
-   uint  h_oversample; uint v_oversample;
-   char* pixels;
-   void*  nodes;
+    void* user_allocator_context;
+    void* pack_info;
+    int   width;
+    int   height;
+    int   stride_in_bytes;
+    int   padding;
+    int   skip_missing;
+    uint  h_oversample; uint v_oversample;
+    char* pixels;
+    void*  nodes;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -191,23 +188,23 @@ fn int getFontOffsetForIndex(char* data, int index) @extern("stbtt_GetFontOffset
 // the stack or as a global or etc, but you should treat it as opaque.
 struct FontInfo
 {
-   void*            userdata;
-   char*            data;              // pointer to .ttf file
-   int              fontstart;         // offset of start of font
-
-   int numGlyphs;                     // number of glyphs, needed for range checking
-
-   // table locations as offset from start of .ttf
-   int loca; int head; int glyf; int hhea; int hmtx; int kern; int gpos; int svg;
-   int index_map;                     // a cmap mapping for our chosen character encoding
-   int indexToLocFormat;              // format needed to map from glyph index to glyph
-
-   Buffer cff;                    // cff font data
-   Buffer charstrings;            // the charstring index
-   Buffer gsubrs;                 // global charstring subroutines index
-   Buffer subrs;                  // private charstring subroutines index
-   Buffer fontdicts;              // array of font dicts
-   Buffer fdselect;               // map from glyph to fontdict
+    void*            userdata;
+    char*            data;              // pointer to .ttf file
+    int              fontstart;         // offset of start of font
+    
+    int numGlyphs;                     // number of glyphs, needed for range checking
+    
+    // table locations as offset from start of .ttf
+    int loca; int head; int glyf; int hhea; int hmtx; int kern; int gpos; int svg;
+    int index_map;                     // a cmap mapping for our chosen character encoding
+    int indexToLocFormat;              // format needed to map from glyph index to glyph
+    
+    Buffer cff;                    // cff font data
+    Buffer charstrings;            // the charstring index
+    Buffer gsubrs;                 // global charstring subroutines index
+    Buffer subrs;                  // private charstring subroutines index
+    Buffer fontdicts;              // array of font dicts
+    Buffer fdselect;               // map from glyph to fontdict
 }
 
 // Given an offset into the file that defines a font, this function builds

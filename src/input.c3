@@ -154,7 +154,7 @@ macro @run_callbacks(#codepoint, mods = 0)
  @param [&in] window
  @require input_manager.is_initialized()
  *>
-fn void key_callback(glfw::Window* window, int key, int scancode, int action, int mods)
+fn void key_callback(Window* window, int key, int scancode, int action, int mods)
 {
     if (try map = input_manager.maps[input_manager.currentMap])
     {
@@ -216,7 +216,7 @@ fn void key_callback(glfw::Window* window, int key, int scancode, int action, in
 
     @run_callbacks(codepoint, mods);
 }
-fn void char_callback(glfw::Window* window, uint codepoint)
+fn void char_callback(Window* window, uint codepoint)
 {
     @run_callbacks(codepoint);
 }
