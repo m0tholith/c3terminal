@@ -71,6 +71,19 @@ fn void cursor_horizontal()
 
     assert_fg(terminal.grid.fg, correct);
 }
+fn void cursor_position()
+{
+    Terminal terminal;
+    terminal.init_no_external(grid_size: 300, dimensions: { 26, 10 });
+    defer terminal.free_no_external();
+
+    interpret_str(terminal, "\e[;6Hlorem\e[5Hipsum\e[Hdolor\e[10;3Hsit");
+
+    GridCharFg[] correct = fg_from_array("dolorlorem                                                                                              ipsum                                                                                                                               sit                     ");
+    defer mem::free(correct);
+
+    assert_fg(terminal.grid.fg, correct);
+}
 
 module terminal::ansi::test @private;
 
