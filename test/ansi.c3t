@@ -184,6 +184,19 @@ fn void insert_lines()
         assert_fg(terminal.grid.fg, correct);
     }
 }
+fn void delete_chars()
+{
+    terminal.init_no_external();
+    defer terminal.free_no_external();
+
+    interpret_str(terminal, "lorem ipsu\e[6D\e[4P");
+
+    GridCharFg[] correct = fg_from_array("loresu");
+    defer mem::free(correct);
+
+    assert_fg(terminal.grid.fg, correct);
+}
+
 module terminal::ansi::test @private;
 
 import glyph::font_atlas;
