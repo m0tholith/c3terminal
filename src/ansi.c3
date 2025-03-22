@@ -582,7 +582,7 @@ fn void delete_chars(Terminal* term, uint[] args)
 fn void insert_line(Terminal* term, uint[] args)
 {
     uint amount = args.len == 0 ? 1 : args[0];
-    for (int y = term.cursor.y; y < term.cursor.y + amount; y++)
+    for (int y = term.grid.height - amount; y >= term.cursor.y; y--)
     {
         for (int x = 0; x < term.grid.width; x++)
         {
