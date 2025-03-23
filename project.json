@@ -1,4 +1,5 @@
 {
+  "cc": "clang",
   "langrev": "1",
   "warnings":  [ "no-unused" ],
   "dependency-search-paths":  [ "lib" ],

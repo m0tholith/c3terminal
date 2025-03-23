@@ -25,6 +25,9 @@
           (c3c.outputs.packages.${system}.default)
           glfw
 
+          clang-tools
+          clang
+
           # debugging
           renderdoc
           valgrind
