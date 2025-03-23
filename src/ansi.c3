@@ -298,9 +298,9 @@ AnsiMap csi_map = {
     // delete chars (DCH)
     { 'P', &delete_chars },
 
-    // scroll up/down (SU)
-    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
-    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
+    // scroll up/down (SU,SD)
+    { 'S', &scroll_up   },
+    { 'T', &scroll_down },
 
     // set cursor position (HVP)
     { 'f', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
@@ -618,4 +618,14 @@ fn void delete_line(Terminal* term, uint[] args)
             term.grid.bg[term.get_grid_idx({ x, y })].color = term.bg;
         }
     }
+}
+fn void scroll_up(Terminal* term, uint[] args)
+{
+    long amount = args.len == 0 ? 1 : args[0];
+    term.scroll_lines(amount);
+}
+fn void scroll_down(Terminal* term, uint[] args)
+{
+    long amount = args.len == 0 ? 1 : args[0];
+    term.scroll_lines(-amount);
 }
