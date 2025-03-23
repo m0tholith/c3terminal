@@ -366,6 +366,18 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
                 mods_sequence_codepoints(codepoints, mods, temp_alloc);
             }
         }
+        else if (ascii::is_digit((char)codepoints[0]))
+        {
+            if (mods == glfw::MOD_ALT)
+            {
+                codepoints[0] += 0;
+                codepoints = { '\e', codepoints[0] };
+            }
+            else
+            {
+                mods_sequence_codepoints(codepoints, mods, temp_alloc);
+            }
+        }
         else
         {
             mods_sequence_codepoints(codepoints, mods, temp_alloc);
