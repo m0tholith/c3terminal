@@ -299,8 +299,8 @@ AnsiMap csi_map = {
     { 'P', &delete_chars },
 
     // scroll up/down (SU)
-    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
-    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
+    { 'S', fn (term, args) => term.scroll_lines(args.len == 0 ?  1 :  args[0]) },
+    { 'T', fn (term, args) => term.scroll_lines(args.len == 0 ? -1 : -args[0]) },
 
     // set cursor position (HVP)
     { 'f', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,

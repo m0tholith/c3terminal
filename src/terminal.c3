@@ -77,7 +77,7 @@ struct Terminal
     // if last command pty sent was incomplete, this will be populated and, on the next read, will be appended and interpreted
     Char32[] lastBuffer;
     // number of lines that will be clipped from the top of the screen
-    uint scroll;
+    long scroll;
 }
 Terminal terminal @public @builtin;
 
