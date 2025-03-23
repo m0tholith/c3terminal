@@ -29,6 +29,7 @@
           clang
 
           # debugging
+          gdb
           renderdoc
           valgrind
         ];
