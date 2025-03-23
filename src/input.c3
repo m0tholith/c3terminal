@@ -19,7 +19,12 @@ struct Key
     int modifiers; // modifier from glfw (e.g. MOD_LEFT_ALT), can be more than one but has to be exact
     int state; // status from glfw (e.g. PRESS), can be more than one but enables when any one of them
 }
-const INPUT_MODIFIERS @private = glfw::MOD_SHIFT | glfw::MOD_CONTROL | glfw::MOD_ALT | glfw::MOD_SUPER | glfw::MOD_CAPS_LOCK | glfw::MOD_NUM_LOCK;
+const INPUT_MODIFIERS @private = glfw::MOD_SHIFT
+                               | glfw::MOD_CONTROL
+                               | glfw::MOD_ALT
+                               | glfw::MOD_SUPER
+                               | glfw::MOD_CAPS_LOCK
+                               | glfw::MOD_NUM_LOCK;
 fn bool Key.compare(self, int keycode, int modifiers, int state)
 {
     return self.keycode == keycode && !(self.modifiers ^ modifiers) && self.state & state;
