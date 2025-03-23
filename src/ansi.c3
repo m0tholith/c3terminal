@@ -185,12 +185,14 @@ fn void? parse_dcs(Terminal* terminal, uint* char_idx, Char32[] buffer)
     for (; *char_idx < buffer.len; *char_idx++)
     {
         if (buffer.len <= *char_idx) return INCOMPLETE?;
+        uint c = buffer[*char_idx];
 
         // catch ST (string terminator)
-        if (buffer[*char_idx] == 0x9c ||
-            (buffer[*char_idx] == '\\' &&
-                *char_idx - 1 >= 0 &&
-                buffer[*char_idx-1] == '\e'))
+        if (c == 0x9c ||
+                (c == '\\' &&
+                buffer.len > *char_idx - 1 &&
+                buffer[*char_idx-1] == '\e')
+            )
         {
             str_to_parse = buffer[start_idx..*char_idx];
         }
