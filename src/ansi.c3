@@ -16,9 +16,9 @@ faultdef
 
 fn void? Terminal.interpret(&self, Char32[] buffer)
 {
-    for (int char_idx = 0; char_idx < buffer.len;)
+    for (uint char_idx = 0; char_idx < buffer.len;)
     {
-        int prev_char_idx = char_idx;
+        uint prev_char_idx = char_idx;
         if (catch excuse = parse_c1(self, &char_idx, buffer)) { switch (excuse)
         {
             case INCOMPLETE:
@@ -80,7 +80,7 @@ fn AnsiCallback? AnsiMap.find(&self, uint command)
 }
 
 macro in_range(x, a, b) => (Range{$typeof(x)}){ a, b }.contains(x);
-fn void? parse_c1(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_c1(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
@@ -89,7 +89,7 @@ fn void? parse_c1(Terminal* terminal, int* char_idx, Char32[] buffer)
     buffer[*char_idx] -= 0x40;
     parse_fe(terminal, char_idx, buffer)!;
 }
-fn void? parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_c0(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
@@ -124,7 +124,7 @@ fn void? parse_c0(Terminal* terminal, int* char_idx, Char32[] buffer)
             return PARSE_FAILED?;
     }
 }
-fn void? parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_fe(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
@@ -175,12 +175,12 @@ fn void? parse_fe(Terminal* terminal, int* char_idx, Char32[] buffer)
             return PARSE_FAILED?;
     }
 }
-fn void? parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_dcs(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
 
-    int start_idx = *char_idx;
+    uint start_idx = *char_idx;
     Char32[] str_to_parse;
     for (; *char_idx < buffer.len; *char_idx++)
     {
@@ -197,7 +197,7 @@ fn void? parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
     }
     if (str_to_parse.ptr == null) return PARSE_FAILED?;
 }
-fn void? parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_csi(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
@@ -215,7 +215,7 @@ fn void? parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
     uint command;
     Range{uint} command_range = { 0x40, 0x7E };
 
-    int current_param = 0;
+    uint current_param = 0;
     for (; *char_idx < buffer.len; (*char_idx)++)
     {
         if (buffer.len <= *char_idx) return INCOMPLETE?;
@@ -251,12 +251,12 @@ fn void? parse_csi(Terminal* terminal, int* char_idx, Char32[] buffer)
 
     (void)csi_map.find(command)(terminal, parameters.array_view());
 }
-fn void? parse_osc(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_osc(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
 }
-fn void? parse_apc(Terminal* terminal, int* char_idx, Char32[] buffer)
+fn void? parse_apc(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
     if (buffer.len == 0) return INCOMPLETE?;
     if (buffer.len <= *char_idx) return INCOMPLETE?;
