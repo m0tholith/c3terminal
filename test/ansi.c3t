@@ -18,7 +18,7 @@ fn void no_ansi()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void insert_space()
+fn void ich()
 {
     terminal.init_no_external();
     defer terminal.free_no_external();
@@ -30,7 +30,7 @@ fn void insert_space()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void cursor_updownforwardback()
+fn void cuu_cud_cuf_cub()
 {
     terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
     defer terminal.free_no_external();
@@ -42,7 +42,7 @@ fn void cursor_updownforwardback()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void cursor_newline_updown()
+fn void cnl_cpl()
 {
     terminal.init_no_external(dimensions: { 8, 5 });
     defer terminal.free_no_external();
@@ -54,7 +54,7 @@ fn void cursor_newline_updown()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void cursor_horizontal()
+fn void cha()
 {
     terminal.init_no_external(dimensions: { 15, 5 });
     defer terminal.free_no_external();
@@ -66,7 +66,7 @@ fn void cursor_horizontal()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void cursor_position()
+fn void cup()
 {
     terminal.init_no_external(grid_size: 300, dimensions: { 26, 10 });
     defer terminal.free_no_external();
@@ -78,7 +78,7 @@ fn void cursor_position()
 
     assert_fg(terminal.grid.fg, correct);
 }
-fn void erase_display()
+fn void ed()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
@@ -116,7 +116,7 @@ fn void erase_display()
         assert_fg(terminal.grid.fg, correct);
     }
 }
-fn void erase_line()
+fn void el()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
@@ -152,7 +152,7 @@ fn void erase_line()
         assert_fg(terminal.grid.fg, correct);
     }
 }
-fn void insert_lines()
+fn void il()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
@@ -184,7 +184,7 @@ fn void insert_lines()
         assert_fg(terminal.grid.fg, correct);
     }
 }
-fn void delete_lines()
+fn void dl()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
@@ -216,7 +216,7 @@ fn void delete_lines()
         assert_fg(terminal.grid.fg, correct);
     }
 }
-fn void delete_chars()
+fn void dch()
 {
     terminal.init_no_external();
     defer terminal.free_no_external();
