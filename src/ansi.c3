@@ -184,6 +184,8 @@ fn void? parse_dcs(Terminal* terminal, int* char_idx, Char32[] buffer)
     Char32[] str_to_parse;
     for (; *char_idx < buffer.len; *char_idx++)
     {
+        if (buffer.len <= *char_idx) return INCOMPLETE?;
+
         // catch ST (string terminator)
         if (buffer[*char_idx] == 0x9c ||
             (buffer[*char_idx] == '\\' &&
