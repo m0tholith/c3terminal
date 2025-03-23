@@ -257,9 +257,12 @@ macro get_grid_bg_ranges(grid, grid_w, grid_h, char_start) @local
  @require (usz)(grid_w * grid_h) <= grid.len
  @require font_size > 0
  *>
-fn void FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, usz char_start = 0)
+fn void FontAtlas.render_grid_bg(&self, GridCharBg[] grid, uint width, uint height, uint grid_w, uint grid_h, float font_size, uint[<2>] cursor_pos, char[<3>] cursor_color, usz char_start = 0)
 {
+    GridCharBg color_under_cursor = grid[cursor_pos.x + grid_w * cursor_pos.y];
+    grid[cursor_pos.x + grid_w * cursor_pos.y].color = cursor_color;
     get_grid_bg_ranges(grid, grid_w, grid_h, char_start);
+    grid[cursor_pos.x + grid_w * cursor_pos.y] = color_under_cursor;
     usz uniform_idx = 0;
     foreach (elem : bg_range)
     {
