@@ -626,10 +626,19 @@ fn void delete_line(Terminal* term, uint[] args)
 fn void scroll_up(Terminal* term, uint[] args)
 {
     long amount = args.len == 0 ? 1 : args[0];
-    term.scroll_lines(amount);
+    uint[<2>] old_cursor = term.cursor.position;
+    term.cursor.position = { 0, term.grid.height - 1 };
+    term.scroll_lines(1);
+    insert_line(term, { (uint)amount });
+    term.scroll_lines(-1);
+    term.cursor.position = old_cursor;
 }
 fn void scroll_down(Terminal* term, uint[] args)
 {
-    long amount = args.len == 0 ? 1 : args[0];
-    term.scroll_lines(-amount);
+    long amount = args.len == 0 ? -1 : -args[0];
+    uint[<2>] old_cursor = term.cursor.position;
+    term.cursor.position = { 0, 0 };
+    // term.scroll_lines(amount - 1);
+    insert_line(term, { (uint)(-amount) });
+    term.cursor.position = old_cursor;
 }
