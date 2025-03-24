@@ -306,6 +306,9 @@ AnsiMap csi_map = {
     { 'S', &scroll_up   },
     { 'T', &scroll_down },
 
+    // erase chars (ECH)
+    { 'X', &erase_chars },
+
     // set cursor position (HVP)
     { 'f', fn (term, args) => term.set_cursor({ args.len <= 1 ? 0 : (long)args[1] - 1,
                                                 args.len == 0 ? 0 : (long)args[0] - 1 }) },
@@ -641,4 +644,13 @@ fn void scroll_down(Terminal* term, uint[] args)
     // term.scroll_lines(amount - 1);
     insert_line(term, { (uint)(-amount) });
     term.cursor.position = old_cursor;
+}
+fn void erase_chars(Terminal* term, uint[] args)
+{
+    uint amount = args.len == 0 ? 1 : args[0];
+    amount = math::clamp(amount, 0, term.grid.width - 1 - term.cursor.position.x);
+    for (uint x = term.cursor.x; x < term.cursor.x + amount; x++)
+    {
+        term.grid.fg[term.get_grid_idx({ x, term.cursor.y })].codepoint = ' ';
+    }
 }
