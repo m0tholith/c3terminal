@@ -302,7 +302,7 @@ fn void Terminal.render(&self)
     self.window.clear_color(self.bg);
 
     usz char_start = (usz)(self.grid.width * self.scroll);
-    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, self.cursor, {255,255,255}, char_start: char_start);
+    self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, (uint[<2>])((long[<2>])self.cursor.position + {0,self.scroll}), {255,255,255}, char_start: char_start);
     self.fontAtlas.render_grid_fg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, char_start: char_start);
 
     self.window.refresh();
