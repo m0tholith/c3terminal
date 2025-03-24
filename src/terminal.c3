@@ -349,7 +349,7 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
     Allocator temp_alloc = tmem;
     if (codepoints.len == 1) if (mods > 0)
     {
-        if (ascii::is_alpha((char)codepoints[0]))
+        if (codepoints[0].is_alpha())
         {
             if (mods == glfw::MOD_CONTROL)
             {
@@ -366,7 +366,7 @@ fn void key_press_callback(Char32[] codepoints, int mods = 0)
                 mods_sequence_codepoints(codepoints, mods, temp_alloc);
             }
         }
-        else if (ascii::is_digit((char)codepoints[0]))
+        else if (codepoints[0].is_digit())
         {
             if (mods == glfw::MOD_ALT)
             {
