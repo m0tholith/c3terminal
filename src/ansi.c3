@@ -337,10 +337,10 @@ AnsiMap csi_map = {
     { 'r', &limit_scroll_topdown },
 
     // limit scroll region left/right (DECSLRM)
-    { 's', &limit_scroll_leftright },
-
-    // save/restore cursor to sco (SCOSC, SCORC)
-    { 's', fn (term, args) => term.save_cursor_sco() },
+    { 's', fn (term, args) => term.settings.declrmm ?
+                                limit_scroll_leftright(term, args)
+                                : term.save_cursor_sco() },
+    // restore cursor to sco (SCORC)
     { 'u', fn (term, args) => term.restore_cursor_sco() },
 };
 fn void j_erase(Terminal* term, uint[] args)
@@ -400,6 +400,8 @@ fn void h_parse(Terminal* term, uint[] args)
     {
         case 25:   // show cursor
             term.settings.showCursor = true;
+        case 69:   // enable DECLRMM
+            term.settings.declrmm = true;
         case 1004: // enable reporting focus
             term.settings.reportFocus = true;
         case 1049: // enable alternate screen buffer
@@ -424,6 +426,8 @@ fn void l_parse(Terminal* term, uint[] args)
     {
         case 25:   // hide cursor
             term.settings.showCursor = false;
+        case 69:   // disable DECLRMM
+            term.settings.declrmm = false;
         case 1004: // disable reporting focus
             term.settings.reportFocus = false;
         case 1049: // disable alternate screen buffer

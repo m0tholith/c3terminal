@@ -27,6 +27,7 @@ struct TermSettings
         bool reportFocus;
         bool alternateBuffer;
         bool bracketedPaste;
+        bool declrmm; // enables left-and-right margin mode
     }
 }
 struct Grid @local
