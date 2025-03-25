@@ -83,23 +83,15 @@ fn void paste_clipboard()
 {
     ZString clipboard = glfw::getClipboardString(null);
     if (clipboard == null) return;
-    (void)pty.write((String)clipboard[:clipboard.len()]);
-}
-macro usz get_len(uint[] arr)
-{
-    for (usz result = 0; result < arr.len; result++) if (arr[result] == 0) return result;
-    return arr.len;
-}
-macro set_bracketed_paste(uint[] arr, usz len)
-{
-    const char[] START = "\e[200~";
-    const char[] END   = "\e[201~";
-    for (int i = 0; i < 6; i++)
+    String result = (String)clipboard[:clipboard.len()];
+    if (terminal.settings.bracketedPaste)
     {
-        arr[i] = START[i];
+        DString builder;
+        builder.init(tmem);
+        builder.appendf("\e[200~%s\e[201~", result);
+        result = builder.str_view();
+        (void)pty.write(result);
+        return;
     }
-    for (int i = 0; i < 6; i++)
-    {
-        arr[i + len] = END[i];
-    }
+    (void)pty.write(result);
 }
