@@ -21,10 +21,13 @@ struct TermSettings
 {
     uint[<2>] sco;
     uint[<2>] dec;
-    bool showCursor;
-    bool reportFocus;
-    bool alternateBuffer;
-    bool bracketedPaste;
+    bitstruct : char
+    {
+        bool showCursor;
+        bool reportFocus;
+        bool alternateBuffer;
+        bool bracketedPaste;
+    }
 }
 struct Grid @local
 {
