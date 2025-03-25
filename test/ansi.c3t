@@ -258,8 +258,10 @@ macro Terminal.init_no_external(&self, usz grid_size = 200, float font_size = 20
 
     self.scroll = {
         .amount = 0,
-        .start = 0,
-        .end = self.grid.height - 1,
+        .top = 0,
+        .bottom = self.grid.height - 1,
+        .left = 0,
+        .right = self.grid.width - 1,
     };
 }
 macro Terminal.free_no_external(&self)
@@ -279,7 +281,12 @@ macro compare_strings(String[] tests, String[] correct_results)
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = {.end = terminal.grid.height - 1};
+        terminal.scroll = {
+            .top = 0,
+            .bottom = terminal.grid.height - 1,
+            .left = 0,
+            .right = terminal.grid.width - 1,
+        };
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);

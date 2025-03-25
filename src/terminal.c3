@@ -67,8 +67,10 @@ struct Tabs
 struct Scroll
 {
     inline long amount;
-    uint start;
-    uint end;
+    uint top;
+    uint bottom;
+    uint left;
+    uint right;
 }
 struct Terminal
 {
@@ -145,8 +147,10 @@ fn void? Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
 
     self.scroll = {
         .amount = 0,
-        .start = 0,
-        .end = self.grid.height - 1,
+        .top = 0,
+        .bottom = self.grid.height - 1,
+        .left = 0,
+        .right = self.grid.width - 1,
     };
 
     pty.set_winsize(self.grid.dimensions);

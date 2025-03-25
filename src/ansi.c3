@@ -336,6 +336,9 @@ AnsiMap csi_map = {
     // limit scroll region top/down (DECSTBM)
     { 'r', &limit_scroll_topdown },
 
+    // limit scroll region left/right (DECSLRM)
+    { 's', &limit_scroll_leftright },
+
     // save/restore cursor to sco (SCOSC, SCORC)
     { 's', fn (term, args) => term.save_cursor_sco() },
     { 'u', fn (term, args) => term.restore_cursor_sco() },
@@ -597,17 +600,17 @@ fn void delete_chars(Terminal* term, uint[] args)
 fn void insert_line(Terminal* term, uint[] args)
 {
     uint amount = args.len == 0 ? 1 : args[0];
-    for (int y = term.scroll.end + 1 - amount; y >= term.cursor.y; y--)
+    for (int y = term.scroll.bottom + 1 - amount; y >= term.cursor.y; y--)
     {
-        for (int x = 0; x < term.grid.width; x++)
+        for (int x = term.scroll.left; x <= term.scroll.right; x++)
         {
-            term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })] = term.grid.fg[term.get_grid_idx({ x, y })];
-            term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })] = term.grid.bg[term.get_grid_idx({ x, y })];
+            term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.top, term.scroll.bottom) })] = term.grid.fg[term.get_grid_idx({ x, y })];
+            term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.top, term.scroll.bottom) })] = term.grid.bg[term.get_grid_idx({ x, y })];
         }
     }
     for (int y = term.cursor.y; y < term.cursor.y + amount; y++)
     {
-        for (int x = 0; x < term.grid.width; x++)
+        for (int x = term.scroll.left; x <= term.scroll.right; x++)
         {
             term.grid.fg[term.get_grid_idx({ x, y })] = { .codepoint = ' ', .color = term.fg };
             term.grid.bg[term.get_grid_idx({ x, y })].color = term.bg;
@@ -617,17 +620,17 @@ fn void insert_line(Terminal* term, uint[] args)
 fn void delete_line(Terminal* term, uint[] args)
 {
     uint amount = args.len == 0 ? 1 : args[0];
-    for (int y = term.cursor.y; y < term.scroll.end + 1 - amount; y++)
+    for (int y = term.cursor.y; y < term.scroll.bottom + 1 - amount; y++)
     {
-        for (int x = 0; x < term.grid.width; x++)
+        for (int x = term.scroll.left; x <= term.scroll.right; x++)
         {
-            term.grid.fg[term.get_grid_idx({ x, y })] = term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })];
-            term.grid.bg[term.get_grid_idx({ x, y })] = term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })];
+            term.grid.fg[term.get_grid_idx({ x, y })] = term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.top, term.scroll.bottom) })];
+            term.grid.bg[term.get_grid_idx({ x, y })] = term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.top, term.scroll.bottom) })];
         }
     }
-    for (int y = term.scroll.end; y >= term.scroll.end + 1 - amount; y--)
+    for (int y = term.scroll.bottom; y >= term.scroll.bottom + 1 - amount; y--)
     {
-        for (int x = 0; x < term.grid.width; x++)
+        for (int x = term.scroll.left; x <= term.scroll.right; x++)
         {
             term.grid.fg[term.get_grid_idx({ x, y })] = { .codepoint = ' ', .color = term.fg };
             term.grid.bg[term.get_grid_idx({ x, y })].color = term.bg;
@@ -638,7 +641,7 @@ fn void scroll_up(Terminal* term, uint[] args)
 {
     long amount = args.len == 0 ? 1 : args[0];
     uint[<2>] old_cursor = term.cursor.position;
-    term.cursor.position = { 0, term.scroll.end };
+    term.cursor.position = { 0, term.scroll.bottom };
     term.scroll_lines(1);
     insert_line(term, { (uint)amount });
     term.scroll_lines(-1);
@@ -648,7 +651,7 @@ fn void scroll_down(Terminal* term, uint[] args)
 {
     long amount = args.len == 0 ? -1 : -args[0];
     uint[<2>] old_cursor = term.cursor.position;
-    term.cursor.position = { 0, term.scroll.start };
+    term.cursor.position = { 0, term.scroll.top };
     // term.scroll_lines(amount - 1);
     insert_line(term, { (uint)(-amount) });
     term.cursor.position = old_cursor;
@@ -667,12 +670,22 @@ fn void limit_scroll_topdown(Terminal* term, uint[] args)
     term.cursor.position = { 0, 0 };
     if (args.len == 2) if (args[0] == args[1])
     {
-        term.scroll = {
-            .start = 0,
-            .end = term.grid.height - 1
-        };
+        term.scroll.top = 0;
+        term.scroll.bottom = term.grid.height - 1;
         return;
     }
-    term.scroll.start = args.len == 0 ? 0 : args[0] - 1;
-    term.scroll.end = args.len <= 1 ? term.grid.height - 1 : args[1] - 1;
+    term.scroll.top = args.len == 0 ? 0 : args[0] - 1;
+    term.scroll.bottom = args.len <= 1 ? term.grid.height - 1 : args[1] - 1;
+}
+fn void limit_scroll_leftright(Terminal* term, uint[] args)
+{
+    term.cursor.position = { 0, 0 };
+    if (args.len == 2) if (args[0] == args[1])
+    {
+        term.scroll.left = 0;
+        term.scroll.right = term.grid.width - 1;
+        return;
+    }
+    term.scroll.left = args.len == 0 ? 0 : args[0] - 1;
+    term.scroll.right = args.len <= 1 ? term.grid.width - 1 : args[1] - 1;
 }
