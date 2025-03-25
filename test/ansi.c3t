@@ -358,6 +358,15 @@ macro assert_fg(fg, correct, fail = false)
     }
     assert(!fail);
 }
+macro assert_bg(bg, correct, fail = false)
+{
+    for (int i = 0; i < bg.len && i < correct.len; i++)
+    {
+        io::printfn("%d\tbg %s\tcorrect %s", i, bg[i], correct[i]);
+        assert(bg[i].equals(correct[i]) || fail);
+    }
+    assert(!fail);
+}
 macro interpret_str(term, str)
 {
     Char32[] buf32 = char32_from_str(str);
