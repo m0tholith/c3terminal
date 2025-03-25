@@ -270,6 +270,42 @@ fn void su_sd()
         assert_fg(terminal.grid.fg, correct);
     }
 }
+fn void decstbm()
+{
+    terminal.init_no_external(dimensions: { 6, 5 });
+    defer terminal.free_no_external();
+
+    String[] tests = {
+        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[r\e[T",
+        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2r\e[T",
+        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2;4r\e[T",
+        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[3;3r\e[T",
+    };
+    String[] correct_results = {
+        "      lorem ipsum dolor sit   ",
+        "lorem       ipsum dolor sit   ",
+        "lorem       ipsum dolor amet  ",
+        "      lorem ipsum dolor sit   ",
+    };
+
+    foreach (idx, test : tests)
+    {
+        terminal.clear();
+        terminal.cursor = {
+            .position = { 0, 0 },
+            .fg = terminal.fg,
+            .bg = terminal.bg,
+        };
+        terminal.scroll = {.end = terminal.grid.height - 1};
+        interpret_str(terminal, test);
+
+        GridCharFg[] correct = fg_from_array(correct_results[idx]);
+        defer mem::free(correct);
+
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
+        assert_fg(terminal.grid.fg, correct);
+    }
+}
 
 module terminal::ansi::test @private;
 
