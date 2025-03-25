@@ -86,8 +86,13 @@ fn void? parse_c1(Terminal* terminal, uint* char_idx, Char32[] buffer)
     if (buffer.len <= *char_idx) return INCOMPLETE?;
 
     if (buffer[*char_idx] < 0x80) return PARSE_FAILED?;
-    buffer[*char_idx] -= 0x40;
-    parse_fe(terminal, char_idx, buffer)!;
+    uint current_char_idx = *char_idx;
+    buffer[current_char_idx] -= 0x40;
+    if (catch excuse = parse_fe(terminal, char_idx, buffer))
+    {
+        buffer[current_char_idx] += 0x40;
+        return excuse?;
+    }
 }
 fn void? parse_c0(Terminal* terminal, uint* char_idx, Char32[] buffer)
 {
