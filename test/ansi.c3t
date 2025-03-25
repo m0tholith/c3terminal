@@ -226,6 +226,26 @@ fn void decstbm()
         },
     );
 }
+fn void decslrm()
+{
+    terminal.init_no_external(dimensions: { 6, 5 });
+    defer terminal.free_no_external();
+
+    compare_strings(
+        {
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[s\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2s\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2;4s\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[3;3s\e[T",
+        },
+        {
+            "      lorem ipsum dolor sit   ",
+            "l     iorem dpsum solor ait   ",
+            "l   m iorem dpsur solo  ait   ",
+            "      lorem ipsum dolor sit   ",
+        },
+    );
+}
 
 module terminal::ansi::test @private;
 
