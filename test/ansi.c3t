@@ -11,300 +11,220 @@ fn void no_ansi()
     terminal.init_no_external();
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "test[;;3mtest");
-
-    GridCharFg[] correct = fg_from_array("test[;;3mtest");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "test[;;3mtest",
+        },
+        {
+            "test[;;3mtest",
+        },
+    );
 }
 fn void ich()
 {
     terminal.init_no_external();
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "lorem ipsu\e[6D\e[4@");
-
-    GridCharFg[] correct = fg_from_array("lore    m ipsu");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "lorem ipsu\e[6D\e[4@",
+        },
+        {
+            "lore    m ipsu"
+        },
+    );
 }
 fn void cuu_cud_cuf_cub()
 {
     terminal.init_no_external(grid_size: 250, dimensions: { 39, 3 });
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.");
-
-    GridCharFg[] correct = fg_from_array("lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "lorem\r\nipsum\r\nblandit\e[Aconsectetur\e[DAelit\e[BAenean\e[C\e[2Ahendrerit.",
+        },
+        {
+            "lorem                        hendrerit.ipsum  consectetuAelit                 blandit               Aenean           ",
+        },
+    );
 }
 fn void cnl_cpl()
 {
     terminal.init_no_external(dimensions: { 8, 5 });
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "lorem\e[3Eipsum\e[Fdolor\e[Esit\e[2Famet.con");
-
-    GridCharFg[] correct = fg_from_array("lorem   amet.condolor   situm");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "lorem\e[3Eipsum\e[Fdolor\e[Esit\e[2Famet.con",
+        },
+        {
+            "lorem   amet.condolor   situm",
+        },
+    );
 }
 fn void cha()
 {
     terminal.init_no_external(dimensions: { 15, 5 });
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "lorem\e[10Gipsum\r\nsit\r\n\e[3Gdolor");
-
-    GridCharFg[] correct = fg_from_array("lorem    ipsum sit              dolor        ");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "lorem\e[10Gipsum\r\nsit\r\n\e[3Gdolor",
+        },
+        {
+            "lorem    ipsum sit              dolor        ",
+        },
+    );
 }
 fn void cup()
 {
     terminal.init_no_external(grid_size: 300, dimensions: { 26, 10 });
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "\e[;6Hlorem\e[5Hipsum\e[Hdolor\e[10;3Hsit");
-
-    GridCharFg[] correct = fg_from_array("dolorlorem                                                                                              ipsum                                                                                                                               sit                     ");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "\e[;6Hlorem\e[5Hipsum\e[Hdolor\e[10;3Hsit",
+        },
+        {
+            "dolorlorem                                                                                              ipsum                                                                                                                               sit                     ",
+        },
+    );
 }
 fn void ed()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[J",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[0J",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[1J",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[2J",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3J",
-    };
-    String[] correct_results = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                                                                                                  leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
-        "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[J",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[0J",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[1J",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[2J",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3J",
+        },
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                                                                                                  leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+            "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ",
+        },
+    );
 }
 fn void el()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[K",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[0K",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[1K",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[2K",
-    };
-    String[] correct_results = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                          m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                          m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                          leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                  m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[K",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[0K",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[1K",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[2K",
+        },
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                          m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis i                          m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                          leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                  m sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.",
+        },
+    );
 }
 fn void il()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[L",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3L",
-    };
-    String[] correct_results = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                  get viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                                                                                                                      get viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed ",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[L",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3L",
+        },
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                  get viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, e                                                                                                                                                      get viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed ",
+        },
+    );
 }
 fn void dl()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[M",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3M",
-    };
-    String[] correct_results = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, em sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.                                                  ",
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.                                                                                                                                                      ",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[M",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[5;25H\e[3M",
+        },
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, em sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.                                                  ",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.                                                                                                                                                      ",
+        },
+    );
 }
 fn void dch()
 {
     terminal.init_no_external();
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "lorem ipsu\e[6D\e[4P");
-
-    GridCharFg[] correct = fg_from_array("loresu");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "lorem ipsu\e[6D\e[4P"
+        },
+        {
+            "loresu"
+        },
+    );
 }
 fn void hvf()
 {
     terminal.init_no_external(grid_size: 300, dimensions: { 26, 10 });
     defer terminal.free_no_external();
 
-    interpret_str(terminal, "\e[;6florem\e[5fipsum\e[fdolor\e[10;3fsit");
-
-    GridCharFg[] correct = fg_from_array("dolorlorem                                                                                              ipsum                                                                                                                               sit                     ");
-    defer mem::free(correct);
-
-    assert_fg(terminal.grid.fg, correct);
+    compare_strings(
+        {
+            "\e[;6florem\e[5fipsum\e[fdolor\e[10;3fsit",
+        },
+        {
+            "dolorlorem                                                                                              ipsum                                                                                                                               sit                     ",
+        },
+    );
 }
 fn void su_sd()
 {
     terminal.init_no_external(grid_size: 1000, dimensions: { 50, 15 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[3T\e[S",
-    };
-    String[] correct_results = {
-        "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                       elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed                                                   ",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed sollicitudin arcu vel diam vestibulum condimentum. Suspendisse nec augue porta tortor luctus viverra non cursus lectus.\e[3T\e[S",
+        },
+        {
+            "Lorem ipsum dolor sit amet, consectetur adipiscing                                                                                                                                                       elit. Cras porttitor mi ac diam bibendum tristique. Morbi ut eros arcu. Phasellus egestas orci id risus eleifend sagittis. Mauris imperdiet, velit hendrerit varius mattis, arcu libero feugiat elit, eget viverra odio felis id leo. Ut fermentum pretium sollicitudin. Nam porttitor nisl nec venenatis maximus. Nulla venenatis imperdiet urna eget volutpat. Sed quis vestibulum est. Phasellus eu dui pretium, suscipit justo ac, tempus nisl. Aliquam a urna porttitor lorem imperdiet hendrerit in sit amet magna. Vivamus eget tortor urna. Maecenas vestibulum feugiat orci, ac placerat neque cursus ac. Sed                                                   ",
+        },
+    );
 }
 fn void decstbm()
 {
     terminal.init_no_external(dimensions: { 6, 5 });
     defer terminal.free_no_external();
 
-    String[] tests = {
-        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[r\e[T",
-        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2r\e[T",
-        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2;4r\e[T",
-        "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[3;3r\e[T",
-    };
-    String[] correct_results = {
-        "      lorem ipsum dolor sit   ",
-        "lorem       ipsum dolor sit   ",
-        "lorem       ipsum dolor amet  ",
-        "      lorem ipsum dolor sit   ",
-    };
-
-    foreach (idx, test : tests)
-    {
-        terminal.clear();
-        terminal.cursor = {
-            .position = { 0, 0 },
-            .fg = terminal.fg,
-            .bg = terminal.bg,
-        };
-        terminal.scroll = {.end = terminal.grid.height - 1};
-        interpret_str(terminal, test);
-
-        GridCharFg[] correct = fg_from_array(correct_results[idx]);
-        defer mem::free(correct);
-
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
-        assert_fg(terminal.grid.fg, correct);
-    }
+    compare_strings(
+        {
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[r\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2r\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[2;4r\e[T",
+            "lorem\r\nipsum\r\ndolor\r\nsit\r\namet\e[3;3r\e[T",
+        },
+        {
+            "      lorem ipsum dolor sit   ",
+            "lorem       ipsum dolor sit   ",
+            "lorem       ipsum dolor amet  ",
+            "      lorem ipsum dolor sit   ",
+        },
+    );
 }
 
 module terminal::ansi::test @private;
@@ -349,6 +269,26 @@ macro Terminal.free_no_external(&self)
     self.tabs.tabstopsDel.free();
 }
 
+macro compare_strings(String[] tests, String[] correct_results)
+{
+    foreach (idx, test : tests)
+    {
+        terminal.clear();
+        terminal.cursor = {
+            .position = { 0, 0 },
+            .fg = terminal.fg,
+            .bg = terminal.bg,
+        };
+        terminal.scroll = {.end = terminal.grid.height - 1};
+        interpret_str(terminal, test);
+
+        GridCharFg[] correct = fg_from_array(correct_results[idx]);
+        defer mem::free(correct);
+
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
+        assert_fg(terminal.grid.fg, correct);
+    }
+}
 macro assert_fg(fg, correct, fail = false)
 {
     for (int i = 0; i < fg.len && i < correct.len; i++)
