@@ -169,7 +169,7 @@ fn void? parse_fe(Terminal* terminal, uint* char_idx, Char32[] buffer)
             };
             terminal.settings = {};
             terminal.tabs     = {};
-            terminal.scroll   = 0;
+            terminal.scroll   = {};
             terminal.clear();
         case '(':
             (*char_idx)++;
@@ -332,6 +332,9 @@ AnsiMap csi_map = {
 
     // report cursor position (DSR)
     { 'n', &send_cursor_pos },
+
+    // limit scroll region top/down (DECSTBM)
+    { 'r', &limit_scroll_topdown },
 
     // save/restore cursor to sco (SCOSC, SCORC)
     { 's', fn (term, args) => term.save_cursor_sco() },
@@ -594,12 +597,12 @@ fn void delete_chars(Terminal* term, uint[] args)
 fn void insert_line(Terminal* term, uint[] args)
 {
     uint amount = args.len == 0 ? 1 : args[0];
-    for (int y = term.grid.height - amount; y >= term.cursor.y; y--)
+    for (int y = term.scroll.end + 1 - amount; y >= term.cursor.y; y--)
     {
         for (int x = 0; x < term.grid.width; x++)
         {
-            term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })] = term.grid.fg[term.get_grid_idx({ x, y })];
-            term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })] = term.grid.bg[term.get_grid_idx({ x, y })];
+            term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })] = term.grid.fg[term.get_grid_idx({ x, y })];
+            term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })] = term.grid.bg[term.get_grid_idx({ x, y })];
         }
     }
     for (int y = term.cursor.y; y < term.cursor.y + amount; y++)
@@ -614,15 +617,15 @@ fn void insert_line(Terminal* term, uint[] args)
 fn void delete_line(Terminal* term, uint[] args)
 {
     uint amount = args.len == 0 ? 1 : args[0];
-    for (int y = term.cursor.y; y < term.grid.height - amount; y++)
+    for (int y = term.cursor.y; y < term.scroll.end + 1 - amount; y++)
     {
         for (int x = 0; x < term.grid.width; x++)
         {
-            term.grid.fg[term.get_grid_idx({ x, y })] = term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })];
-            term.grid.bg[term.get_grid_idx({ x, y })] = term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, 0, term.grid.height - 1) })];
+            term.grid.fg[term.get_grid_idx({ x, y })] = term.grid.fg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })];
+            term.grid.bg[term.get_grid_idx({ x, y })] = term.grid.bg[term.get_grid_idx({ x, math::clamp(y + amount, term.scroll.start, term.scroll.end) })];
         }
     }
-    for (int y = term.grid.height - 1; y >= term.grid.height - amount; y--)
+    for (int y = term.scroll.end; y >= term.scroll.end + 1 - amount; y--)
     {
         for (int x = 0; x < term.grid.width; x++)
         {
@@ -635,7 +638,7 @@ fn void scroll_up(Terminal* term, uint[] args)
 {
     long amount = args.len == 0 ? 1 : args[0];
     uint[<2>] old_cursor = term.cursor.position;
-    term.cursor.position = { 0, term.grid.height - 1 };
+    term.cursor.position = { 0, term.scroll.end };
     term.scroll_lines(1);
     insert_line(term, { (uint)amount });
     term.scroll_lines(-1);
@@ -645,7 +648,7 @@ fn void scroll_down(Terminal* term, uint[] args)
 {
     long amount = args.len == 0 ? -1 : -args[0];
     uint[<2>] old_cursor = term.cursor.position;
-    term.cursor.position = { 0, 0 };
+    term.cursor.position = { 0, term.scroll.start };
     // term.scroll_lines(amount - 1);
     insert_line(term, { (uint)(-amount) });
     term.cursor.position = old_cursor;
@@ -658,4 +661,18 @@ fn void erase_chars(Terminal* term, uint[] args)
     {
         term.grid.fg[term.get_grid_idx({ x, term.cursor.y })].codepoint = ' ';
     }
+}
+fn void limit_scroll_topdown(Terminal* term, uint[] args)
+{
+    term.cursor.position = { 0, 0 };
+    if (args.len == 2) if (args[0] == args[1])
+    {
+        term.scroll = {
+            .start = 0,
+            .end = term.grid.height - 1
+        };
+        return;
+    }
+    term.scroll.start = args.len == 0 ? 0 : args[0] - 1;
+    term.scroll.end = args.len <= 1 ? term.grid.height - 1 : args[1] - 1;
 }

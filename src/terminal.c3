@@ -64,6 +64,12 @@ struct Tabs
     // positions where a tabstop has been removed by user
     List{uint[<2>]} tabstopsDel;
 }
+struct Scroll
+{
+    inline long amount;
+    uint start;
+    uint end;
+}
 struct Terminal
 {
     window::Window window;
@@ -77,7 +83,7 @@ struct Terminal
     // if last command pty sent was incomplete, this will be populated and, on the next read, will be appended and interpreted
     Char32[] lastBuffer;
     // number of lines that will be clipped from the top of the screen
-    long scroll;
+    Scroll scroll;
 }
 Terminal terminal @public @builtin;
 
@@ -137,6 +143,12 @@ fn void? Terminal.init(&self, int window_width = 0, int window_height = 0, Strin
     self.tabs.tabstopsNew.init(mem);
     self.tabs.tabstopsDel.init(mem);
 
+    self.scroll = {
+        .amount = 0,
+        .start = 0,
+        .end = self.grid.height - 1,
+    };
+
     pty.set_winsize(self.grid.dimensions);
 }
 <*
@@ -182,7 +194,7 @@ fn void Terminal.erase(&self, uint[<2>] start, usz length)
         self.grid.bg[i % self.grid.size].color = self.bg;
     }
 }
-macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll)) % self.grid.size;
+macro usz Terminal.get_grid_idx(&self, uint[<2>] position) => ((usz)position.x + self.grid.width * (usz)(position.y + self.scroll.amount)) % self.grid.size;
 fn void Terminal.set_cursor(&self, long[<2>] position) @inline
 {
     self.cursor.position = { (uint)math::clamp(position.x, 0, self.grid.width - 1), (uint)math::clamp(position.y, 0, self.grid.height - 1) };
@@ -226,7 +238,7 @@ macro Terminal.newline(&self, long row_translation = 1)
     self.set_cursor({ 0, (uint)((long)self.cursor.y + row_translation) });
     self.cursor.x = 0;
 }
-fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll = (uint)((long)(self.scroll + amount) % (self.grid.size / self.grid.width));
+fn void Terminal.scroll_lines(&self, long amount) @inline => self.scroll.amount = (uint)((long)(self.scroll.amount + amount) % (self.grid.size / self.grid.width));
 fn void Terminal.tab(&self, uint amount = 1)
 {
     for (; amount > 0; amount--)
@@ -301,7 +313,7 @@ fn void Terminal.render(&self)
 {
     self.window.clear_color(self.bg);
 
-    usz char_start = (usz)(self.grid.width * self.scroll);
+    usz char_start = (usz)(self.grid.width * self.scroll.amount);
     self.fontAtlas.render_grid_bg(self.grid.bg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, (uint[<2>])((long[<2>])self.cursor.position + {0,self.scroll}), {255,255,255}, char_start: char_start);
     self.fontAtlas.render_grid_fg(self.grid.fg, self.window.width, self.window.height, self.grid.width, self.grid.height, self.grid.fontSize, char_start: char_start);
 

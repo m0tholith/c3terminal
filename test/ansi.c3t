@@ -106,13 +106,13 @@ fn void ed()
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = 0;
+        terminal.scroll = {.end = terminal.grid.height - 1};
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);
         defer mem::free(correct);
 
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll);
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
         assert_fg(terminal.grid.fg, correct);
     }
 }
@@ -142,13 +142,13 @@ fn void el()
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = 0;
+        terminal.scroll = {.end = terminal.grid.height - 1};
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);
         defer mem::free(correct);
 
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll);
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
         assert_fg(terminal.grid.fg, correct);
     }
 }
@@ -174,13 +174,13 @@ fn void il()
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = 0;
+        terminal.scroll = {.end = terminal.grid.height - 1};
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);
         defer mem::free(correct);
 
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll);
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
         assert_fg(terminal.grid.fg, correct);
     }
 }
@@ -206,13 +206,13 @@ fn void dl()
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = 0;
+        terminal.scroll = {.end = terminal.grid.height - 1};
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);
         defer mem::free(correct);
 
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll);
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
         assert_fg(terminal.grid.fg, correct);
     }
 }
@@ -260,13 +260,13 @@ fn void su_sd()
             .fg = terminal.fg,
             .bg = terminal.bg,
         };
-        terminal.scroll = 0;
+        terminal.scroll = {.end = terminal.grid.height - 1};
         interpret_str(terminal, test);
 
         GridCharFg[] correct = fg_from_array(correct_results[idx]);
         defer mem::free(correct);
 
-        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll);
+        print_fg(terminal.grid.fg, terminal.grid.width, terminal.grid.size / terminal.grid.width, terminal.grid.width * terminal.scroll.amount);
         assert_fg(terminal.grid.fg, correct);
     }
 }
@@ -299,6 +299,12 @@ macro Terminal.init_no_external(&self, usz grid_size = 200, float font_size = 20
     self.tabs.spaces = 8;
     self.tabs.tabstopsNew.init(mem);
     self.tabs.tabstopsDel.init(mem);
+
+    self.scroll = {
+        .amount = 0,
+        .start = 0,
+        .end = self.grid.height - 1,
+    };
 }
 macro Terminal.free_no_external(&self)
 {
